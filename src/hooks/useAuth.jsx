@@ -14,17 +14,27 @@ export function AuthProvider({ children }) {
       return
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
-      else setLoading(false)
-    })
+    // 1. 먼저 리스너 등록 (OAuth 콜백 토큰 감지)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        const currentUser = session?.user ?? null
+        setUser(currentUser)
+        if (currentUser) {
+          await fetchProfile(currentUser)
+        } else {
+          setProfile(null)
+          setLoading(false)
+        }
+      }
+    )
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
-      else {
-        setProfile(null)
+    // 2. 기존 세션 확인
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+      if (currentUser) {
+        await fetchProfile(currentUser)
+      } else {
         setLoading(false)
       }
     })
@@ -32,28 +42,40 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  async function fetchProfile(userId) {
+  async function fetchProfile(authUser) {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', userId)
+      .eq('id', authUser.id)
       .single()
-    if (error || !data) {
-      // 프로필이 아직 생성 안 됐을 수 있음 (Google 첫 로그인 등)
-      // 잠시 후 재시도
-      setTimeout(async () => {
-        const { data: retryData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single()
-        setProfile(retryData)
-        setLoading(false)
-      }, 1500)
-    } else {
+
+    if (data) {
       setProfile(data)
       setLoading(false)
+      return
     }
+
+    // 프로필이 없으면 (트리거 아직 안 됐거나 실패) 직접 생성 시도
+    const displayName =
+      authUser.user_metadata?.full_name ||
+      authUser.user_metadata?.name ||
+      authUser.email?.split('@')[0] ||
+      '사용자'
+
+    const { data: newProfile } = await supabase
+      .from('profiles')
+      .upsert({
+        id: authUser.id,
+        email: authUser.email,
+        display_name: displayName,
+        role: 'student',
+        credits: 3,
+      }, { onConflict: 'id' })
+      .select()
+      .single()
+
+    setProfile(newProfile)
+    setLoading(false)
   }
 
   async function signUp(email, password, displayName) {
