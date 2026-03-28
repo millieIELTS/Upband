@@ -4,6 +4,7 @@ import { Send, Loader2, ArrowLeft, Lock, RotateCcw } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { getWritingFeedback } from '../lib/claude'
 import FeedbackDisplay from '../components/writing/FeedbackDisplay'
+import Task1Chart from '../components/writing/Task1Chart'
 
 const task1Questions = [
   {
@@ -130,7 +131,8 @@ export default function WritingTask() {
           </button>
         </div>
         <p className="text-sm text-text leading-relaxed mb-3">{question.prompt}</p>
-        <p className="text-xs text-text-secondary italic">{question.instruction}</p>
+        {taskType === 'task1' && <Task1Chart questionIndex={questionIndex} />}
+        <p className="text-xs text-text-secondary italic mt-3">{question.instruction}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
