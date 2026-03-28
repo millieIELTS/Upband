@@ -10,6 +10,8 @@ import SpeakingPart3 from './pages/SpeakingPart3'
 import History from './pages/History'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
+import MyPage from './pages/MyPage'
+import Settings from './pages/Settings'
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
           <Route path="/history" element={<History />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/mypage" element={<MyPage />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>

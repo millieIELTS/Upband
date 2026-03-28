@@ -56,10 +56,13 @@ export default function Navbar() {
                 <Coins size={12} className="text-accent" />
                 {profile?.credits ?? 0}
               </span>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-text-secondary">
+              <Link
+                to="/mypage"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-text-secondary no-underline hover:bg-gray-100 transition-colors"
+              >
                 <User size={16} />
                 {profile?.display_name || '사용자'}
-              </div>
+              </Link>
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-sm text-text-secondary hover:bg-gray-100 transition-colors"
@@ -99,7 +102,11 @@ export default function Navbar() {
 
           {user ? (
             <>
-              <div className="flex items-center justify-between px-3 py-2">
+              <Link
+                to="/mypage"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-between px-3 py-2 no-underline rounded-lg hover:bg-gray-100 transition-colors"
+              >
                 <div className="flex items-center gap-2 text-sm text-text-secondary">
                   <User size={16} />
                   {profile?.display_name || '사용자'}
@@ -108,7 +115,7 @@ export default function Navbar() {
                   <Coins size={12} className="text-accent" />
                   {profile?.credits ?? 0} 크레딧
                 </span>
-              </div>
+              </Link>
               <button
                 onClick={handleSignOut}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-error hover:bg-error/5 transition-colors"
