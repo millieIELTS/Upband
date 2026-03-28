@@ -33,13 +33,27 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function fetchProfile(userId) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single()
-    setProfile(data)
-    setLoading(false)
+    if (error || !data) {
+      // 프로필이 아직 생성 안 됐을 수 있음 (Google 첫 로그인 등)
+      // 잠시 후 재시도
+      setTimeout(async () => {
+        const { data: retryData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single()
+        setProfile(retryData)
+        setLoading(false)
+      }, 1500)
+    } else {
+      setProfile(data)
+      setLoading(false)
+    }
   }
 
   async function signUp(email, password, displayName) {
