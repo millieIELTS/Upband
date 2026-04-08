@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 
 export default function Settings() {
-  const { user, profile, signOut, loading: authLoading } = useAuth()
+  const { user, profile, signOut, refreshProfile, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [displayName, setDisplayName] = useState(profile?.display_name || '')
   const [saving, setSaving] = useState(false)
@@ -33,15 +33,13 @@ export default function Settings() {
     setSaving(true)
     setMessage('')
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({ display_name: displayName.trim(), updated_at: new Date().toISOString() })
-      .eq('id', user.id)
+    const { error } = await supabase.rpc('update_my_display_name', { new_name: displayName.trim() })
 
     if (error) {
       setMessage('저장에 실패했습니다: ' + error.message)
     } else {
       setMessage('이름이 변경되었습니다.')
+      await refreshProfile()
     }
     setSaving(false)
   }

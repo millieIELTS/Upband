@@ -7,6 +7,7 @@ import {
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
+import { BookOpen } from 'lucide-react'
 
 export default function Dashboard() {
   const { user, profile, loading: authLoading } = useAuth()
@@ -167,6 +168,21 @@ export default function Dashboard() {
             <span className="text-xs text-text-secondary">학생 에세이 확인 · 확인여부 체크</span>
           </div>
           <span className="text-xs text-accent font-medium">바로가기 →</span>
+        </div>
+      </Link>
+
+      {/* 전자책 관리 바로가기 */}
+      <Link
+        to="/dashboard/ebooks"
+        className="block mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl no-underline hover:bg-emerald-100 transition-colors"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BookOpen size={18} className="text-emerald-600" />
+            <span className="text-sm font-medium text-text">전자책 관리</span>
+            <span className="text-xs text-text-secondary">PDF 등록 · 가격 설정 · 공개/비공개</span>
+          </div>
+          <span className="text-xs text-emerald-600 font-medium">바로가기 →</span>
         </div>
       </Link>
 

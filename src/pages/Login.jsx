@@ -35,8 +35,18 @@ export default function Login() {
     }
   }
 
+  const isInAppBrowser = () => {
+    const ua = navigator.userAgent || ''
+    return /FBAN|FBAV|Instagram|SamsungBrowser.*CrossApp|NAVER|Line|KakaoTalk|wv\)/i.test(ua)
+  }
+
   const handleGoogle = async () => {
     setError('')
+    // 삼성/카카오 등 인앱 브라우저에서 Google OAuth 차단됨 → 외부 브라우저 안내
+    if (isInAppBrowser()) {
+      setError('인앱 브라우저에서는 Google 로그인이 지원되지 않습니다. 우측 상단 ⋮ 메뉴에서 "Chrome으로 열기" 또는 "외부 브라우저로 열기"를 선택해주세요.')
+      return
+    }
     const { error: authError } = await signInWithGoogle()
     if (authError) setError(authError.message)
   }

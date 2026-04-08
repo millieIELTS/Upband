@@ -18,6 +18,8 @@ import WritingHomeworkSelect from './pages/WritingHomeworkSelect'
 import MyPage from './pages/MyPage'
 import Settings from './pages/Settings'
 import SubmissionDetail from './pages/SubmissionDetail'
+import Store from './pages/Store'
+import AdminEbooks from './pages/AdminEbooks'
 
 function App() {
   return (
@@ -39,6 +41,8 @@ function App() {
           <Route path="/history" element={<History />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/submissions" element={<SubmissionDetail />} />
+          <Route path="/dashboard/ebooks" element={<AdminEbooks />} />
+          <Route path="/store" element={<Store />} />
           <Route path="/login" element={<Login />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/settings" element={<Settings />} />
