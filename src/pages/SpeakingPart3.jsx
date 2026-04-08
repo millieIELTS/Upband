@@ -7,6 +7,7 @@ import { getSpeakingFeedback } from '../lib/claude'
 import { transcribeAudio } from '../lib/stt'
 import { speakQuestion } from '../lib/tts'
 import FeedbackResult from '../components/speaking/FeedbackResult'
+import QuestionProgress from '../components/speaking/QuestionProgress'
 
 const sampleQuestions = [
   'Do you think it is important for people to have hobbies? Why or why not?',
@@ -76,15 +77,19 @@ export default function SpeakingPart3() {
     }
   }
 
-  const nextQuestion = () => {
+  const goToQuestion = (index) => {
     speechSynthesis.cancel()
-    setQuestionIndex((prev) => (prev + 1) % sampleQuestions.length)
+    setQuestionIndex(index)
     setQuestionPlayed(false)
     setPlaying(false)
     setResult(null)
     setTranscript('')
     setError('')
     clearRecording()
+  }
+
+  const nextQuestion = () => {
+    goToQuestion((questionIndex + 1) % sampleQuestions.length)
   }
 
   return (
@@ -97,7 +102,13 @@ export default function SpeakingPart3() {
       </Link>
 
       <h1 className="text-2xl font-bold mb-1">Speaking Part 3</h1>
-      <p className="text-text-secondary text-sm mb-8">심화 질문을 듣고 답변을 녹음하세요.</p>
+      <p className="text-text-secondary text-sm mb-4">심화 질문을 듣고 답변을 녹음하세요.</p>
+
+      <QuestionProgress
+        current={questionIndex}
+        total={sampleQuestions.length}
+        onSelect={goToQuestion}
+      />
 
       {/* Question audio */}
       <div className="bg-surface rounded-xl border border-border p-6 mb-4">
