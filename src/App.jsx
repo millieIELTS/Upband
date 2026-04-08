@@ -6,6 +6,7 @@ import WritingTask from './pages/WritingTask'
 import Speaking from './pages/Speaking'
 import SpeakingPart1Select from './pages/SpeakingPart1Select'
 import SpeakingPart1 from './pages/SpeakingPart1'
+import SpeakingPart2Select from './pages/SpeakingPart2Select'
 import SpeakingPart2 from './pages/SpeakingPart2'
 import SpeakingPart3Select from './pages/SpeakingPart3Select'
 import SpeakingPart3 from './pages/SpeakingPart3'
@@ -30,7 +31,8 @@ function App() {
           <Route path="/speaking" element={<Speaking />} />
           <Route path="/speaking/part1" element={<SpeakingPart1Select />} />
           <Route path="/speaking/part1/:topicId" element={<SpeakingPart1 />} />
-          <Route path="/speaking/part2" element={<SpeakingPart2 />} />
+          <Route path="/speaking/part2" element={<SpeakingPart2Select />} />
+          <Route path="/speaking/part2/:topicId" element={<SpeakingPart2 />} />
           <Route path="/speaking/part3" element={<SpeakingPart3Select />} />
           <Route path="/speaking/part3/:topicId" element={<SpeakingPart3 />} />
           <Route path="/history" element={<History />} />

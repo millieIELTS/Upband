@@ -1,33 +1,22 @@
 import { useState, useCallback, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Clock, Mic, MicOff, Send, Loader2, RotateCcw } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft, Clock, Mic, MicOff, Send, Loader2 } from 'lucide-react'
 import useTimer from '../hooks/useTimer'
 import useRecorder from '../hooks/useRecorder'
 import { useAuth } from '../hooks/useAuth'
 import { getSpeakingFeedback } from '../lib/claude'
 import { transcribeAudio } from '../lib/stt'
 import FeedbackResult from '../components/speaking/FeedbackResult'
-
-const sampleTopics = [
-  {
-    title: 'Describe a place you have visited that you particularly liked.',
-    points: ['Where it was', 'When you went there', 'What you did there', 'And explain why you liked it'],
-  },
-  {
-    title: 'Describe a skill you learned that you think is useful.',
-    points: ['What the skill is', 'How you learned it', 'How often you use it', 'And explain why you think it is useful'],
-  },
-  {
-    title: 'Describe an interesting conversation you had recently.',
-    points: ['Who you talked to', 'Where you were', 'What you talked about', 'And explain why it was interesting'],
-  },
-]
+import { part2Part3Topics } from '../data/speakingQuestions'
 
 const PREP_SECONDS = 60
 const SPEECH_SECONDS = 120
 
 export default function SpeakingPart2() {
-  const [topicIndex, setTopicIndex] = useState(0)
+  const { topicId } = useParams()
+  const topicData = part2Part3Topics.find(t => t.id === Number(topicId)) || part2Part3Topics[0]
+  const topic = topicData.part2
+
   const [phase, setPhase] = useState('ready')
   const [loading, setLoading] = useState(false)
   const [transcribing, setTranscribing] = useState(false)
@@ -53,8 +42,6 @@ export default function SpeakingPart2() {
   const prepTimer = useTimer(PREP_SECONDS, onPrepComplete)
   const speechTimer = useTimer(SPEECH_SECONDS, onSpeechComplete)
   speechTimerRef.current = speechTimer.start
-
-  const topic = sampleTopics[topicIndex]
 
   const startPrep = () => {
     setPhase('prep')
@@ -98,7 +85,6 @@ export default function SpeakingPart2() {
   }
 
   const reset = () => {
-    setTopicIndex((prev) => (prev + 1) % sampleTopics.length)
     setPhase('ready')
     setResult(null)
     setTranscript('')
@@ -111,24 +97,17 @@ export default function SpeakingPart2() {
   return (
     <div>
       <Link
-        to="/speaking"
+        to="/speaking/part2"
         className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-primary mb-4 no-underline"
       >
-        <ArrowLeft size={14} /> Part 선택으로 돌아가기
+        <ArrowLeft size={14} /> 주제 선택으로 돌아가기
       </Link>
 
-      <h1 className="text-2xl font-bold mb-1">Speaking Part 2</h1>
+      <h1 className="text-2xl font-bold mb-1">Speaking Part 2 — {topicData.name}</h1>
       <p className="text-text-secondary text-sm mb-8">주제 카드를 보고 1분 준비 → 2분 스피치</p>
 
       <div className="bg-surface rounded-xl border border-border p-6 mb-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-sm">Topic Card</h3>
-          {phase === 'ready' && (
-            <button onClick={reset} className="text-xs text-text-secondary hover:text-primary flex items-center gap-1">
-              <RotateCcw size={12} /> 다른 주제
-            </button>
-          )}
-        </div>
+        <h3 className="font-semibold text-sm mb-4">Topic Card</h3>
         <p className="font-medium text-text mb-3">{topic.title}</p>
         <p className="text-xs text-text-secondary mb-2">You should say:</p>
         <ul className="space-y-1">
