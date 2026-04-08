@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, PenLine, Mic, CheckCircle, Circle, ChevronDown, ChevronUp,
-  Clock, User as UserIcon, FileText,
+  Clock, User as UserIcon, FileText, Save, Loader2,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
@@ -16,6 +16,9 @@ export default function SubmissionDetail() {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(null)
+  const [feedbackInput, setFeedbackInput] = useState({})
+  const [bandInput, setBandInput] = useState({})
+  const [saving, setSaving] = useState(null)
 
   const isAdmin = profile?.role === 'admin' || profile?.role === 'teacher'
 
@@ -52,6 +55,26 @@ export default function SubmissionDetail() {
     } else {
       setSpeaking(prev => prev.map(s => s.id === id ? { ...s, reviewed: !current } : s))
     }
+  }
+
+  async function saveFeedback(subId) {
+    const band = parseFloat(bandInput[subId])
+    const fb = feedbackInput[subId]?.trim()
+    if (!fb && isNaN(band)) return
+
+    setSaving(subId)
+    await supabase.rpc('admin_save_feedback', {
+      submission_id: subId,
+      band: isNaN(band) ? null : band,
+      feedback: fb || null,
+    })
+    setWriting(prev => prev.map(s => s.id === subId ? {
+      ...s,
+      teacher_band: isNaN(band) ? s.teacher_band : band,
+      teacher_feedback: fb || s.teacher_feedback,
+      reviewed: true,
+    } : s))
+    setSaving(null)
   }
 
   const getStudent = (userId) => students.find(s => s.id === userId)
@@ -187,15 +210,52 @@ export default function SubmissionDetail() {
                         {sub.essay}
                       </div>
                     </div>
-                    {sub.overall_band && (
-                      <div className="flex gap-3 flex-wrap text-xs">
-                        <span>CC: <b>{sub.score_cc}</b></span>
-                        <span>LR: <b>{sub.score_lr}</b></span>
-                        <span>GRA: <b>{sub.score_gra}</b></span>
-                        {sub.score_ta && <span>TA: <b>{sub.score_ta}</b></span>}
-                        {sub.score_tr && <span>TR: <b>{sub.score_tr}</b></span>}
+                    {/* 기존 선생님 피드백 표시 */}
+                    {sub.teacher_band && (
+                      <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-medium text-primary">선생님 채점</span>
+                          <span className={`text-sm font-bold ${bandColor(sub.teacher_band)}`}>Band {sub.teacher_band}</span>
+                        </div>
+                        {sub.teacher_feedback && (
+                          <p className="text-sm text-text whitespace-pre-wrap">{sub.teacher_feedback}</p>
+                        )}
                       </div>
                     )}
+
+                    {/* 선생님 피드백 입력 폼 */}
+                    <div className="p-3 bg-white rounded-lg border border-border space-y-2">
+                      <p className="text-xs font-medium text-text-secondary">
+                        {sub.teacher_band ? '피드백 수정' : '피드백 작성'}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-text-secondary shrink-0">Band</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="9"
+                          step="0.5"
+                          value={bandInput[sub.id] ?? sub.teacher_band ?? ''}
+                          onChange={(e) => setBandInput(prev => ({ ...prev, [sub.id]: e.target.value }))}
+                          placeholder="6.5"
+                          className="w-20 px-2 py-1.5 text-sm rounded border border-border focus:outline-none focus:border-primary"
+                        />
+                      </div>
+                      <textarea
+                        value={feedbackInput[sub.id] ?? sub.teacher_feedback ?? ''}
+                        onChange={(e) => setFeedbackInput(prev => ({ ...prev, [sub.id]: e.target.value }))}
+                        placeholder="학생에게 전달할 피드백을 작성하세요..."
+                        className="w-full h-28 p-2 text-sm rounded border border-border resize-y focus:outline-none focus:border-primary"
+                      />
+                      <button
+                        onClick={() => saveFeedback(sub.id)}
+                        disabled={saving === sub.id}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
+                      >
+                        {saving === sub.id ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        {saving === sub.id ? '저장 중...' : '피드백 저장'}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
