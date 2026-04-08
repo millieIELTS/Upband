@@ -139,6 +139,7 @@ export default function WritingTask() {
         <textarea
           value={essay}
           onChange={(e) => setEssay(e.target.value)}
+          onPaste={(e) => { e.preventDefault(); setError('붙여넣기가 비활성화되어 있습니다. 직접 입력해주세요.') }}
           placeholder={info.placeholder}
           autoComplete="off"
           autoCorrect="off"

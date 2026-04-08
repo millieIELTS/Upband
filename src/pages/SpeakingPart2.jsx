@@ -10,6 +10,7 @@ import FeedbackResult from '../components/speaking/FeedbackResult'
 import { part2Part3Topics } from '../data/speakingQuestions'
 
 const PREP_SECONDS = 60
+const COUNTDOWN_SECONDS = 5
 const SPEECH_SECONDS = 120
 
 export default function SpeakingPart2() {
@@ -18,6 +19,7 @@ export default function SpeakingPart2() {
   const topic = topicData.part2
 
   const [phase, setPhase] = useState('ready')
+  const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS)
   const [loading, setLoading] = useState(false)
   const [transcribing, setTranscribing] = useState(false)
   const [transcript, setTranscript] = useState('')
@@ -27,17 +29,32 @@ export default function SpeakingPart2() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const speechTimerRef = useRef(null)
+  const countdownRef = useRef(null)
 
   const onSpeechComplete = useCallback(() => {
     stopRecording()
     setPhase('done')
   }, [stopRecording])
 
-  const onPrepComplete = useCallback(() => {
-    setPhase('speaking')
-    startRecording()
-    speechTimerRef.current?.()
+  const startSpeechAfterCountdown = useCallback(() => {
+    setPhase('countdown')
+    setCountdown(COUNTDOWN_SECONDS)
+    let remaining = COUNTDOWN_SECONDS
+    countdownRef.current = setInterval(() => {
+      remaining -= 1
+      setCountdown(remaining)
+      if (remaining <= 0) {
+        clearInterval(countdownRef.current)
+        setPhase('speaking')
+        startRecording()
+        speechTimerRef.current?.()
+      }
+    }, 1000)
   }, [startRecording])
+
+  const onPrepComplete = useCallback(() => {
+    startSpeechAfterCountdown()
+  }, [startSpeechAfterCountdown])
 
   const prepTimer = useTimer(PREP_SECONDS, onPrepComplete)
   const speechTimer = useTimer(SPEECH_SECONDS, onSpeechComplete)
@@ -85,7 +102,9 @@ export default function SpeakingPart2() {
   }
 
   const reset = () => {
+    if (countdownRef.current) clearInterval(countdownRef.current)
     setPhase('ready')
+    setCountdown(COUNTDOWN_SECONDS)
     setResult(null)
     setTranscript('')
     setError('')
@@ -133,6 +152,14 @@ export default function SpeakingPart2() {
           <p className="text-sm text-text-secondary mb-2">준비 시간</p>
           <div className="text-5xl font-bold text-accent mb-3">{prepTimer.formatted}</div>
           <p className="text-xs text-text-secondary">시간이 끝나면 자동으로 녹음이 시작됩니다</p>
+        </div>
+      )}
+
+      {phase === 'countdown' && (
+        <div className="bg-primary/5 rounded-xl border-2 border-primary/30 p-8 text-center">
+          <p className="text-lg font-semibold text-primary mb-3">🎙 스피킹을 시작해주세요</p>
+          <div className="text-6xl font-bold text-primary mb-3">{countdown}</div>
+          <p className="text-sm text-text-secondary">곧 녹음이 시작됩니다</p>
         </div>
       )}
 

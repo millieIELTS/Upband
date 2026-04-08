@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, Plus, Trash2, Save, Loader2, BookOpen, Eye, EyeOff,
+  ArrowLeft, Plus, Trash2, Save, Loader2, BookOpen, Eye, EyeOff, Upload, Image as ImageIcon, FileText,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
@@ -13,7 +13,10 @@ export default function AdminEbooks() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(null)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ title: '', description: '', price: 0, file_url: '', cover_url: '' })
+  const [form, setForm] = useState({ title: '', description: '', price: 0 })
+  const [coverFile, setCoverFile] = useState(null)
+  const [pdfFile, setPdfFile] = useState(null)
+  const [uploadProgress, setUploadProgress] = useState('')
 
   const isAdmin = profile?.role === 'admin'
 
@@ -35,30 +38,64 @@ export default function AdminEbooks() {
     setLoading(false)
   }
 
+  async function uploadFile(file, folder) {
+    const ext = file.name.split('.').pop()
+    const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+    const { data, error } = await supabase.storage
+      .from('ebooks')
+      .upload(fileName, file, { cacheControl: '3600', upsert: false })
+    if (error) throw error
+    const { data: urlData } = supabase.storage.from('ebooks').getPublicUrl(fileName)
+    return urlData.publicUrl
+  }
+
   async function handleCreate(e) {
     e.preventDefault()
     if (!form.title.trim()) return
     setSaving('new')
+    setUploadProgress('')
 
-    const { data, error } = await supabase
-      .from('ebooks')
-      .insert({
-        title: form.title.trim(),
-        description: form.description.trim() || null,
-        price: parseInt(form.price) || 0,
-        file_url: form.file_url.trim() || null,
-        cover_url: form.cover_url.trim() || null,
-        is_published: false,
-      })
-      .select()
-      .single()
+    try {
+      let cover_url = null
+      let file_url = null
 
-    if (data) {
-      setEbooks(prev => [data, ...prev])
-      setForm({ title: '', description: '', price: 0, file_url: '', cover_url: '' })
-      setShowForm(false)
+      if (coverFile) {
+        setUploadProgress('커버 이미지 업로드 중...')
+        cover_url = await uploadFile(coverFile, 'covers')
+      }
+      if (pdfFile) {
+        setUploadProgress('PDF 파일 업로드 중...')
+        file_url = await uploadFile(pdfFile, 'pdfs')
+      }
+
+      setUploadProgress('저장 중...')
+      const { data, error } = await supabase
+        .from('ebooks')
+        .insert({
+          title: form.title.trim(),
+          description: form.description.trim() || null,
+          price: parseInt(form.price) || 0,
+          file_url,
+          cover_url,
+          is_published: false,
+        })
+        .select()
+        .single()
+
+      if (data) {
+        setEbooks(prev => [data, ...prev])
+        setForm({ title: '', description: '', price: 0 })
+        setCoverFile(null)
+        setPdfFile(null)
+        setShowForm(false)
+      }
+      if (error) throw error
+    } catch (err) {
+      alert('업로드 실패: ' + (err.message || '알 수 없는 오류'))
+    } finally {
+      setSaving(null)
+      setUploadProgress('')
     }
-    setSaving(null)
   }
 
   async function togglePublish(id, current) {
@@ -130,38 +167,57 @@ export default function AdminEbooks() {
               placeholder="전자책 설명"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-text-secondary mb-1">가격 (원, 0=무료)</label>
-              <input
-                type="number"
-                min="0"
-                value={form.price}
-                onChange={(e) => setForm(prev => ({ ...prev, price: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:border-primary"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-text-secondary mb-1">커버 이미지 URL</label>
-              <input
-                type="url"
-                value={form.cover_url}
-                onChange={(e) => setForm(prev => ({ ...prev, cover_url: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:border-primary"
-                placeholder="https://..."
-              />
-            </div>
-          </div>
           <div>
-            <label className="block text-xs text-text-secondary mb-1">PDF 파일 URL (다운로드/구매 링크)</label>
+            <label className="block text-xs text-text-secondary mb-1">가격 (원, 0=무료)</label>
             <input
-              type="url"
-              value={form.file_url}
-              onChange={(e) => setForm(prev => ({ ...prev, file_url: e.target.value }))}
+              type="number"
+              min="0"
+              value={form.price}
+              onChange={(e) => setForm(prev => ({ ...prev, price: e.target.value }))}
               className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:border-primary"
-              placeholder="https://... 또는 Supabase Storage URL"
             />
           </div>
+          <div>
+            <label className="block text-xs text-text-secondary mb-1">
+              <ImageIcon size={12} className="inline mr-1" />
+              커버 이미지
+            </label>
+            <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors">
+              <Upload size={14} className="text-text-secondary" />
+              <span className="text-sm text-text-secondary">
+                {coverFile ? coverFile.name : '이미지 파일 선택 (JPG, PNG)'}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setCoverFile(e.target.files[0] || null)}
+                className="hidden"
+              />
+            </label>
+          </div>
+          <div>
+            <label className="block text-xs text-text-secondary mb-1">
+              <FileText size={12} className="inline mr-1" />
+              PDF 파일
+            </label>
+            <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors">
+              <Upload size={14} className="text-text-secondary" />
+              <span className="text-sm text-text-secondary">
+                {pdfFile ? pdfFile.name : 'PDF 파일 선택'}
+              </span>
+              <input
+                type="file"
+                accept=".pdf,application/pdf"
+                onChange={(e) => setPdfFile(e.target.files[0] || null)}
+                className="hidden"
+              />
+            </label>
+          </div>
+          {uploadProgress && (
+            <p className="text-xs text-primary flex items-center gap-1">
+              <Loader2 size={12} className="animate-spin" /> {uploadProgress}
+            </p>
+          )}
           <div className="flex gap-2">
             <button
               type="submit"
@@ -173,7 +229,7 @@ export default function AdminEbooks() {
             </button>
             <button
               type="button"
-              onClick={() => setShowForm(false)}
+              onClick={() => { setShowForm(false); setCoverFile(null); setPdfFile(null) }}
               className="px-4 py-2 border border-border rounded-lg text-sm text-text-secondary hover:bg-gray-50 transition-colors"
             >
               취소
@@ -237,7 +293,7 @@ export default function AdminEbooks() {
       <div className="mt-6 p-4 bg-bg rounded-xl text-xs text-text-secondary space-y-1">
         <p><b>사용 방법:</b></p>
         <p>1. "새 전자책 등록" 클릭 → 제목, 설명, 가격 입력</p>
-        <p>2. PDF를 Supabase Storage나 Google Drive에 업로드 후 URL 붙여넣기</p>
+        <p>2. 커버 이미지와 PDF 파일을 직접 업로드</p>
         <p>3. "공개" 버튼으로 학생에게 노출</p>
       </div>
     </div>
