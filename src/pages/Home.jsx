@@ -1,12 +1,5 @@
 import { Link } from 'react-router-dom'
-import { PenLine, Mic, Upload, ArrowRight, CheckCircle } from 'lucide-react'
-
-const features = [
-  'IELTS 채점 기준 4개 항목별 Band 분석',
-  '오류 인라인 교정 + Band 7 업그레이드 표현',
-  '한국어로 쉽게 풀어주는 상세 피드백',
-  '무료 3회 체험 가능',
-]
+import { PenLine, Mic, Upload, ArrowRight } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -25,7 +18,7 @@ export default function Home() {
         Writing & Speaking AI 피드백 플랫폼
       </p>
 
-      <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto mb-16">
+      <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
         <Link
           to="/writing"
           className="group bg-surface rounded-2xl border border-border p-8 no-underline text-left hover:border-primary hover:shadow-lg transition-all"
@@ -75,20 +68,6 @@ export default function Home() {
         </Link>
       </div>
 
-      {/* Features */}
-      <div className="max-w-md mx-auto text-left">
-        <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4 text-center">
-          주요 기능
-        </h3>
-        <div className="space-y-3">
-          {features.map((f, i) => (
-            <div key={i} className="flex items-start gap-3">
-              <CheckCircle size={18} className="text-success mt-0.5 shrink-0" />
-              <span className="text-sm text-text">{f}</span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }
