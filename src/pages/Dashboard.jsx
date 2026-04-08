@@ -58,30 +58,21 @@ export default function Dashboard() {
     const student = students.find(s => s.id === userId)
     if (!student) return
     const newCredits = Math.max(0, student.credits + amount)
-    await supabase
-      .from('profiles')
-      .update({ credits: newCredits })
-      .eq('id', userId)
+    await supabase.rpc('admin_update_credits', { target_user_id: userId, new_credits: newCredits })
     setStudents(prev => prev.map(s => s.id === userId ? { ...s, credits: newCredits } : s))
   }
 
   async function setCredits(userId) {
     const val = parseInt(creditInput[userId])
     if (isNaN(val) || val < 0) return
-    await supabase
-      .from('profiles')
-      .update({ credits: val })
-      .eq('id', userId)
+    await supabase.rpc('admin_update_credits', { target_user_id: userId, new_credits: val })
     setStudents(prev => prev.map(s => s.id === userId ? { ...s, credits: val } : s))
     setCreditInput(prev => ({ ...prev, [userId]: '' }))
   }
 
   async function toggleRole(userId, currentRole) {
     const newRole = currentRole === 'student' ? 'teacher' : 'student'
-    await supabase
-      .from('profiles')
-      .update({ role: newRole })
-      .eq('id', userId)
+    await supabase.rpc('admin_update_role', { target_user_id: userId, new_role: newRole })
     setStudents(prev => prev.map(s => s.id === userId ? { ...s, role: newRole } : s))
   }
 
