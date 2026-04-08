@@ -50,6 +50,8 @@ export default function Dashboard() {
       totalStudents: (allProfiles || []).filter(p => p.role === 'student').length,
       totalWriting: (allWriting || []).length,
       totalSpeaking: (allSpeaking || []).length,
+      unreviewedWriting: (allWriting || []).filter(s => !s.reviewed).length,
+      unreviewedSpeaking: (allSpeaking || []).filter(s => !s.reviewed).length,
     })
 
     setLoading(false)
@@ -129,13 +131,27 @@ export default function Dashboard() {
         </div>
         <div className="bg-surface rounded-xl border border-border p-4 text-center">
           <PenLine size={20} className="text-primary mx-auto mb-2" />
-          <p className="text-2xl font-bold">{stats.totalWriting}</p>
-          <p className="text-xs text-text-secondary">Writing 제출</p>
+          <p className="text-2xl font-bold">
+            {stats.unreviewedWriting > 0 ? (
+              <span className="text-error">{stats.unreviewedWriting}</span>
+            ) : (
+              <span className="text-success">0</span>
+            )}
+            <span className="text-text-secondary text-sm font-normal"> / {stats.totalWriting}</span>
+          </p>
+          <p className="text-xs text-text-secondary">Writing 미확인</p>
         </div>
         <div className="bg-surface rounded-xl border border-border p-4 text-center">
           <Mic size={20} className="text-primary mx-auto mb-2" />
-          <p className="text-2xl font-bold">{stats.totalSpeaking}</p>
-          <p className="text-xs text-text-secondary">Speaking 제출</p>
+          <p className="text-2xl font-bold">
+            {stats.unreviewedSpeaking > 0 ? (
+              <span className="text-error">{stats.unreviewedSpeaking}</span>
+            ) : (
+              <span className="text-success">0</span>
+            )}
+            <span className="text-text-secondary text-sm font-normal"> / {stats.totalSpeaking}</span>
+          </p>
+          <p className="text-xs text-text-secondary">Speaking 미확인</p>
         </div>
       </div>
 
