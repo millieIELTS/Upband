@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Send, Loader2, ArrowLeft, Lock, Upload } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { getWritingFeedback } from '../lib/claude'
+import { saveWritingSubmission } from '../lib/submissions'
 import FeedbackDisplay from '../components/writing/FeedbackDisplay'
 
 const taskInfo = {
@@ -59,10 +60,17 @@ export default function WritingHomework() {
     setError('')
 
     try {
-      const result = await getWritingFeedback({ essay, taskType, question: question.trim() })
-      setFeedback(result)
+      // DB에 숙제 저장 (AI 피드백 없이도 저장)
+      await saveWritingSubmission(user.id, {
+        taskType,
+        essay,
+        question: question.trim(),
+        isHomework: true,
+        feedback: { overall_band: null, scores: { task_achievement: null, coherence_cohesion: null, lexical_resource: null, grammatical_range: null } },
+      })
+      setFeedback({ submitted: true })
     } catch (err) {
-      setError(err.message)
+      setError(err.message || '제출에 실패했습니다.')
     } finally {
       setLoading(false)
     }
@@ -128,7 +136,11 @@ export default function WritingHomework() {
         <div className="mt-4 p-3 rounded-lg bg-error/10 text-error text-sm">{error}</div>
       )}
 
-      <FeedbackDisplay feedback={feedback} taskType={taskType} essay={essay} />
+      {feedback?.submitted && (
+        <div className="mt-4 p-4 rounded-lg bg-success/10 text-success text-sm font-medium">
+          ✅ 숙제가 성공적으로 제출되었습니다! 선생님이 대시보드에서 확인할 수 있습니다.
+        </div>
+      )}
     </div>
   )
 }

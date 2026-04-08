@@ -34,23 +34,10 @@ export default function Dashboard() {
   async function loadData() {
     setLoading(true)
 
-    // 모든 학생 프로필
-    const { data: allProfiles } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    // 전체 Writing 제출
-    const { data: allWriting, count: wCount } = await supabase
-      .from('writing_submissions')
-      .select('id, user_id, task_type, word_count, overall_band, essay, score_ta, score_tr, score_cc, score_lr, score_gra, created_at', { count: 'exact' })
-      .order('created_at', { ascending: false })
-
-    // 전체 Speaking 제출
-    const { data: allSpeaking, count: sCount } = await supabase
-      .from('speaking_submissions')
-      .select('id, user_id, part, question, overall_band, transcript, score_fluency, score_lexical, score_grammar, created_at', { count: 'exact' })
-      .order('created_at', { ascending: false })
+    // RPC 함수로 조회 (RLS 우회)
+    const { data: allProfiles } = await supabase.rpc('get_all_profiles')
+    const { data: allWriting } = await supabase.rpc('get_all_writing_submissions')
+    const { data: allSpeaking } = await supabase.rpc('get_all_speaking_submissions')
 
     setStudents(allProfiles || [])
     setSubmissions([

@@ -1,28 +1,33 @@
 import { supabase } from './supabase'
 
 export async function saveWritingSubmission(userId, data) {
-  const { taskType, essay, feedback } = data
+  const { taskType, essay, feedback, question, isHomework } = data
   const wordCount = essay.split(/\s+/).filter(Boolean).length
 
-  const { data: row, error } = await supabase
+  const row = {
+    user_id: userId,
+    task_type: taskType,
+    essay,
+    word_count: wordCount,
+    overall_band: feedback?.overall_band || null,
+    score_ta: taskType === 'task1' ? feedback?.scores?.task_achievement : null,
+    score_tr: taskType === 'task2' ? feedback?.scores?.task_achievement : null,
+    score_cc: feedback?.scores?.coherence_cohesion || null,
+    score_lr: feedback?.scores?.lexical_resource || null,
+    score_gra: feedback?.scores?.grammatical_range || null,
+    feedback_json: feedback?.submitted ? null : feedback,
+  }
+  if (question) row.question = question
+  if (isHomework) row.is_homework = true
+
+  const { data: result, error } = await supabase
     .from('writing_submissions')
-    .insert({
-      user_id: userId,
-      task_type: taskType,
-      essay,
-      word_count: wordCount,
-      overall_band: feedback.overall_band,
-      score_ta: taskType === 'task1' ? feedback.scores.task_achievement : null,
-      score_tr: taskType === 'task2' ? feedback.scores.task_achievement : null,
-      score_cc: feedback.scores.coherence_cohesion,
-      score_lr: feedback.scores.lexical_resource,
-      score_gra: feedback.scores.grammatical_range,
-      feedback_json: feedback,
-    })
+    .insert(row)
     .select()
     .single()
 
-  return { data: row, error }
+  if (error) throw error
+  return { data: result, error }
 }
 
 export async function saveSpeakingSubmission(userId, data) {
