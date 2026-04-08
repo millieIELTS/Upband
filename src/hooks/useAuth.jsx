@@ -55,7 +55,7 @@ export function AuthProvider({ children }) {
       return
     }
 
-    // 프로필이 없으면 (트리거 아직 안 됐거나 실패) 직접 생성 시도
+    // 프로필이 없으면 새로 생성 (insert only, 기존 데이터 덮어쓰지 않음)
     const displayName =
       authUser.user_metadata?.full_name ||
       authUser.user_metadata?.name ||
@@ -64,15 +64,27 @@ export function AuthProvider({ children }) {
 
     const { data: newProfile } = await supabase
       .from('profiles')
-      .upsert({
+      .insert({
         id: authUser.id,
         email: authUser.email,
         display_name: displayName,
         role: 'student',
         credits: 3,
-      }, { onConflict: 'id' })
+      })
       .select()
       .single()
+
+    // insert 실패 시 (이미 존재) 다시 조회
+    if (!newProfile) {
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single()
+      setProfile(existing)
+      setLoading(false)
+      return
+    }
 
     setProfile(newProfile)
     setLoading(false)
