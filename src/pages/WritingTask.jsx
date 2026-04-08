@@ -140,6 +140,10 @@ export default function WritingTask() {
           value={essay}
           onChange={(e) => setEssay(e.target.value)}
           placeholder={info.placeholder}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           className="w-full h-72 p-4 rounded-xl border border-border bg-surface resize-y text-sm leading-relaxed focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
         />
 

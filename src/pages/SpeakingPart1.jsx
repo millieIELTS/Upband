@@ -177,7 +177,7 @@ export default function SpeakingPart1() {
         <div className="mb-4 p-3 rounded-lg bg-error/10 text-error text-sm">{error}</div>
       )}
 
-      {result && (
+      {audioUrl && (
         <div className="mb-4 p-4 rounded-lg bg-bg border border-border">
           <p className="text-xs text-text-secondary mb-1">질문</p>
           <p className="text-sm text-text font-medium">"{currentQuestion}"</p>
