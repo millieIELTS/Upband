@@ -5,12 +5,13 @@ import { useState, useEffect } from 'react'
 import { getWritingHistory, getSpeakingHistory } from '../lib/submissions'
 
 export default function MyPage() {
-  const { user, profile, loading: authLoading } = useAuth()
+  const { user, profile, loading: authLoading, refreshProfile } = useAuth()
   const navigate = useNavigate()
   const [stats, setStats] = useState({ writing: 0, speaking: 0, avgBand: null })
 
   useEffect(() => {
     if (!user) return
+    refreshProfile()
     Promise.all([
       getWritingHistory(user.id),
       getSpeakingHistory(user.id),

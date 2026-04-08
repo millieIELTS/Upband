@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react'
+import { useState, useEffect, useCallback, createContext, useContext } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 
 const AuthContext = createContext(null)
@@ -8,19 +8,67 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // 프로필 로딩 (별도 함수로 분리)
+  const loadProfile = useCallback(async (authUser) => {
+    if (!authUser) {
+      setProfile(null)
+      setLoading(false)
+      return
+    }
+
+    try {
+      const { data } = await supabase.rpc('get_my_profile').maybeSingle()
+
+      if (data) {
+        setProfile(data)
+        setLoading(false)
+        return
+      }
+
+      // 프로필이 없으면 새로 생성
+      const displayName =
+        authUser.user_metadata?.full_name ||
+        authUser.user_metadata?.name ||
+        authUser.email?.split('@')[0] ||
+        '사용자'
+
+      await supabase.from('profiles').insert({
+        id: authUser.id,
+        email: authUser.email,
+        display_name: displayName,
+        role: 'student',
+        credits: 3,
+      })
+
+      const { data: newProfile } = await supabase.rpc('get_my_profile').maybeSingle()
+      setProfile(newProfile)
+    } catch (err) {
+      console.error('Profile load error:', err)
+      setProfile(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     if (!isSupabaseConfigured) {
       setLoading(false)
       return
     }
 
-    // 1. 먼저 리스너 등록 (OAuth 콜백 토큰 감지)
+    let mounted = true
+
+    // 1. 리스너 등록 — 동기 작업만, async 금지 (Supabase 권장)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        if (!mounted) return
         const currentUser = session?.user ?? null
         setUser(currentUser)
+
+        // setTimeout으로 async 작업을 이벤트 루프 밖으로 빼기
+        // (onAuthStateChange 콜백 내에서 await하면 후속 이벤트가 블로킹됨)
         if (currentUser) {
-          await fetchProfile(currentUser)
+          setTimeout(() => { if (mounted) loadProfile(currentUser) }, 0)
         } else {
           setProfile(null)
           setLoading(false)
@@ -29,51 +77,29 @@ export function AuthProvider({ children }) {
     )
 
     // 2. 기존 세션 확인
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return
       const currentUser = session?.user ?? null
       setUser(currentUser)
       if (currentUser) {
-        await fetchProfile(currentUser)
+        loadProfile(currentUser)
       } else {
         setLoading(false)
       }
     })
 
-    return () => subscription.unsubscribe()
-  }, [])
-
-  async function fetchProfile(authUser) {
-    // RPC 함수로 프로필 조회 (RLS 우회)
-    const { data } = await supabase.rpc('get_my_profile').maybeSingle()
-
-    if (data) {
-      setProfile(data)
-      setLoading(false)
-      return
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
     }
+  }, [loadProfile])
 
-    // 프로필이 없으면 새로 생성
-    const displayName =
-      authUser.user_metadata?.full_name ||
-      authUser.user_metadata?.name ||
-      authUser.email?.split('@')[0] ||
-      '사용자'
-
-    await supabase
-      .from('profiles')
-      .insert({
-        id: authUser.id,
-        email: authUser.email,
-        display_name: displayName,
-        role: 'student',
-        credits: 3,
-      })
-
-    // 다시 조회
-    const { data: profile2 } = await supabase.rpc('get_my_profile').maybeSingle()
-    setProfile(profile2)
-    setLoading(false)
-  }
+  // 프로필 새로고침 (크레딧 변경 등에 사용)
+  const refreshProfile = useCallback(async () => {
+    if (!user) return
+    const { data } = await supabase.rpc('get_my_profile').maybeSingle()
+    if (data) setProfile(data)
+  }, [user])
 
   async function signUp(email, password, displayName) {
     if (!isSupabaseConfigured) return { error: { message: 'Supabase가 설정되지 않았습니다.' } }
@@ -102,7 +128,12 @@ export function AuthProvider({ children }) {
 
   async function signOut() {
     if (!isSupabaseConfigured) return
-    await supabase.auth.signOut()
+    try {
+      await supabase.auth.signOut({ scope: 'local' })
+    } catch (err) {
+      console.error('Sign out error:', err)
+    }
+    // 무조건 로컬 상태 초기화 (서버 에러 무관)
     setUser(null)
     setProfile(null)
   }
@@ -115,6 +146,7 @@ export function AuthProvider({ children }) {
     signIn,
     signInWithGoogle,
     signOut,
+    refreshProfile,
     hasCredits: (profile?.credits ?? 0) > 0,
     isTeacher: profile?.role === 'teacher' || profile?.role === 'admin',
   }
