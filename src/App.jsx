@@ -17,6 +17,7 @@ import WritingHomework from './pages/WritingHomework'
 import WritingHomeworkSelect from './pages/WritingHomeworkSelect'
 import MyPage from './pages/MyPage'
 import Settings from './pages/Settings'
+import SubmissionDetail from './pages/SubmissionDetail'
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           <Route path="/speaking/part3/:topicId" element={<SpeakingPart3 />} />
           <Route path="/history" element={<History />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/submissions" element={<SubmissionDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/settings" element={<Settings />} />

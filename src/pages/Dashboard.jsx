@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
+import { Link } from 'react-router-dom'
 
 export default function Dashboard() {
   const { user, profile, loading: authLoading } = useAuth()
@@ -137,6 +138,21 @@ export default function Dashboard() {
           <p className="text-xs text-text-secondary">Speaking 제출</p>
         </div>
       </div>
+
+      {/* 제출 내역 관리 바로가기 */}
+      <Link
+        to="/dashboard/submissions"
+        className="block mb-6 p-4 bg-accent/5 border border-accent/20 rounded-xl no-underline hover:bg-accent/10 transition-colors"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Eye size={18} className="text-accent" />
+            <span className="text-sm font-medium text-text">제출 내역 관리</span>
+            <span className="text-xs text-text-secondary">학생 에세이 확인 · 확인여부 체크</span>
+          </div>
+          <span className="text-xs text-accent font-medium">바로가기 →</span>
+        </div>
+      </Link>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-4">

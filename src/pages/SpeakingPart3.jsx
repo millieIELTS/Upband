@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Play, Mic, MicOff, Send, Loader2, Volume2 } from 'lucide-react'
+import { ArrowLeft, Play, Mic, MicOff, Send, Loader2, Volume2, List } from 'lucide-react'
 import useRecorder from '../hooks/useRecorder'
 import { useAuth } from '../hooks/useAuth'
 import { getSpeakingFeedback } from '../lib/claude'
@@ -23,6 +23,7 @@ export default function SpeakingPart3() {
   const [transcript, setTranscript] = useState('')
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
+  const [showAllQuestions, setShowAllQuestions] = useState(false)
   const { recording, audioUrl, audioBlob, startRecording, stopRecording, clearRecording } = useRecorder()
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -185,6 +186,28 @@ export default function SpeakingPart3() {
       )}
 
       <FeedbackResult result={result} />
+
+      {/* 전체 질문 보기 */}
+      <div className="mt-6">
+        <button
+          onClick={() => setShowAllQuestions(!showAllQuestions)}
+          className="flex items-center gap-2 text-sm text-text-secondary hover:text-primary transition-colors"
+        >
+          <List size={16} />
+          {showAllQuestions ? '질문 목록 숨기기' : '전체 질문 텍스트 보기'}
+        </button>
+        {showAllQuestions && (
+          <div className="mt-3 bg-surface rounded-xl border border-border p-4 space-y-3">
+            <h3 className="text-sm font-semibold mb-2">Part 3 — {topic.name} 전체 질문</h3>
+            {questions.map((q, i) => (
+              <div key={i} className="flex gap-3">
+                <span className="text-xs text-text-secondary font-mono shrink-0 mt-0.5">Q{i + 1}</span>
+                <p className="text-sm text-text">{q}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
