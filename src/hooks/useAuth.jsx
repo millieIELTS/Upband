@@ -43,12 +43,8 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function fetchProfile(authUser) {
-    // 1차 시도: 프로필 조회
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', authUser.id)
-      .maybeSingle()
+    // RPC 함수로 프로필 조회 (RLS 우회)
+    const { data } = await supabase.rpc('get_my_profile').maybeSingle()
 
     if (data) {
       setProfile(data)
@@ -56,7 +52,7 @@ export function AuthProvider({ children }) {
       return
     }
 
-    // 프로필이 없으면 새로 생성 (insert only, 기존 role/credits 보호)
+    // 프로필이 없으면 새로 생성
     const displayName =
       authUser.user_metadata?.full_name ||
       authUser.user_metadata?.name ||
@@ -73,13 +69,8 @@ export function AuthProvider({ children }) {
         credits: 3,
       })
 
-    // insert 성공/실패 무관하게 다시 조회
-    const { data: profile2 } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', authUser.id)
-      .maybeSingle()
-
+    // 다시 조회
+    const { data: profile2 } = await supabase.rpc('get_my_profile').maybeSingle()
     setProfile(profile2)
     setLoading(false)
   }
