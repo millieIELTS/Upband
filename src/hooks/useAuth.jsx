@@ -43,11 +43,12 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function fetchProfile(authUser) {
-    const { data, error } = await supabase
+    // 1차 시도: 프로필 조회
+    const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', authUser.id)
-      .single()
+      .maybeSingle()
 
     if (data) {
       setProfile(data)
@@ -55,14 +56,14 @@ export function AuthProvider({ children }) {
       return
     }
 
-    // 프로필이 없으면 새로 생성 (insert only, 기존 데이터 덮어쓰지 않음)
+    // 프로필이 없으면 새로 생성 (insert only, 기존 role/credits 보호)
     const displayName =
       authUser.user_metadata?.full_name ||
       authUser.user_metadata?.name ||
       authUser.email?.split('@')[0] ||
       '사용자'
 
-    const { data: newProfile } = await supabase
+    await supabase
       .from('profiles')
       .insert({
         id: authUser.id,
@@ -71,22 +72,15 @@ export function AuthProvider({ children }) {
         role: 'student',
         credits: 3,
       })
-      .select()
-      .single()
 
-    // insert 실패 시 (이미 존재) 다시 조회
-    if (!newProfile) {
-      const { data: existing } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authUser.id)
-        .single()
-      setProfile(existing)
-      setLoading(false)
-      return
-    }
+    // insert 성공/실패 무관하게 다시 조회
+    const { data: profile2 } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authUser.id)
+      .maybeSingle()
 
-    setProfile(newProfile)
+    setProfile(profile2)
     setLoading(false)
   }
 
