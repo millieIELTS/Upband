@@ -11,6 +11,7 @@ import History from './pages/History'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import WritingHomework from './pages/WritingHomework'
+import WritingHomeworkSelect from './pages/WritingHomeworkSelect'
 import MyPage from './pages/MyPage'
 import Settings from './pages/Settings'
 
@@ -22,6 +23,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/writing" element={<Writing />} />
           <Route path="/writing/:taskType" element={<WritingTask />} />
+          <Route path="/writing/homework" element={<WritingHomeworkSelect />} />
           <Route path="/writing/homework/:taskType" element={<WritingHomework />} />
           <Route path="/speaking" element={<Speaking />} />
           <Route path="/speaking/part1" element={<SpeakingPart1 />} />

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { PenLine, Mic, ArrowRight, CheckCircle } from 'lucide-react'
+import { PenLine, Mic, Upload, ArrowRight, CheckCircle } from 'lucide-react'
 
 const features = [
   'IELTS 채점 기준 4개 항목별 Band 분석',
@@ -25,7 +25,7 @@ export default function Home() {
         Writing & Speaking AI 피드백 플랫폼
       </p>
 
-      <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto mb-16">
+      <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto mb-16">
         <Link
           to="/writing"
           className="group bg-surface rounded-2xl border border-border p-8 no-underline text-left hover:border-primary hover:shadow-lg transition-all"
@@ -55,6 +55,22 @@ export default function Home() {
           </p>
           <span className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
             시작하기 <ArrowRight size={14} />
+          </span>
+        </Link>
+
+        <Link
+          to="/writing/homework"
+          className="group bg-surface rounded-2xl border border-border p-8 no-underline text-left hover:border-accent/50 hover:shadow-lg transition-all"
+        >
+          <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-4">
+            <Upload size={24} className="text-accent" />
+          </div>
+          <h2 className="text-xl font-semibold text-text mb-2">숙제 제출</h2>
+          <p className="text-text-secondary text-sm mb-4">
+            선생님이 내준 Writing 숙제를 제출하고 AI 피드백을 받으세요.
+          </p>
+          <span className="text-accent text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+            제출하기 <ArrowRight size={14} />
           </span>
         </Link>
       </div>
