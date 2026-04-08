@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Play, Mic, MicOff, Send, Loader2, RotateCcw, Volume2 } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft, Play, Mic, MicOff, Send, Loader2, Volume2 } from 'lucide-react'
 import useRecorder from '../hooks/useRecorder'
 import { useAuth } from '../hooks/useAuth'
 import { getSpeakingFeedback } from '../lib/claude'
@@ -8,19 +8,13 @@ import { transcribeAudio } from '../lib/stt'
 import { speakQuestion } from '../lib/tts'
 import FeedbackResult from '../components/speaking/FeedbackResult'
 import QuestionProgress from '../components/speaking/QuestionProgress'
-
-const sampleQuestions = [
-  'Do you work or are you a student?',
-  'What do you like about your hometown?',
-  'How often do you use public transport?',
-  'Do you prefer reading books or watching movies?',
-  'What kind of music do you enjoy?',
-  'Do you like cooking? Why or why not?',
-  'How do you usually spend your weekends?',
-  'What is your favourite type of weather?',
-]
+import { part1Topics } from '../data/speakingQuestions'
 
 export default function SpeakingPart1() {
+  const { topicId } = useParams()
+  const topic = part1Topics.find(t => t.id === Number(topicId)) || part1Topics[0]
+  const questions = topic.questions
+
   const [questionIndex, setQuestionIndex] = useState(0)
   const [questionPlayed, setQuestionPlayed] = useState(false)
   const [playing, setPlaying] = useState(false)
@@ -33,7 +27,7 @@ export default function SpeakingPart1() {
   const { user } = useAuth()
   const navigate = useNavigate()
 
-  const currentQuestion = sampleQuestions[questionIndex]
+  const currentQuestion = questions[questionIndex]
 
   const playQuestion = () => {
     setPlaying(true)
@@ -89,36 +83,27 @@ export default function SpeakingPart1() {
     clearRecording()
   }
 
-  const nextQuestion = () => {
-    goToQuestion((questionIndex + 1) % sampleQuestions.length)
-  }
-
   return (
     <div>
       <Link
-        to="/speaking"
+        to="/speaking/part1"
         className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-primary mb-4 no-underline"
       >
-        <ArrowLeft size={14} /> Part 선택으로 돌아가기
+        <ArrowLeft size={14} /> 주제 선택으로 돌아가기
       </Link>
 
-      <h1 className="text-2xl font-bold mb-1">Speaking Part 1</h1>
+      <h1 className="text-2xl font-bold mb-1">Speaking Part 1 — 주제 {topic.id}</h1>
       <p className="text-text-secondary text-sm mb-4">질문을 듣고 바로 답변을 녹음하세요.</p>
 
       <QuestionProgress
         current={questionIndex}
-        total={sampleQuestions.length}
+        total={questions.length}
         onSelect={goToQuestion}
       />
 
       {/* Question audio */}
       <div className="bg-surface rounded-xl border border-border p-6 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-sm">Question {questionIndex + 1}</h3>
-          <button onClick={nextQuestion} className="text-xs text-text-secondary hover:text-primary flex items-center gap-1">
-            <RotateCcw size={12} /> 다른 질문
-          </button>
-        </div>
+        <h3 className="font-semibold text-sm mb-3">Question {questionIndex + 1}</h3>
 
         {!questionPlayed ? (
           <button
@@ -192,7 +177,6 @@ export default function SpeakingPart1() {
         <div className="mb-4 p-3 rounded-lg bg-error/10 text-error text-sm">{error}</div>
       )}
 
-      {/* Show question only after feedback */}
       {result && (
         <div className="mb-4 p-4 rounded-lg bg-bg border border-border">
           <p className="text-xs text-text-secondary mb-1">질문</p>
