@@ -1,16 +1,35 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { History as HistoryIcon, PenLine, Mic, LogIn, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react'
+import { History as HistoryIcon, PenLine, Mic, LogIn, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare, Flame, Calendar, TrendingUp } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { useAuth } from '../hooks/useAuth'
 import { getWritingHistory, getSpeakingHistory } from '../lib/submissions'
 
+// 날짜를 'YYYY-MM-DD' 형식으로
+function toDateKey(d) {
+  const dt = new Date(d)
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+}
+
+function formatDateKr(d) {
+  return new Date(d).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
+}
+
+function formatTimeKr(d) {
+  return new Date(d).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+}
+
 export default function History() {
   const { user, loading: authLoading } = useAuth()
-  const [tab, setTab] = useState('writing')
   const [writingData, setWritingData] = useState([])
   const [speakingData, setSpeakingData] = useState([])
   const [loading, setLoading] = useState(false)
-  const [expanded, setExpanded] = useState(null)
+  const [selectedDate, setSelectedDate] = useState(toDateKey(new Date()))
+  const [calMonth, setCalMonth] = useState(() => {
+    const now = new Date()
+    return { year: now.getFullYear(), month: now.getMonth() }
+  })
+  const [expandedId, setExpandedId] = useState(null)
 
   useEffect(() => {
     if (!user) return
@@ -25,14 +44,114 @@ export default function History() {
     })
   }, [user])
 
+  // 모든 활동을 합치고 날짜별로 그룹핑
+  const allActivities = useMemo(() => {
+    const writing = writingData.map(w => ({ ...w, _type: 'writing' }))
+    const speaking = speakingData.map(s => ({ ...s, _type: 'speaking' }))
+    return [...writing, ...speaking].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+  }, [writingData, speakingData])
+
+  const activitiesByDate = useMemo(() => {
+    const map = {}
+    allActivities.forEach(a => {
+      const key = toDateKey(a.created_at)
+      if (!map[key]) map[key] = []
+      map[key].push(a)
+    })
+    return map
+  }, [allActivities])
+
+  // 연속 학습일 계산
+  const streak = useMemo(() => {
+    if (allActivities.length === 0) return 0
+    let count = 0
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(today)
+      d.setDate(d.getDate() - i)
+      const key = toDateKey(d)
+      if (activitiesByDate[key]) {
+        count++
+      } else {
+        // 오늘 아직 안 했으면 어제부터 세기
+        if (i === 0) continue
+        break
+      }
+    }
+    return count
+  }, [activitiesByDate, allActivities])
+
+  // Band 추이 데이터 (점수 있는 것만)
+  const bandTrend = useMemo(() => {
+    return allActivities
+      .filter(a => (a.teacher_band ?? a.overall_band) != null)
+      .reverse()
+      .map(a => ({
+        date: new Date(a.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
+        band: Number(a.teacher_band ?? a.overall_band),
+        type: a._type === 'writing' ? 'W' : 'S',
+      }))
+  }, [allActivities])
+
+  // 이번 달 통계
+  const monthStats = useMemo(() => {
+    const now = new Date()
+    const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    const monthActivities = allActivities.filter(a => toDateKey(a.created_at).startsWith(thisMonth))
+    return {
+      total: monthActivities.length,
+      writing: monthActivities.filter(a => a._type === 'writing').length,
+      speaking: monthActivities.filter(a => a._type === 'speaking').length,
+    }
+  }, [allActivities])
+
+  // 캘린더 데이터 생성
+  const calendarData = useMemo(() => {
+    const { year, month } = calMonth
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const startDow = firstDay.getDay() // 0=일요일
+    const daysInMonth = lastDay.getDate()
+
+    const cells = []
+    // 빈 칸 (이전 달)
+    for (let i = 0; i < startDow; i++) cells.push(null)
+    // 날짜 칸
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+      cells.push({ day: d, key, count: (activitiesByDate[key] || []).length })
+    }
+    return cells
+  }, [calMonth, activitiesByDate])
+
+  const prevMonth = () => setCalMonth(prev => {
+    const m = prev.month - 1
+    return m < 0 ? { year: prev.year - 1, month: 11 } : { ...prev, month: m }
+  })
+  const nextMonth = () => setCalMonth(prev => {
+    const m = prev.month + 1
+    return m > 11 ? { year: prev.year + 1, month: 0 } : { ...prev, month: m }
+  })
+
+  const selectedActivities = activitiesByDate[selectedDate] || []
+
+  const bandColor = (score) => {
+    if (!score) return 'text-text-secondary'
+    if (score >= 7) return 'text-band-high'
+    if (score >= 6) return 'text-band-mid'
+    return 'text-band-low'
+  }
+
   if (authLoading) return null
 
   if (!user) {
     return (
       <div className="text-center py-16">
         <HistoryIcon size={48} className="text-text-secondary mx-auto mb-4" />
-        <h1 className="text-2xl font-bold mb-2">제출 히스토리</h1>
-        <p className="text-text-secondary mb-6">로그인 후 이전 피드백 기록을 확인할 수 있습니다.</p>
+        <h1 className="text-2xl font-bold mb-2">학습 기록</h1>
+        <p className="text-text-secondary mb-6">로그인 후 학습 기록을 확인할 수 있습니다.</p>
         <Link
           to="/login"
           className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg font-medium text-sm no-underline hover:bg-primary-dark transition-colors"
@@ -43,178 +162,270 @@ export default function History() {
     )
   }
 
-  const data = tab === 'writing' ? writingData : speakingData
-
-  const bandColor = (score) => {
-    if (!score) return 'text-text-secondary'
-    if (score >= 7) return 'text-band-high'
-    if (score >= 6) return 'text-band-mid'
-    return 'text-band-low'
-  }
-
-  const formatDate = (d) => new Date(d).toLocaleDateString('ko-KR', {
-    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-  })
-
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">제출 히스토리</h1>
-
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => { setTab('writing'); setExpanded(null) }}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            tab === 'writing' ? 'bg-primary text-white' : 'bg-surface border border-border text-text-secondary'
-          }`}
-        >
-          <PenLine size={14} /> Writing
-        </button>
-        <button
-          onClick={() => { setTab('speaking'); setExpanded(null) }}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            tab === 'speaking' ? 'bg-primary text-white' : 'bg-surface border border-border text-text-secondary'
-          }`}
-        >
-          <Mic size={14} /> Speaking
-        </button>
-      </div>
+      <h1 className="text-2xl font-bold mb-6">학습 기록</h1>
 
       {loading ? (
         <div className="text-center py-8 text-text-secondary">불러오는 중...</div>
-      ) : data.length === 0 ? (
-        <div className="text-center py-12 bg-surface rounded-xl border border-border">
-          <p className="text-text-secondary mb-4">아직 제출 기록이 없습니다.</p>
-          <Link
-            to={tab === 'writing' ? '/writing' : '/speaking'}
-            className="text-primary text-sm font-medium no-underline hover:underline"
-          >
-            {tab === 'writing' ? 'Writing' : 'Speaking'} 시작하기 →
-          </Link>
-        </div>
       ) : (
-        <div className="space-y-2">
-          {data.map((item) => {
-            const isExpanded = expanded === item.id
-            const displayBand = item.teacher_band || item.overall_band
-            const hasTeacherFeedback = item.teacher_band || item.teacher_feedback
+        <>
+          {/* 상단 통계 카드 */}
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="bg-surface rounded-xl border border-border p-4 text-center">
+              <div className="flex items-center justify-center gap-1.5 text-orange-500 mb-1">
+                <Flame size={20} />
+                <span className="text-2xl font-bold">{streak}</span>
+              </div>
+              <p className="text-xs text-text-secondary">연속 학습일</p>
+            </div>
+            <div className="bg-surface rounded-xl border border-border p-4 text-center">
+              <div className="text-2xl font-bold text-primary mb-1">{monthStats.total}</div>
+              <p className="text-xs text-text-secondary">이번 달 학습</p>
+            </div>
+            <div className="bg-surface rounded-xl border border-border p-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <span className="flex items-center gap-0.5 text-sm font-bold text-primary">
+                  <PenLine size={12} />{monthStats.writing}
+                </span>
+                <span className="flex items-center gap-0.5 text-sm font-bold text-primary">
+                  <Mic size={12} />{monthStats.speaking}
+                </span>
+              </div>
+              <p className="text-xs text-text-secondary">W / S</p>
+            </div>
+          </div>
 
-            return (
-              <div key={item.id} className="bg-surface rounded-xl border border-border overflow-hidden">
-                <div
-                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={() => setExpanded(isExpanded ? null : item.id)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`text-xl font-bold min-w-[3rem] text-center ${bandColor(displayBand)}`}>
-                      {displayBand || '-'}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium">
-                          {tab === 'writing'
-                            ? `${item.task_type === 'task1' ? 'Task 1' : 'Task 2'}`
-                            : `${item.part?.replace('part', 'Part ')}`
-                          }
-                        </span>
-                        {item.is_homework && (
-                          <span className="px-1.5 py-0.5 rounded bg-accent/10 text-accent text-[10px] font-medium">숙제</span>
-                        )}
-                        {hasTeacherFeedback && (
-                          <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
-                            <MessageSquare size={9} /> 선생님 피드백
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-text-secondary mt-0.5">
-                        {formatDate(item.created_at)}
-                        {tab === 'writing' && item.word_count ? ` · ${item.word_count}w` : ''}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {tab === 'writing' && item.overall_band && (
-                      <div className="hidden sm:flex gap-2 text-xs text-text-secondary">
-                        <span>CC {item.score_cc}</span>
-                        <span>LR {item.score_lr}</span>
-                        <span>GRA {item.score_gra}</span>
-                      </div>
+          {/* 캘린더 */}
+          <div className="bg-surface rounded-xl border border-border p-4 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                <ChevronLeft size={18} className="text-text-secondary" />
+              </button>
+              <h3 className="text-sm font-semibold flex items-center gap-1.5">
+                <Calendar size={14} className="text-primary" />
+                {calMonth.year}년 {calMonth.month + 1}월
+              </h3>
+              <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                <ChevronRight size={18} className="text-text-secondary" />
+              </button>
+            </div>
+
+            {/* 요일 헤더 */}
+            <div className="grid grid-cols-7 gap-1 mb-1">
+              {['일', '월', '화', '수', '목', '금', '토'].map(d => (
+                <div key={d} className="text-center text-[10px] text-text-secondary font-medium py-1">{d}</div>
+              ))}
+            </div>
+
+            {/* 날짜 그리드 */}
+            <div className="grid grid-cols-7 gap-1">
+              {calendarData.map((cell, i) => {
+                if (!cell) return <div key={`empty-${i}`} />
+                const isSelected = cell.key === selectedDate
+                const isToday = cell.key === toDateKey(new Date())
+                const intensity = cell.count === 0 ? 0 : cell.count <= 1 ? 1 : cell.count <= 3 ? 2 : 3
+
+                return (
+                  <button
+                    key={cell.key}
+                    onClick={() => setSelectedDate(cell.key)}
+                    className={`aspect-square rounded-lg text-xs font-medium flex items-center justify-center transition-all relative
+                      ${isSelected
+                        ? 'ring-2 ring-primary ring-offset-1'
+                        : ''
+                      }
+                      ${intensity === 0
+                        ? 'bg-gray-50 text-text-secondary hover:bg-gray-100'
+                        : intensity === 1
+                        ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                        : intensity === 2
+                        ? 'bg-green-300 text-green-900 hover:bg-green-400'
+                        : 'bg-green-500 text-white hover:bg-green-600'
+                      }
+                    `}
+                  >
+                    {cell.day}
+                    {isToday && (
+                      <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
                     )}
-                    {isExpanded ? <ChevronUp size={16} className="text-text-secondary" /> : <ChevronDown size={16} className="text-text-secondary" />}
-                  </div>
-                </div>
+                  </button>
+                )
+              })}
+            </div>
 
-                {isExpanded && tab === 'writing' && (
-                  <div className="border-t border-border p-4 bg-bg/50 space-y-3">
-                    {/* 선생님 피드백 */}
-                    {hasTeacherFeedback && (
-                      <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                        <div className="flex items-center gap-2 mb-2">
-                          <MessageSquare size={14} className="text-primary" />
-                          <span className="text-sm font-semibold text-primary">선생님 피드백</span>
-                          {item.teacher_band && (
-                            <span className={`text-sm font-bold ${bandColor(item.teacher_band)}`}>
-                              Band {item.teacher_band}
-                            </span>
+            {/* 범례 */}
+            <div className="flex items-center justify-end gap-1.5 mt-3 text-[10px] text-text-secondary">
+              <span>적음</span>
+              <div className="w-3 h-3 rounded bg-gray-50 border border-gray-200" />
+              <div className="w-3 h-3 rounded bg-green-100" />
+              <div className="w-3 h-3 rounded bg-green-300" />
+              <div className="w-3 h-3 rounded bg-green-500" />
+              <span>많음</span>
+            </div>
+          </div>
+
+          {/* 선택한 날짜의 활동 목록 */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Calendar size={14} className="text-primary" />
+              {formatDateKr(selectedDate + 'T00:00:00')}
+              {selectedActivities.length > 0 && (
+                <span className="text-xs text-text-secondary font-normal">({selectedActivities.length}개 활동)</span>
+              )}
+            </h3>
+
+            {selectedActivities.length === 0 ? (
+              <div className="bg-surface rounded-xl border border-border p-6 text-center">
+                <p className="text-sm text-text-secondary">이 날의 학습 기록이 없습니다.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {selectedActivities.map(item => {
+                  const isExpanded = expandedId === item.id
+                  const displayBand = item.teacher_band ?? item.overall_band
+                  const hasTeacherFeedback = item.teacher_band || item.teacher_feedback
+
+                  return (
+                    <div key={item.id} className="bg-surface rounded-xl border border-border overflow-hidden">
+                      <div
+                        className="flex items-center justify-between p-3.5 cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                            item._type === 'writing' ? 'bg-blue-50' : 'bg-purple-50'
+                          }`}>
+                            {item._type === 'writing'
+                              ? <PenLine size={14} className="text-blue-500" />
+                              : <Mic size={14} className="text-purple-500" />
+                            }
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-sm font-medium">
+                                {item._type === 'writing'
+                                  ? `Writing ${item.task_type === 'task1' ? 'Task 1' : 'Task 2'}`
+                                  : `Speaking ${item.part?.replace('part', 'Part ')}`
+                                }
+                              </span>
+                              {item.is_homework && (
+                                <span className="px-1.5 py-0.5 rounded bg-accent/10 text-accent text-[10px] font-medium">숙제</span>
+                              )}
+                              {hasTeacherFeedback && (
+                                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
+                                  <MessageSquare size={9} /> 피드백
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-text-secondary mt-0.5">
+                              {formatTimeKr(item.created_at)}
+                              {item._type === 'writing' && item.word_count ? ` · ${item.word_count}w` : ''}
+                              {item._type === 'speaking' && item.question ? ` · ${item.question.slice(0, 30)}...` : ''}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {displayBand != null ? (
+                            <span className={`text-lg font-bold ${bandColor(displayBand)}`}>{displayBand}</span>
+                          ) : (
+                            <span className="text-xs text-text-secondary">미채점</span>
+                          )}
+                          {isExpanded ? <ChevronUp size={14} className="text-text-secondary" /> : <ChevronDown size={14} className="text-text-secondary" />}
+                        </div>
+                      </div>
+
+                      {/* 확장 상세 */}
+                      {isExpanded && (
+                        <div className="border-t border-border p-4 bg-bg/50 space-y-3">
+                          {/* 선생님 피드백 */}
+                          {hasTeacherFeedback && (
+                            <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <MessageSquare size={13} className="text-primary" />
+                                <span className="text-xs font-semibold text-primary">선생님 피드백</span>
+                                {item.teacher_band != null && (
+                                  <span className={`text-sm font-bold ${bandColor(item.teacher_band)}`}>Band {item.teacher_band}</span>
+                                )}
+                              </div>
+                              {item.teacher_feedback && (
+                                <p className="text-sm text-text whitespace-pre-wrap leading-relaxed">{item.teacher_feedback}</p>
+                              )}
+                            </div>
+                          )}
+
+                          {/* 문제 */}
+                          {item.question && (
+                            <div>
+                              <p className="text-xs font-medium text-text-secondary mb-1">문제</p>
+                              <p className="text-sm bg-white p-3 rounded-lg border border-border">{item.question}</p>
+                            </div>
+                          )}
+
+                          {/* 에세이 (Writing) */}
+                          {item._type === 'writing' && item.essay && (
+                            <div>
+                              <p className="text-xs font-medium text-text-secondary mb-1">내 에세이</p>
+                              <div className="text-sm bg-white p-3 rounded-lg border border-border whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
+                                {item.essay}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 점수 상세 */}
+                          {item._type === 'writing' && item.overall_band && (
+                            <div className="flex gap-3 flex-wrap text-xs text-text-secondary">
+                              <span>AI Band: <b>{item.overall_band}</b></span>
+                              {item.score_cc && <span>CC: <b>{item.score_cc}</b></span>}
+                              {item.score_lr && <span>LR: <b>{item.score_lr}</b></span>}
+                              {item.score_gra && <span>GRA: <b>{item.score_gra}</b></span>}
+                            </div>
+                          )}
+                          {item._type === 'speaking' && item.overall_band && (
+                            <div className="flex gap-3 flex-wrap text-xs text-text-secondary">
+                              <span>Band: <b>{item.overall_band}</b></span>
+                              {item.score_fluency && <span>F: <b>{item.score_fluency}</b></span>}
+                              {item.score_lexical && <span>L: <b>{item.score_lexical}</b></span>}
+                              {item.score_grammar && <span>G: <b>{item.score_grammar}</b></span>}
+                            </div>
                           )}
                         </div>
-                        {item.teacher_feedback && (
-                          <p className="text-sm text-text whitespace-pre-wrap leading-relaxed">{item.teacher_feedback}</p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* 문제 */}
-                    {item.question && (
-                      <div>
-                        <p className="text-xs font-medium text-text-secondary mb-1">문제</p>
-                        <p className="text-sm bg-white p-3 rounded-lg border border-border">{item.question}</p>
-                      </div>
-                    )}
-
-                    {/* 에세이 */}
-                    {item.essay && (
-                      <div>
-                        <p className="text-xs font-medium text-text-secondary mb-1">내 에세이</p>
-                        <div className="text-sm bg-white p-3 rounded-lg border border-border whitespace-pre-wrap leading-relaxed max-h-72 overflow-y-auto">
-                          {item.essay}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* AI 채점 (있는 경우) */}
-                    {item.overall_band && (
-                      <div className="flex gap-3 flex-wrap text-xs text-text-secondary">
-                        <span>AI Band: <b>{item.overall_band}</b></span>
-                        {item.score_cc && <span>CC: <b>{item.score_cc}</b></span>}
-                        {item.score_lr && <span>LR: <b>{item.score_lr}</b></span>}
-                        {item.score_gra && <span>GRA: <b>{item.score_gra}</b></span>}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {isExpanded && tab === 'speaking' && (
-                  <div className="border-t border-border p-4 bg-bg/50 space-y-3">
-                    {item.question && (
-                      <div>
-                        <p className="text-xs font-medium text-text-secondary mb-1">질문</p>
-                        <p className="text-sm bg-white p-3 rounded-lg border border-border">{item.question}</p>
-                      </div>
-                    )}
-                    {item.overall_band && (
-                      <div className="flex gap-3 flex-wrap text-xs text-text-secondary">
-                        <span>Band: <b>{item.overall_band}</b></span>
-                        {item.score_fluency && <span>F: <b>{item.score_fluency}</b></span>}
-                        {item.score_lexical && <span>L: <b>{item.score_lexical}</b></span>}
-                        {item.score_grammar && <span>G: <b>{item.score_grammar}</b></span>}
-                      </div>
-                    )}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  )
+                })}
               </div>
-            )
-          })}
-        </div>
+            )}
+          </div>
+
+          {/* Band 추이 그래프 */}
+          {bandTrend.length >= 2 && (
+            <div className="bg-surface rounded-xl border border-border p-4">
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
+                <TrendingUp size={14} className="text-primary" />
+                Band 추이
+              </h3>
+              <ResponsiveContainer width="100%" height={180}>
+                <LineChart data={bandTrend}>
+                  <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                  <YAxis domain={[0, 9]} ticks={[3, 4, 5, 6, 7, 8, 9]} tick={{ fontSize: 10 }} width={25} />
+                  <Tooltip
+                    contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                    formatter={(val, name, props) => [`Band ${val}`, props.payload.type === 'W' ? 'Writing' : 'Speaking']}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="band"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: '#6366f1' }}
+                    activeDot={{ r: 5 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
