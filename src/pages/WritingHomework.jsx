@@ -132,10 +132,10 @@ export default function WritingHomework() {
   return (
     <div>
       <Link
-        to="/writing"
+        to="/writing/homework"
         className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-primary mb-4 no-underline"
       >
-        <ArrowLeft size={14} /> Writing 선택으로 돌아가기
+        <ArrowLeft size={14} /> Task 선택으로 돌아가기
       </Link>
 
       <div className="flex items-center gap-2 mb-1">
