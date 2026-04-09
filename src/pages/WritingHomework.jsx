@@ -9,17 +9,17 @@ import FeedbackDisplay from '../components/writing/FeedbackDisplay'
 
 const taskInfo = {
   task1: {
-    title: 'Task 1 숙제 제출',
-    description: '선생님이 지정한 Task 1 문제에 대한 에세이를 제출하세요.',
+    title: 'Task 1 제출',
+    description: 'Task 1 문제에 대한 리포트를 제출하세요.',
     placeholder: 'Task 1 에세이를 입력하세요...',
-    questionPlaceholder: '선생님이 내준 문제를 여기에 붙여넣으세요...',
+    questionPlaceholder: 'Cambridge IELTS 몇 권의 몇 번인지 써주시거나, 없으신 경우 비워두셔도 됩니다. (비워두시면 수치는 정확히 볼 수 없지만 맞다고 생각하고 글만 평가하게 됩니다.)',
     minWords: 150,
   },
   task2: {
-    title: 'Task 2 숙제 제출',
-    description: '선생님이 지정한 Task 2 문제에 대한 에세이를 제출하세요.',
+    title: 'Task 2 제출',
+    description: 'Task 2 문제에 대한 에세이를 제출하세요.',
     placeholder: 'Task 2 에세이를 입력하세요...',
-    questionPlaceholder: '선생님이 내준 문제를 여기에 붙여넣으세요...',
+    questionPlaceholder: '문제를 여기에 붙여넣으세요...',
     minWords: 250,
   },
 }
@@ -51,7 +51,7 @@ export default function WritingHomework() {
       return
     }
 
-    if (!question.trim()) {
+    if (taskType === 'task2' && !question.trim()) {
       setError('문제를 입력해주세요.')
       return
     }
