@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { Send, Loader2, ArrowLeft, Lock, Upload } from 'lucide-react'
+import { Send, Loader2, ArrowLeft, Lock, Upload, ImagePlus, X } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { getWritingFeedback } from '../lib/claude'
 import { saveWritingSubmission } from '../lib/submissions'
 import { supabase } from '../lib/supabase'
 import FeedbackDisplay from '../components/writing/FeedbackDisplay'
+
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024 // 2MB
 
 const taskInfo = {
   task1: {
@@ -19,7 +21,7 @@ const taskInfo = {
     title: 'Task 2 제출',
     description: 'Task 2 문제에 대한 에세이를 제출하세요.',
     placeholder: 'Task 2 에세이를 입력하세요...',
-    questionPlaceholder: '문제를 여기에 붙여넣으세요...',
+    questionPlaceholder: '문제를 여기에 적어주세요.',
     minWords: 250,
   },
 }
@@ -32,8 +34,40 @@ export default function WritingHomework() {
   const [loading, setLoading] = useState(false)
   const [feedback, setFeedback] = useState(null)
   const [error, setError] = useState('')
+  const [image, setImage] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
+  const [dragging, setDragging] = useState(false)
+  const fileInputRef = useRef(null)
   const { user, hasCredits, refreshProfile } = useAuth()
   const navigate = useNavigate()
+
+  const handleImageFile = (file) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setError('이미지 파일만 업로드 가능합니다. (JPG, PNG, WEBP 등)')
+      return
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      setError(`이미지 크기는 2MB 이하만 가능합니다. (현재: ${(file.size / 1024 / 1024).toFixed(1)}MB)`)
+      return
+    }
+    setError('')
+    setImage(file)
+    setImagePreview(URL.createObjectURL(file))
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setDragging(false)
+    const file = e.dataTransfer.files[0]
+    handleImageFile(file)
+  }
+
+  const removeImage = () => {
+    setImage(null)
+    if (imagePreview) URL.revokeObjectURL(imagePreview)
+    setImagePreview(null)
+  }
 
   const wordCount = essay.split(/\s+/).filter(Boolean).length
 
@@ -61,11 +95,27 @@ export default function WritingHomework() {
     setError('')
 
     try {
-      // DB에 숙제 저장 (AI 피드백 없이도 저장)
+      // 이미지 업로드
+      let questionImageUrl = null
+      if (image) {
+        const ext = image.name.split('.').pop()
+        const path = `questions/${user.id}/${Date.now()}.${ext}`
+        const { error: uploadErr } = await supabase.storage
+          .from('homework-images')
+          .upload(path, image)
+        if (uploadErr) throw new Error('이미지 업로드 실패: ' + uploadErr.message)
+        const { data: urlData } = supabase.storage
+          .from('homework-images')
+          .getPublicUrl(path)
+        questionImageUrl = urlData.publicUrl
+      }
+
+      // DB에 저장
       await saveWritingSubmission(user.id, {
         taskType,
         essay,
         question: question.trim(),
+        questionImageUrl,
         isHomework: true,
         feedback: { overall_band: null, scores: { task_achievement: null, coherence_cohesion: null, lexical_resource: null, grammatical_range: null } },
       })
@@ -103,6 +153,55 @@ export default function WritingHomework() {
           placeholder={info.questionPlaceholder}
           className="w-full h-28 p-3 rounded-lg border border-border bg-white resize-y text-sm leading-relaxed focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
         />
+
+        {/* Task 1 이미지 업로드 */}
+        {taskType === 'task1' && (
+          <div className="mt-3">
+            {!imagePreview ? (
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                  dragging
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <ImagePlus size={24} className="text-text-secondary mx-auto mb-2" />
+                <p className="text-sm text-text-secondary">
+                  그래프/차트 이미지를 드래그하거나 클릭하여 업로드
+                </p>
+                <p className="text-xs text-text-secondary mt-1">
+                  이미지 파일만 가능 (JPG, PNG, WEBP) · 최대 2MB
+                </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleImageFile(e.target.files[0])}
+                />
+              </div>
+            ) : (
+              <div className="relative inline-block">
+                <img
+                  src={imagePreview}
+                  alt="문제 이미지"
+                  className="max-h-48 rounded-lg border border-border"
+                />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-error text-white rounded-full flex items-center justify-center hover:bg-error/80 transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">

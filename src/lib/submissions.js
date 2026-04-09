@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 
 export async function saveWritingSubmission(userId, data) {
-  const { taskType, essay, feedback, question, isHomework } = data
+  const { taskType, essay, feedback, question, questionImageUrl, isHomework } = data
   const wordCount = essay.split(/\s+/).filter(Boolean).length
 
   const row = {
@@ -18,6 +18,7 @@ export async function saveWritingSubmission(userId, data) {
     feedback_json: feedback?.submitted ? null : feedback,
   }
   if (question) row.question = question
+  if (questionImageUrl) row.question_image_url = questionImageUrl
   if (isHomework) row.is_homework = true
 
   const { data: result, error } = await supabase
