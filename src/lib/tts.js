@@ -1,58 +1,81 @@
-// Cambridge IELTS examiner style - British English female voice
-let cachedVoice = null
+// Edge TTS — 자연스러운 AI 음성 (영국/호주/미국 혼합)
+// Vercel serverless 함수를 통해 음성 생성
 
-function getBritishVoice() {
-  if (cachedVoice) return cachedVoice
-  const voices = speechSynthesis.getVoices()
+const VOICES = [
+  'en-GB-SoniaNeural',   // 영국 여성
+  'en-GB-ThomasNeural',  // 영국 남성
+  'en-AU-WilliamNeural', // 호주 남성
+  'en-US-GuyNeural',     // 미국 남성
+  'en-AU-NatashaNeural', // 호주 여성
+]
 
-  // Priority order: prefer British English voices
-  const preferred = [
-    'Google UK English Female',
-    'Karen',              // macOS British
-    'Daniel',             // macOS British male
-    'Samantha',           // macOS fallback
-    'Google UK English Male',
-    'Microsoft Hazel',    // Windows British
-    'Microsoft Susan',    // Windows British
-  ]
+// 음성 캐시 (같은 텍스트 반복 재생 시 재요청 방지)
+const audioCache = new Map()
+let currentAudio = null
 
-  for (const name of preferred) {
-    const v = voices.find((v) => v.name === name)
-    if (v) { cachedVoice = v; return v }
-  }
-
-  // Fallback: any en-GB voice
-  const enGB = voices.find((v) => v.lang === 'en-GB')
-  if (enGB) { cachedVoice = enGB; return enGB }
-
-  // Final fallback: any English voice
-  const en = voices.find((v) => v.lang.startsWith('en'))
-  if (en) { cachedVoice = en; return en }
-
-  return null
+function getRandomVoice() {
+  return VOICES[Math.floor(Math.random() * VOICES.length)]
 }
 
-// Preload voices (they load async on some browsers)
-if (typeof speechSynthesis !== 'undefined') {
-  speechSynthesis.getVoices()
-  speechSynthesis.onvoiceschanged = () => {
-    cachedVoice = null
-    getBritishVoice()
+export async function speakQuestion(text, onEnd) {
+  // 이전 재생 중지
+  if (currentAudio) {
+    currentAudio.pause()
+    currentAudio = null
+  }
+
+  try {
+    let audioUrl = audioCache.get(text)
+
+    if (!audioUrl) {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice: getRandomVoice() }),
+      })
+
+      if (!res.ok) throw new Error('TTS 요청 실패')
+
+      const blob = await res.blob()
+      audioUrl = URL.createObjectURL(blob)
+      audioCache.set(text, audioUrl)
+    }
+
+    const audio = new Audio(audioUrl)
+    currentAudio = audio
+
+    audio.onended = () => {
+      currentAudio = null
+      if (onEnd) onEnd()
+    }
+
+    audio.onerror = () => {
+      currentAudio = null
+      // 폴백: 브라우저 TTS
+      speakFallback(text, onEnd)
+    }
+
+    await audio.play()
+  } catch (err) {
+    console.error('Edge TTS error, falling back:', err)
+    speakFallback(text, onEnd)
   }
 }
 
-export function speakQuestion(text, onEnd) {
+// 폴백: 서버 TTS 실패 시 브라우저 내장 TTS 사용
+function speakFallback(text, onEnd) {
   speechSynthesis.cancel()
   const utterance = new SpeechSynthesisUtterance(text)
-
-  const voice = getBritishVoice()
-  if (voice) utterance.voice = voice
-
   utterance.lang = 'en-GB'
-  utterance.rate = 0.88       // slightly slower, examiner pace
-  utterance.pitch = 1.0
-  utterance.volume = 1.0
-
+  utterance.rate = 0.88
   if (onEnd) utterance.onend = onEnd
   speechSynthesis.speak(utterance)
+}
+
+export function stopSpeaking() {
+  if (currentAudio) {
+    currentAudio.pause()
+    currentAudio = null
+  }
+  speechSynthesis.cancel()
 }

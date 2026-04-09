@@ -5,7 +5,7 @@ import useRecorder from '../hooks/useRecorder'
 import { useAuth } from '../hooks/useAuth'
 import { getSpeakingFeedback } from '../lib/claude'
 import { transcribeAudio } from '../lib/stt'
-import { speakQuestion } from '../lib/tts'
+import { speakQuestion, stopSpeaking } from '../lib/tts'
 import FeedbackResult from '../components/speaking/FeedbackResult'
 import QuestionProgress from '../components/speaking/QuestionProgress'
 import { part1Topics } from '../data/speakingQuestions'
@@ -74,7 +74,7 @@ export default function SpeakingPart1() {
   }
 
   const goToQuestion = (index) => {
-    speechSynthesis.cancel()
+    stopSpeaking()
     setQuestionIndex(index)
     setQuestionPlayed(false)
     setPlaying(false)
