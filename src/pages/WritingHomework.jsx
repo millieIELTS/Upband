@@ -4,6 +4,7 @@ import { Send, Loader2, ArrowLeft, Lock, Upload } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { getWritingFeedback } from '../lib/claude'
 import { saveWritingSubmission } from '../lib/submissions'
+import { supabase } from '../lib/supabase'
 import FeedbackDisplay from '../components/writing/FeedbackDisplay'
 
 const taskInfo = {
@@ -31,7 +32,7 @@ export default function WritingHomework() {
   const [loading, setLoading] = useState(false)
   const [feedback, setFeedback] = useState(null)
   const [error, setError] = useState('')
-  const { user, hasCredits } = useAuth()
+  const { user, hasCredits, refreshProfile } = useAuth()
   const navigate = useNavigate()
 
   const wordCount = essay.split(/\s+/).filter(Boolean).length
@@ -68,6 +69,8 @@ export default function WritingHomework() {
         isHomework: true,
         feedback: { overall_band: null, scores: { task_achievement: null, coherence_cohesion: null, lexical_resource: null, grammatical_range: null } },
       })
+      await supabase.rpc('deduct_credit')
+      refreshProfile()
       setFeedback({ submitted: true })
     } catch (err) {
       setError(err.message || '제출에 실패했습니다.')

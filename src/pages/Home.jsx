@@ -26,7 +26,7 @@ export default function Home() {
           <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
             <PenLine size={24} className="text-primary" />
           </div>
-          <h2 className="text-xl font-semibold text-text mb-2">Writing</h2>
+          <h2 className="text-xl font-semibold text-text mb-2">Writing Mock Test</h2>
           <p className="text-text-secondary text-sm mb-4">
             에세이를 입력하면 TA/CC/LR/GRA 4개 기준으로 Band 점수와 상세 피드백을 받으세요. (피드백기능 업데이트 예정)
           </p>
@@ -58,9 +58,9 @@ export default function Home() {
           <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-4">
             <Upload size={24} className="text-accent" />
           </div>
-          <h2 className="text-xl font-semibold text-text mb-2">숙제 제출</h2>
+          <h2 className="text-xl font-semibold text-text mb-2">Writing</h2>
           <p className="text-text-secondary text-sm mb-4">
-            선생님이 내준 Writing 숙제를 제출하고 피드백과 점수를 받아보세요.
+            AI powered + 강사가 직접 확인한 꼼꼼한 피드백 받아보세요.
           </p>
           <span className="text-accent text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
             제출하기 <ArrowRight size={14} />
