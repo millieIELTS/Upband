@@ -1,12 +1,6 @@
-import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts'
-
-const VOICES = [
-  'en-GB-SoniaNeural',   // 영국 여성
-  'en-GB-ThomasNeural',  // 영국 남성
-  'en-AU-WilliamNeural', // 호주 남성
-  'en-US-GuyNeural',     // 미국 남성
-  'en-AU-NatashaNeural', // 호주 여성
-]
+export const config = {
+  maxDuration: 15,
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -18,12 +12,20 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid text' })
   }
 
-  // voice 지정이 있으면 해당 음성, 없으면 랜덤
+  const VOICES = [
+    'en-GB-SoniaNeural',
+    'en-GB-ThomasNeural',
+    'en-AU-WilliamNeural',
+    'en-US-GuyNeural',
+    'en-AU-NatashaNeural',
+  ]
+
   const selectedVoice = voice && VOICES.includes(voice)
     ? voice
     : VOICES[Math.floor(Math.random() * VOICES.length)]
 
   try {
+    const { MsEdgeTTS, OUTPUT_FORMAT } = await import('msedge-tts')
     const tts = new MsEdgeTTS()
     await tts.setMetadata(selectedVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3)
     const { audioStream } = tts.toStream(text)
@@ -34,12 +36,16 @@ export default async function handler(req, res) {
     }
     const buffer = Buffer.concat(chunks)
 
+    if (buffer.length === 0) {
+      throw new Error('Empty audio buffer')
+    }
+
     res.setHeader('Content-Type', 'audio/mpeg')
     res.setHeader('X-Voice', selectedVoice)
-    res.setHeader('Cache-Control', 'public, max-age=86400') // 24시간 캐시
+    res.setHeader('Cache-Control', 'public, max-age=86400')
     return res.status(200).send(buffer)
   } catch (err) {
-    console.error('TTS error:', err)
-    return res.status(500).json({ error: 'TTS generation failed' })
+    console.error('TTS error:', err.message, err.stack)
+    return res.status(500).json({ error: 'TTS generation failed', detail: err.message })
   }
 }

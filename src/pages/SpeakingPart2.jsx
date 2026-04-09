@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Clock, Mic, MicOff, Send, Loader2 } from 'lucide-react'
 import useTimer from '../hooks/useTimer'
@@ -59,6 +59,13 @@ export default function SpeakingPart2() {
   const prepTimer = useTimer(PREP_SECONDS, onPrepComplete)
   const speechTimer = useTimer(SPEECH_SECONDS, onSpeechComplete)
   speechTimerRef.current = speechTimer.start
+
+  // 페이지 이탈 시 카운트다운 정리
+  useEffect(() => {
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current)
+    }
+  }, [])
 
   const startPrep = () => {
     setPhase('prep')

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Play, Mic, MicOff, Send, Loader2, Volume2, List } from 'lucide-react'
 import useRecorder from '../hooks/useRecorder'
@@ -29,6 +29,11 @@ export default function SpeakingPart1() {
   const navigate = useNavigate()
 
   const currentQuestion = questions[questionIndex]
+
+  // 페이지 이탈 시 음성 정지
+  useEffect(() => {
+    return () => stopSpeaking()
+  }, [])
 
   const playQuestion = () => {
     setPlaying(true)
