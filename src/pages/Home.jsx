@@ -28,7 +28,7 @@ export default function Home() {
           </div>
           <h2 className="text-xl font-semibold text-text mb-2">Writing</h2>
           <p className="text-text-secondary text-sm mb-4">
-            에세이를 입력하면 TA/CC/LR/GRA 4개 기준으로 Band 점수와 상세 피드백을 받으세요.
+            에세이를 입력하면 TA/CC/LR/GRA 4개 기준으로 Band 점수와 상세 피드백을 받으세요. (피드백기능 업데이트 예정)
           </p>
           <span className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
             시작하기 <ArrowRight size={14} />
@@ -44,7 +44,7 @@ export default function Home() {
           </div>
           <h2 className="text-xl font-semibold text-text mb-2">Speaking</h2>
           <p className="text-text-secondary text-sm mb-4">
-            질문을 듣고 연습해보세요.
+            질문을 듣고 연습해보세요. (녹음기능 업데이트 예정)
           </p>
           <span className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
             시작하기 <ArrowRight size={14} />
