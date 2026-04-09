@@ -18,9 +18,12 @@ export default function MyPage() {
     ]).then(([w, s]) => {
       const wData = w.data || []
       const sData = s.data || []
-      const all = [...wData, ...sData]
-      const avg = all.length > 0
-        ? (all.reduce((sum, i) => sum + Number(i.overall_band), 0) / all.length).toFixed(1)
+      // 채점된 제출물만 평균 계산 (teacher_band 우선, 없으면 overall_band)
+      const allScored = [...wData, ...sData]
+        .map(i => i.teacher_band ?? i.overall_band)
+        .filter(band => band != null)
+      const avg = allScored.length > 0
+        ? (allScored.reduce((sum, b) => sum + Number(b), 0) / allScored.length).toFixed(1)
         : null
       setStats({ writing: wData.length, speaking: sData.length, avgBand: avg })
     })

@@ -322,9 +322,13 @@ export default function Dashboard() {
                               </span>
                             </div>
                             <div className="flex items-center gap-3">
-                              <span className={`text-sm font-bold ${bandColor(sub.overall_band)}`}>
-                                {sub.overall_band}
-                              </span>
+                              {(sub.teacher_band ?? sub.overall_band) != null ? (
+                                <span className={`text-sm font-bold ${bandColor(sub.teacher_band ?? sub.overall_band)}`}>
+                                  {sub.teacher_band ?? sub.overall_band}
+                                </span>
+                              ) : (
+                                <span className="text-xs text-text-secondary">미채점</span>
+                              )}
                               <span className="text-[10px] text-text-secondary">{formatDate(sub.created_at)}</span>
                             </div>
                           </div>
@@ -375,9 +379,13 @@ export default function Dashboard() {
                       <p className="text-xs text-text-secondary">{formatDate(sub.created_at)}</p>
                     </div>
                   </div>
-                  <span className={`text-lg font-bold ${bandColor(sub.overall_band)}`}>
-                    {sub.overall_band}
-                  </span>
+                  {(sub.teacher_band ?? sub.overall_band) != null ? (
+                    <span className={`text-lg font-bold ${bandColor(sub.teacher_band ?? sub.overall_band)}`}>
+                      {sub.teacher_band ?? sub.overall_band}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-text-secondary">미채점</span>
+                  )}
                 </div>
               )
             })
