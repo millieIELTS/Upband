@@ -14,7 +14,7 @@ const taskInfo = {
     title: 'Task 1 제출',
     description: 'Task 1 문제에 대한 리포트를 제출하세요.',
     placeholder: 'Task 1 에세이를 입력하세요...',
-    questionPlaceholder: 'Cambridge IELTS 몇 권의 몇 번인지 써주시거나, 없으신 경우 비워두셔도 됩니다. (비워두시면 수치는 정확히 볼 수 없지만 맞다고 생각하고 글만 평가하게 됩니다.)',
+    questionPlaceholder: 'Cambridge IELTS 문제를 써주시거나 (예시: 20권 테스트 3번) 아래에서 이미지를 직접 업로드해주세요. 비워두시면 글만 보고 평가하게 됩니다. (수치가 맞다고 생각하고 채점)',
     minWords: 150,
   },
   task2: {
