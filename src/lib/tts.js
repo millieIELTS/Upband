@@ -81,11 +81,17 @@ function speakFallback(text, onEnd) {
   speechSynthesis.speak(utterance)
 }
 
-export function stopSpeaking() {
+// 재생만 멈추기 (세션 음성 유지 — 질문 전환용)
+export function stopPlaying() {
   if (currentAudio) {
     currentAudio.pause()
     currentAudio = null
   }
   speechSynthesis.cancel()
+}
+
+// 완전 정지 + 세션 초기화 (페이지 이탈용)
+export function stopSpeaking() {
+  stopPlaying()
   sessionVoice = null
 }
