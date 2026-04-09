@@ -30,6 +30,26 @@ export const part1Topics = [
   { id: 28, questions: ['Do you like science?', 'What was your favourite subject at school?', 'Do you think science is important for everyone to learn?', 'Have you visited a science museum?'] },
   { id: 29, questions: ['Do you like maps?', 'Do you use maps when you travel?', 'Do you prefer digital maps or paper maps?', 'Are you good at reading maps?'] },
   { id: 30, questions: ['Do you like handwriting?', 'Do you prefer typing or writing by hand?', 'Is handwriting still important?', 'Do you think handwriting reveals personality?'] },
+  { id: 31, questions: ['How many hours of sleep do you usually get?', 'Do you think you get enough sleep?', 'What do you do if you cannot fall asleep?', 'Has your sleeping pattern changed over the years?'] },
+  { id: 32, questions: ['What gadgets do you use most often?', 'Do you like trying new technology?', 'Is there any technology you think is overrated?', 'How do you feel when your phone battery dies?'] },
+  { id: 33, questions: ['Are you a patient person?', 'What situations require the most patience?', 'Have you become more patient as you have got older?', 'How do you deal with impatience?'] },
+  { id: 34, questions: ['What is your favourite colour?', 'Do colours affect your mood?', 'Do you wear clothes of many different colours?', 'Are there colours that have a special meaning in your culture?'] },
+  { id: 35, questions: ['How much water do you drink every day?', 'Do you prefer still or sparkling water?', 'Do you enjoy water activities like swimming or surfing?', 'Is clean water easy to access where you live?'] },
+  { id: 36, questions: ['Do you like walking?', 'Where do you usually go for a walk?', 'Do you prefer walking alone or with someone?', 'Do you think people walk less than they used to?'] },
+  { id: 37, questions: ['How important are shoes to you?', 'Do you buy shoes often?', 'What kind of shoes do you prefer wearing?', 'Have you ever bought shoes that were uncomfortable?'] },
+  { id: 38, questions: ['Do you like a quiet environment?', 'What kind of noise bothers you the most?', 'Is your neighbourhood noisy or quiet?', 'Do you think cities are becoming noisier?'] },
+  { id: 39, questions: ['Do you ever look at the stars at night?', 'Do you know much about astronomy?', 'Have you ever seen a shooting star?', 'Is the night sky clear where you live?'] },
+  { id: 40, questions: ['Can you swim?', 'How did you learn to swim?', 'Do you enjoy going to the beach or pool?', 'Do you think swimming is an important skill?'] },
+  { id: 41, questions: ['Do you think you manage your time well?', 'Do you ever feel there is not enough time in the day?', 'Do you use any tools to organise your time?', 'Has your sense of time changed as you have got older?'] },
+  { id: 42, questions: ['Do you write many emails?', 'Do you prefer sending emails or instant messages?', 'How quickly do you usually reply to emails?', 'Do you think email will still be used in the future?'] },
+  { id: 43, questions: ['Are you a punctual person?', 'Is punctuality important in your culture?', 'What do you do when someone is late to meet you?', 'Have you ever missed something because you were late?'] },
+  { id: 44, questions: ['Do you like trees and forests?', 'Have you ever planted a tree?', 'Is there a lot of greenery where you live?', 'Why do you think trees are important for cities?'] },
+  { id: 45, questions: ['Do you read newspapers?', 'How do you usually get your news?', 'Do you think newspapers will disappear?', 'Do you prefer reading news online or on paper?'] },
+  { id: 46, questions: ['Did you have a favourite toy as a child?', 'Do you think children play with different toys now?', 'Do you keep any toys from your childhood?', 'Are traditional toys better than electronic ones?'] },
+  { id: 47, questions: ['Do you find it easy to concentrate?', 'What distracts you the most?', 'Where do you usually go when you need to focus?', 'Do you think people today have shorter attention spans?'] },
+  { id: 48, questions: ['Do you like rain?', 'What do you usually do on rainy days?', 'Does rain affect your mood?', 'Does it rain a lot where you live?'] },
+  { id: 49, questions: ['Do you carry a bag every day?', 'What kind of bag do you prefer?', 'What do you usually have in your bag?', 'Have you ever lost a bag?'] },
+  { id: 50, questions: ['Do you enjoy public holidays?', 'How do you usually spend public holidays?', 'Do you think there should be more public holidays?', 'What is your favourite holiday of the year?'] },
 ]
 
 // Part 2 & 3: 30개 주제 세트 (Part 2 토픽카드 + Part 3 심화 질문이 매칭)
@@ -183,6 +203,106 @@ export const part2Part3Topics = [
     id: 30, name: 'A Historical Event',
     part2: { title: 'Describe a historical event that you find interesting.', points: ['What the event was', 'When and where it took place', 'What happened', 'And explain why you find it interesting'] },
     part3: ['Is it important to learn about history?', 'How can we make history more interesting for young people?', 'Do you think history repeats itself?', 'Should countries apologise for historical wrongs?', 'How does understanding history help us make better decisions today?', 'Do you think people learn enough about world history or only their own country\'s history?'],
+  },
+  {
+    id: 31, name: 'A Piece of Advice',
+    part2: { title: 'Describe a piece of advice you received that was useful.', points: ['What the advice was', 'Who gave it to you', 'When you received it', 'And explain why it was useful'] },
+    part3: ['Do young people listen to advice from older generations?', 'Is it better to learn from your own mistakes or from others\' advice?', 'Should people ask for advice before making big decisions?', 'Do you think professional advice, such as career counselling, is helpful?', 'Why do some people find it hard to accept advice?', 'Has the internet changed the way people seek advice?'],
+  },
+  {
+    id: 32, name: 'A Family Tradition',
+    part2: { title: 'Describe a tradition in your family.', points: ['What the tradition is', 'How often you do it', 'Who is involved', 'And explain why this tradition is important to your family'] },
+    part3: ['Are family traditions important in modern society?', 'How have family structures changed in recent decades?', 'Do you think young people value family traditions less than before?', 'Should families make an effort to create new traditions?', 'How do traditions help bring families closer together?', 'Are there any traditions that should be changed or abandoned?'],
+  },
+  {
+    id: 33, name: 'A Public Facility',
+    part2: { title: 'Describe a public facility that you think is useful for your community.', points: ['What the facility is', 'Where it is located', 'How often you use it', 'And explain why it is useful'] },
+    part3: ['Should governments invest more in public facilities?', 'What public facilities are most important for a community?', 'Do you think libraries are still relevant in the digital age?', 'How can public facilities be made more accessible to everyone?', 'Should public facilities be free of charge?', 'How do public facilities differ between urban and rural areas?'],
+  },
+  {
+    id: 34, name: 'A Time You Waited',
+    part2: { title: 'Describe a time when you had to wait a long time for something.', points: ['What you were waiting for', 'Where you waited', 'How long you waited', 'And explain how you felt about waiting'] },
+    part3: ['Are people less patient now than in the past?', 'How has technology reduced the amount of time we spend waiting?', 'Is patience an important quality in modern life?', 'Do you think waiting can sometimes be a positive experience?', 'Why do people find it so hard to wait?', 'Should companies do more to reduce waiting times for customers?'],
+  },
+  {
+    id: 35, name: 'A Foreign Country',
+    part2: { title: 'Describe a foreign country you would like to visit.', points: ['Which country it is', 'What you know about it', 'How you learned about it', 'And explain why you would like to visit it'] },
+    part3: ['What can people learn from visiting other countries?', 'Do you think living abroad changes a person?', 'Is it important to learn about other cultures?', 'How has globalisation affected cultural identity?', 'Should governments encourage citizens to travel abroad?', 'Do you think cultural exchange programmes are beneficial?'],
+  },
+  {
+    id: 36, name: 'A Piece of Art',
+    part2: { title: 'Describe a piece of art, such as a painting or sculpture, that you like.', points: ['What the artwork is', 'Where you saw it', 'What it depicts', 'And explain why you like it'] },
+    part3: ['Should art be funded by the government?', 'Do you think modern art is as valuable as classical art?', 'How does art contribute to society?', 'Should art be included in school curricula?', 'Do you think anyone can be an artist?', 'How has digital technology changed the art world?'],
+  },
+  {
+    id: 37, name: 'A Crowded Place',
+    part2: { title: 'Describe a crowded place you have been to.', points: ['Where the place was', 'When you went there', 'Why it was crowded', 'And explain how you felt about being there'] },
+    part3: ['Why do some people enjoy crowded places while others avoid them?', 'How can cities deal with overcrowding?', 'Do you think population growth is a serious problem?', 'Are crowded tourist attractions still worth visiting?', 'Should popular places limit the number of visitors?', 'How does overcrowding affect people\'s quality of life?'],
+  },
+  {
+    id: 38, name: 'A Useful Website',
+    part2: { title: 'Describe a website you use regularly.', points: ['What the website is', 'How you found out about it', 'How often you use it', 'And explain why you find it useful'] },
+    part3: ['How has the internet changed the way people access information?', 'Do you think there is too much information available online?', 'Should governments regulate content on the internet?', 'Is the internet making people smarter or lazier?', 'How can people tell if a website is trustworthy?', 'Do you think the internet will replace traditional education?'],
+  },
+  {
+    id: 39, name: 'A River or Lake',
+    part2: { title: 'Describe a river, lake, or other body of water you have visited.', points: ['Where it is', 'When you visited it', 'What you did there', 'And explain why you remember it'] },
+    part3: ['How important is water conservation?', 'Should industries that pollute rivers be more heavily penalised?', 'Do you think people take clean water for granted?', 'How do rivers and lakes contribute to a country\'s economy?', 'What role do natural landscapes play in people\'s well-being?', 'Should governments do more to protect natural water sources?'],
+  },
+  {
+    id: 40, name: 'A Childhood Toy',
+    part2: { title: 'Describe a toy you enjoyed playing with as a child.', points: ['What the toy was', 'Who gave it to you', 'How you played with it', 'And explain why you enjoyed it so much'] },
+    part3: ['Have children\'s toys changed significantly over the years?', 'Do you think electronic toys are better than traditional ones?', 'Should parents limit the number of toys their children have?', 'How do toys contribute to a child\'s development?', 'Is there too much advertising of toys aimed at children?', 'Do you think children today have too many possessions?'],
+  },
+  {
+    id: 41, name: 'A Habit You Want to Change',
+    part2: { title: 'Describe a habit you have that you would like to change.', points: ['What the habit is', 'How long you have had it', 'Why you want to change it', 'And explain what you are doing to change it'] },
+    part3: ['Why is it difficult for people to change their habits?', 'Do you think good habits are formed in childhood?', 'How can technology help people develop better habits?', 'Is willpower enough to break a bad habit?', 'Should schools teach children about healthy habits?', 'Do you think society puts too much pressure on people to be perfect?'],
+  },
+  {
+    id: 42, name: 'A Famous Person',
+    part2: { title: 'Describe a famous person you would like to meet.', points: ['Who the person is', 'What they are famous for', 'How you know about them', 'And explain why you would like to meet them'] },
+    part3: ['Do famous people have a responsibility to be good role models?', 'How has social media changed the concept of fame?', 'Is it healthy for young people to idolise celebrities?', 'Do you think fame brings happiness?', 'Should famous people use their influence for social causes?', 'How is fame today different from fame in the past?'],
+  },
+  {
+    id: 43, name: 'A Local Business',
+    part2: { title: 'Describe a local business that you like to visit.', points: ['What the business is', 'Where it is located', 'How often you go there', 'And explain why you like it'] },
+    part3: ['Is it important to support local businesses?', 'How do large chain stores affect small businesses?', 'Should governments offer financial help to small businesses?', 'Do you think online shopping is killing local shops?', 'What makes a local business successful?', 'How do local businesses contribute to a sense of community?'],
+  },
+  {
+    id: 44, name: 'A Difficult Subject',
+    part2: { title: 'Describe a subject you found difficult to learn.', points: ['What the subject was', 'When you studied it', 'Why it was difficult', 'And explain how you managed to learn it'] },
+    part3: ['Why do some students find certain subjects harder than others?', 'Should students be allowed to drop subjects they find difficult?', 'How can teachers make difficult subjects more engaging?', 'Is it more important to be well-rounded or to specialise?', 'Do you think the education system puts too much emphasis on exams?', 'How has technology changed the way people study?'],
+  },
+  {
+    id: 45, name: 'A Memorable Meal',
+    part2: { title: 'Describe a meal you had that was particularly memorable.', points: ['When and where you had the meal', 'Who you were with', 'What you ate', 'And explain why it was memorable'] },
+    part3: ['How important is food in your culture?', 'Do you think cooking skills are declining among young people?', 'Should fast food be more heavily regulated?', 'How has globalisation changed the food people eat?', 'Is eating together as a family important?', 'Do you think people spend too much money on eating out?'],
+  },
+  {
+    id: 46, name: 'A Recent Change',
+    part2: { title: 'Describe a change that has happened in your life recently.', points: ['What the change was', 'When it happened', 'How it affected your daily life', 'And explain how you feel about this change'] },
+    part3: ['Do people generally find change difficult?', 'Is change always a good thing?', 'How do major life changes affect people\'s mental health?', 'Should people be encouraged to embrace change?', 'Why do some people resist change while others welcome it?', 'How has the pace of change in society increased over time?'],
+  },
+  {
+    id: 47, name: 'An Important Letter',
+    part2: { title: 'Describe an important letter or message you received.', points: ['What the letter was about', 'Who sent it', 'When you received it', 'And explain why it was important to you'] },
+    part3: ['Do people still write letters in the modern age?', 'Is a handwritten letter more meaningful than a digital message?', 'How has communication changed over the past few decades?', 'Do you think email has made communication too informal?', 'Is there value in keeping old letters and cards?', 'Will physical mail eventually disappear completely?'],
+  },
+  {
+    id: 48, name: 'A Natural Disaster',
+    part2: { title: 'Describe a natural disaster you have heard about or experienced.', points: ['What the disaster was', 'When and where it happened', 'How it affected people', 'And explain what you learned from it'] },
+    part3: ['Should governments spend more on disaster prevention?', 'How can communities better prepare for natural disasters?', 'Do you think climate change is increasing the frequency of natural disasters?', 'Should richer countries help poorer countries affected by disasters?', 'How does media coverage of disasters affect public response?', 'Is it possible to completely prevent the damage caused by natural disasters?'],
+  },
+  {
+    id: 49, name: 'A Free Time Activity',
+    part2: { title: 'Describe an activity you enjoy doing in your free time.', points: ['What the activity is', 'Where you do it', 'Who you do it with', 'And explain why you enjoy this activity'] },
+    part3: ['Do people today have more or less free time than in the past?', 'Is it important to have a good work-life balance?', 'Should companies give employees more leisure time?', 'How do free time activities differ between generations?', 'Do you think people waste too much free time on their phones?', 'Should governments provide more recreational facilities for citizens?'],
+  },
+  {
+    id: 50, name: 'A Cultural Difference',
+    part2: { title: 'Describe a cultural difference you experienced or learned about.', points: ['What the difference was', 'How you discovered it', 'How it made you feel', 'And explain what you learned from it'] },
+    part3: ['Is it important for people to understand other cultures?', 'How can cultural misunderstandings be avoided?', 'Do you think globalisation is reducing cultural diversity?', 'Should schools teach students about different cultures?', 'Can cultural differences cause problems in the workplace?', 'How does travel help people appreciate cultural differences?'],
   },
 ]
 
