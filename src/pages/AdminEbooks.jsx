@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, Plus, Trash2, Save, Loader2, BookOpen, Eye, EyeOff, Upload, Image as ImageIcon, FileText,
+  ArrowLeft, Plus, Trash2, Save, Loader2, BookOpen, Eye, EyeOff, Upload, Image as ImageIcon, FileText, Pencil, X,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
@@ -17,6 +17,11 @@ export default function AdminEbooks() {
   const [coverFile, setCoverFile] = useState(null)
   const [pdfFile, setPdfFile] = useState(null)
   const [uploadProgress, setUploadProgress] = useState('')
+  // 수정 모드
+  const [editingId, setEditingId] = useState(null)
+  const [editForm, setEditForm] = useState({ title: '', description: '', price: 0 })
+  const [editCoverFile, setEditCoverFile] = useState(null)
+  const [editPdfFile, setEditPdfFile] = useState(null)
 
   const isAdmin = profile?.role === 'admin'
 
@@ -92,6 +97,57 @@ export default function AdminEbooks() {
       if (error) throw error
     } catch (err) {
       alert('업로드 실패: ' + (err.message || '알 수 없는 오류'))
+    } finally {
+      setSaving(null)
+      setUploadProgress('')
+    }
+  }
+
+  function startEdit(book) {
+    setEditingId(book.id)
+    setEditForm({ title: book.title, description: book.description || '', price: book.price || 0 })
+    setEditCoverFile(null)
+    setEditPdfFile(null)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setEditCoverFile(null)
+    setEditPdfFile(null)
+  }
+
+  async function handleEdit(e, book) {
+    e.preventDefault()
+    if (!editForm.title.trim()) return
+    setSaving(book.id)
+    setUploadProgress('')
+
+    try {
+      const updates = {
+        title: editForm.title.trim(),
+        description: editForm.description.trim() || null,
+        price: parseInt(editForm.price) || 0,
+      }
+
+      if (editCoverFile) {
+        setUploadProgress('커버 이미지 업로드 중...')
+        updates.cover_url = await uploadFile(editCoverFile, 'covers')
+      }
+      if (editPdfFile) {
+        setUploadProgress('PDF 파일 업로드 중...')
+        updates.file_url = await uploadFile(editPdfFile, 'pdfs')
+      }
+
+      setUploadProgress('저장 중...')
+      const { error } = await supabase.from('ebooks').update(updates).eq('id', book.id)
+      if (error) throw error
+
+      setEbooks(prev => prev.map(e => e.id === book.id ? { ...e, ...updates } : e))
+      setEditingId(null)
+      setEditCoverFile(null)
+      setEditPdfFile(null)
+    } catch (err) {
+      alert('수정 실패: ' + (err.message || '알 수 없는 오류'))
     } finally {
       setSaving(null)
       setUploadProgress('')
@@ -247,55 +303,159 @@ export default function AdminEbooks() {
       ) : (
         <div className="space-y-2">
           {ebooks.map((book) => (
-            <div key={book.id} className="bg-surface rounded-xl border border-border p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <BookOpen size={18} className="text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium truncate">{book.title}</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                      book.is_published ? 'bg-success/10 text-success' : 'bg-gray-100 text-text-secondary'
-                    }`}>
-                      {book.is_published ? '공개' : '비공개'}
-                    </span>
-                    <span className="text-xs text-accent font-medium">
-                      {book.price === 0 ? '무료' : `₩${book.price.toLocaleString()}`}
-                    </span>
+            <div key={book.id} className="bg-surface rounded-xl border border-border overflow-hidden">
+              {/* 수정 모드 */}
+              {editingId === book.id ? (
+                <form onSubmit={(e) => handleEdit(e, book)} className="p-5 space-y-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-sm font-semibold">전자책 수정</h3>
+                    <button type="button" onClick={cancelEdit} className="p-1 text-text-secondary hover:text-error">
+                      <X size={16} />
+                    </button>
                   </div>
-                  {book.description && (
-                    <p className="text-xs text-text-secondary truncate">{book.description}</p>
+                  <div>
+                    <label className="block text-xs text-text-secondary mb-1">제목 *</label>
+                    <input
+                      type="text"
+                      value={editForm.title}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:border-primary"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-text-secondary mb-1">설명</label>
+                    <textarea
+                      value={editForm.description}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                      className="w-full h-20 px-3 py-2 rounded-lg border border-border text-sm resize-y focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-text-secondary mb-1">가격 (원, 0=무료)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editForm.price}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, price: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-text-secondary mb-1">
+                      <ImageIcon size={12} className="inline mr-1" />
+                      커버 이미지 변경
+                    </label>
+                    <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors">
+                      <Upload size={14} className="text-text-secondary" />
+                      <span className="text-sm text-text-secondary">
+                        {editCoverFile ? editCoverFile.name : (book.cover_url ? '현재 이미지 유지 (변경하려면 클릭)' : '이미지 파일 선택')}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setEditCoverFile(e.target.files[0] || null)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-text-secondary mb-1">
+                      <FileText size={12} className="inline mr-1" />
+                      PDF 파일 변경
+                    </label>
+                    <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors">
+                      <Upload size={14} className="text-text-secondary" />
+                      <span className="text-sm text-text-secondary">
+                        {editPdfFile ? editPdfFile.name : (book.file_url ? '현재 PDF 유지 (변경하려면 클릭)' : 'PDF 파일 선택')}
+                      </span>
+                      <input
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        onChange={(e) => setEditPdfFile(e.target.files[0] || null)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                  {uploadProgress && (
+                    <p className="text-xs text-primary flex items-center gap-1">
+                      <Loader2 size={12} className="animate-spin" /> {uploadProgress}
+                    </p>
                   )}
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={saving === book.id}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
+                    >
+                      {saving === book.id ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                      저장
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="px-4 py-2 border border-border rounded-lg text-sm text-text-secondary hover:bg-gray-50 transition-colors"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* 보기 모드 */
+                <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {book.cover_url ? (
+                      <img src={book.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <BookOpen size={18} className="text-primary" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium truncate">{book.title}</span>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                          book.is_published ? 'bg-success/10 text-success' : 'bg-gray-100 text-text-secondary'
+                        }`}>
+                          {book.is_published ? '공개' : '비공개'}
+                        </span>
+                        <span className="text-xs text-accent font-medium">
+                          {book.price === 0 ? '무료' : `₩${book.price.toLocaleString()}`}
+                        </span>
+                      </div>
+                      {book.description && (
+                        <p className="text-xs text-text-secondary truncate">{book.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => startEdit(book)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border text-xs hover:bg-gray-50 hover:border-primary hover:text-primary transition-colors"
+                    >
+                      <Pencil size={12} /> 수정
+                    </button>
+                    <button
+                      onClick={() => togglePublish(book.id, book.is_published)}
+                      disabled={saving === book.id}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border text-xs hover:bg-gray-50 transition-colors"
+                    >
+                      {book.is_published ? <EyeOff size={12} /> : <Eye size={12} />}
+                      {book.is_published ? '숨기기' : '공개'}
+                    </button>
+                    <button
+                      onClick={() => deleteEbook(book.id)}
+                      className="p-1.5 rounded-lg text-text-secondary hover:text-error hover:bg-error/5 transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => togglePublish(book.id, book.is_published)}
-                  disabled={saving === book.id}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border text-xs hover:bg-gray-50 transition-colors"
-                >
-                  {book.is_published ? <EyeOff size={12} /> : <Eye size={12} />}
-                  {book.is_published ? '숨기기' : '공개'}
-                </button>
-                <button
-                  onClick={() => deleteEbook(book.id)}
-                  className="p-1.5 rounded-lg text-text-secondary hover:text-error hover:bg-error/5 transition-colors"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
+              )}
             </div>
           ))}
         </div>
       )}
-
-      <div className="mt-6 p-4 bg-bg rounded-xl text-xs text-text-secondary space-y-1">
-        <p><b>사용 방법:</b></p>
-        <p>1. "새 전자책 등록" 클릭 → 제목, 설명, 가격 입력</p>
-        <p>2. 커버 이미지와 PDF 파일을 직접 업로드</p>
-        <p>3. "공개" 버튼으로 학생에게 노출</p>
-      </div>
     </div>
   )
 }
