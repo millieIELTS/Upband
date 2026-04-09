@@ -232,7 +232,7 @@ export default function WritingHomework() {
               className="flex items-center gap-2 px-6 py-2.5 bg-accent text-white rounded-lg font-medium text-sm hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-              {loading ? '분석 중...' : '숙제 제출하기'}
+              {loading ? '제출 중...' : '제출하기'}
             </button>
           </div>
         </div>
@@ -244,7 +244,7 @@ export default function WritingHomework() {
 
       {feedback?.submitted && (
         <div className="mt-4 p-4 rounded-lg bg-success/10 text-success text-sm font-medium">
-          ✅ 숙제가 성공적으로 제출되었습니다! 선생님이 대시보드에서 확인할 수 있습니다.
+          성공적으로 제출되었습니다! 선생님이 대시보드에서 확인할 수 있습니다.
         </div>
       )}
     </div>
