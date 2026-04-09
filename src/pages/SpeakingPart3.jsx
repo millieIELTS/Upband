@@ -5,7 +5,7 @@ import useRecorder from '../hooks/useRecorder'
 import { useAuth } from '../hooks/useAuth'
 import { getSpeakingFeedback } from '../lib/claude'
 import { transcribeAudio } from '../lib/stt'
-import { speakQuestion, stopSpeaking } from '../lib/tts'
+import { speakQuestion, stopSpeaking, pickSessionVoice } from '../lib/tts'
 import FeedbackResult from '../components/speaking/FeedbackResult'
 import QuestionProgress from '../components/speaking/QuestionProgress'
 import { part3Topics } from '../data/speakingQuestions'
@@ -30,8 +30,9 @@ export default function SpeakingPart3() {
 
   const currentQuestion = questions[questionIndex]
 
-  // 페이지 이탈 시 음성 정지
+  // 토픽 진입 시 음성 배정, 이탈 시 정지
   useEffect(() => {
+    pickSessionVoice()
     return () => stopSpeaking()
   }, [])
 

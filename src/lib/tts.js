@@ -13,8 +13,18 @@ const VOICES = [
 const audioCache = new Map()
 let currentAudio = null
 
-function getRandomVoice() {
-  return VOICES[Math.floor(Math.random() * VOICES.length)]
+// 세션 음성 — 토픽 진입 시 한 번 정해지면 그 토픽 내에서 유지
+let sessionVoice = null
+
+// 토픽 진입 시 호출 — 새 음성 랜덤 배정
+export function pickSessionVoice() {
+  sessionVoice = VOICES[Math.floor(Math.random() * VOICES.length)]
+  return sessionVoice
+}
+
+function getVoice() {
+  if (!sessionVoice) pickSessionVoice()
+  return sessionVoice
 }
 
 export async function speakQuestion(text, onEnd) {
@@ -31,7 +41,7 @@ export async function speakQuestion(text, onEnd) {
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, voice: getRandomVoice() }),
+        body: JSON.stringify({ text, voice: getVoice() }),
       })
 
       if (!res.ok) throw new Error('TTS 요청 실패')
@@ -51,7 +61,6 @@ export async function speakQuestion(text, onEnd) {
 
     audio.onerror = () => {
       currentAudio = null
-      // 폴백: 브라우저 TTS
       speakFallback(text, onEnd)
     }
 
@@ -78,4 +87,5 @@ export function stopSpeaking() {
     currentAudio = null
   }
   speechSynthesis.cancel()
+  sessionVoice = null
 }
