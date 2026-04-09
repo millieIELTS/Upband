@@ -71,6 +71,14 @@ export default function SpeakingPart1() {
         question: currentQuestion,
       })
       setResult(feedback)
+
+      // 완료 기록 저장
+      const key = `speaking_done_part1`
+      const done = JSON.parse(localStorage.getItem(key) || '[]')
+      if (!done.includes(topic.id)) {
+        done.push(topic.id)
+        localStorage.setItem(key, JSON.stringify(done))
+      }
     } catch (err) {
       setError(err.message)
       setTranscribing(false)

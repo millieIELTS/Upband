@@ -1,8 +1,15 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Eye } from 'lucide-react'
+import { ArrowLeft, Check } from 'lucide-react'
 import { part2Part3Topics } from '../data/speakingQuestions'
 
 export default function SpeakingPart2Select() {
+  const [done, setDone] = useState([])
+
+  useEffect(() => {
+    setDone(JSON.parse(localStorage.getItem('speaking_done_part2') || '[]'))
+  }, [])
+
   return (
     <div>
       <Link
@@ -16,20 +23,34 @@ export default function SpeakingPart2Select() {
       <p className="text-text-secondary text-sm mb-6">주제를 선택하세요. 1분 준비 후 2분 스피치입니다.</p>
 
       <div className="grid sm:grid-cols-2 gap-3 max-w-2xl">
-        {part2Part3Topics.map((topic) => (
-          <Link
-            key={topic.id}
-            to={`/speaking/part2/${topic.id}`}
-            className="group bg-surface rounded-xl border border-border p-4 no-underline text-left hover:border-primary hover:shadow-md transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                <span className="text-sm font-bold text-primary">{topic.id}</span>
+        {part2Part3Topics.map((topic) => {
+          const completed = done.includes(topic.id)
+          return (
+            <Link
+              key={topic.id}
+              to={`/speaking/part2/${topic.id}`}
+              className={`group rounded-xl border p-4 no-underline text-left hover:shadow-md transition-all ${
+                completed
+                  ? 'bg-green-50 border-green-300 hover:border-green-400'
+                  : 'bg-surface border-border hover:border-primary'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                  completed
+                    ? 'bg-green-100 group-hover:bg-green-200'
+                    : 'bg-primary/10 group-hover:bg-primary/20'
+                }`}>
+                  {completed
+                    ? <Check size={16} className="text-green-600" />
+                    : <span className="text-sm font-bold text-primary">{topic.id}</span>
+                  }
+                </div>
+                <h3 className={`text-sm font-medium ${completed ? 'text-green-700' : 'text-text'}`}>{topic.name}</h3>
               </div>
-              <h3 className="text-sm font-medium text-text">{topic.name}</h3>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          )
+        })}
       </div>
     </div>
   )

@@ -100,6 +100,13 @@ export default function SpeakingPart2() {
         question: topic.title,
       })
       setResult(feedback)
+
+      const key = `speaking_done_part2`
+      const done = JSON.parse(localStorage.getItem(key) || '[]')
+      if (!done.includes(topicData.id)) {
+        done.push(topicData.id)
+        localStorage.setItem(key, JSON.stringify(done))
+      }
     } catch (err) {
       setError(err.message)
       setTranscribing(false)

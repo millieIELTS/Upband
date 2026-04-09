@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { User, PenLine, Mic, Coins, Settings, LogIn, ChevronRight } from 'lucide-react'
+import { User, PenLine, Mic, Coins, Settings, LogIn, ChevronRight, MessageCircle } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useState, useEffect } from 'react'
 import { getWritingHistory, getSpeakingHistory } from '../lib/submissions'
@@ -117,7 +117,7 @@ export default function MyPage() {
         </Link>
         <Link
           to="/settings"
-          className="flex items-center justify-between px-5 py-4 no-underline text-text hover:bg-gray-50 transition-colors rounded-b-xl"
+          className="flex items-center justify-between px-5 py-4 no-underline text-text hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-3">
             <Settings size={18} className="text-text-secondary" />
@@ -125,6 +125,18 @@ export default function MyPage() {
           </div>
           <ChevronRight size={16} className="text-text-secondary" />
         </Link>
+        <a
+          href="https://open.kakao.com/o/sOpMnVoi"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between px-5 py-4 no-underline text-text hover:bg-gray-50 transition-colors rounded-b-xl"
+        >
+          <div className="flex items-center gap-3">
+            <MessageCircle size={18} className="text-yellow-500" />
+            <span className="text-sm font-medium">문의하기 (카카오톡)</span>
+          </div>
+          <ChevronRight size={16} className="text-text-secondary" />
+        </a>
       </div>
     </div>
   )
