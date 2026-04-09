@@ -20,6 +20,7 @@ import Settings from './pages/Settings'
 import SubmissionDetail from './pages/SubmissionDetail'
 import Store from './pages/Store'
 import AdminEbooks from './pages/AdminEbooks'
+import RequireAuth from './components/RequireAuth'
 
 function App() {
   return (
@@ -27,25 +28,25 @@ function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/writing" element={<Writing />} />
-          <Route path="/writing/:taskType" element={<WritingTask />} />
-          <Route path="/writing/homework" element={<WritingHomeworkSelect />} />
-          <Route path="/writing/homework/:taskType" element={<WritingHomework />} />
-          <Route path="/speaking" element={<Speaking />} />
-          <Route path="/speaking/part1" element={<SpeakingPart1Select />} />
-          <Route path="/speaking/part1/:topicId" element={<SpeakingPart1 />} />
-          <Route path="/speaking/part2" element={<SpeakingPart2Select />} />
-          <Route path="/speaking/part2/:topicId" element={<SpeakingPart2 />} />
-          <Route path="/speaking/part3" element={<SpeakingPart3Select />} />
-          <Route path="/speaking/part3/:topicId" element={<SpeakingPart3 />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/dashboard/submissions" element={<SubmissionDetail />} />
-          <Route path="/dashboard/ebooks" element={<AdminEbooks />} />
+          <Route path="/writing" element={<RequireAuth><Writing /></RequireAuth>} />
+          <Route path="/writing/:taskType" element={<RequireAuth><WritingTask /></RequireAuth>} />
+          <Route path="/writing/homework" element={<RequireAuth><WritingHomeworkSelect /></RequireAuth>} />
+          <Route path="/writing/homework/:taskType" element={<RequireAuth><WritingHomework /></RequireAuth>} />
+          <Route path="/speaking" element={<RequireAuth><Speaking /></RequireAuth>} />
+          <Route path="/speaking/part1" element={<RequireAuth><SpeakingPart1Select /></RequireAuth>} />
+          <Route path="/speaking/part1/:topicId" element={<RequireAuth><SpeakingPart1 /></RequireAuth>} />
+          <Route path="/speaking/part2" element={<RequireAuth><SpeakingPart2Select /></RequireAuth>} />
+          <Route path="/speaking/part2/:topicId" element={<RequireAuth><SpeakingPart2 /></RequireAuth>} />
+          <Route path="/speaking/part3" element={<RequireAuth><SpeakingPart3Select /></RequireAuth>} />
+          <Route path="/speaking/part3/:topicId" element={<RequireAuth><SpeakingPart3 /></RequireAuth>} />
+          <Route path="/history" element={<RequireAuth><History /></RequireAuth>} />
+          <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+          <Route path="/dashboard/submissions" element={<RequireAuth><SubmissionDetail /></RequireAuth>} />
+          <Route path="/dashboard/ebooks" element={<RequireAuth><AdminEbooks /></RequireAuth>} />
           <Route path="/store" element={<Store />} />
           <Route path="/login" element={<Login />} />
           <Route path="/mypage" element={<MyPage />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
         </Route>
       </Routes>
     </BrowserRouter>
