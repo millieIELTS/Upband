@@ -1,9 +1,5 @@
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts'
 
-export const config = {
-  maxDuration: 15,
-}
-
 const VOICES = [
   'en-GB-SoniaNeural',
   'en-GB-ThomasNeural',
@@ -11,6 +7,10 @@ const VOICES = [
   'en-US-GuyNeural',
   'en-AU-NatashaNeural',
 ]
+
+export const config = {
+  maxDuration: 15,
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
     const buffer = Buffer.concat(chunks)
 
     if (buffer.length === 0) {
-      throw new Error('Empty audio buffer')
+      throw new Error('Empty audio')
     }
 
     res.setHeader('Content-Type', 'audio/mpeg')
@@ -47,6 +47,6 @@ export default async function handler(req, res) {
     return res.status(200).send(buffer)
   } catch (err) {
     console.error('TTS error:', err.message)
-    return res.status(500).json({ error: 'TTS generation failed', detail: err.message })
+    return res.status(500).json({ error: 'TTS failed', detail: err.message })
   }
 }
