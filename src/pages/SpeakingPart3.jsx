@@ -100,7 +100,7 @@ export default function SpeakingPart3() {
       </Link>
 
       <h1 className="text-2xl font-bold mb-1">Speaking Part 3 — {topic.name}</h1>
-      <p className="text-text-secondary text-sm mb-4">심화 질문을 듣고 답변을 녹음하세요.</p>
+      <p className="text-text-secondary text-sm mb-4">Part 2-{topic.id} 연계 심화 질문을 듣고 답변을 녹음하세요.</p>
 
       <QuestionProgress
         current={questionIndex}

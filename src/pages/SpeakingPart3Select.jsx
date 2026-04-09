@@ -28,7 +28,7 @@ export default function SpeakingPart3Select() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-text">{topic.name}</h3>
-                <p className="text-xs text-text-secondary">{topic.questions.length}문제</p>
+                <p className="text-xs text-text-secondary">Part 2-{topic.id} 연계 · {topic.questions.length}문제</p>
               </div>
             </div>
           </Link>
