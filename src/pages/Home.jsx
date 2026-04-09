@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { PenLine, Mic, Upload, ArrowRight, BookOpen } from 'lucide-react'
+import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays } from 'lucide-react'
+import { useMemo } from 'react'
 
 export default function Home() {
   return (
@@ -84,6 +85,105 @@ export default function Home() {
         </Link>
       </div>
 
+      {/* 공부맵 미리보기 */}
+      <StudyMapPreview />
+
+    </div>
+  )
+}
+
+function StudyMapPreview() {
+  // 샘플 데이터: 최근 12주 활동량
+  const weeks = useMemo(() => {
+    const data = []
+    const today = new Date()
+    for (let w = 11; w >= 0; w--) {
+      const week = []
+      for (let d = 0; d < 7; d++) {
+        const date = new Date(today)
+        date.setDate(date.getDate() - (w * 7 + (6 - d)))
+        // 샘플 활동량 (패턴 있게)
+        const seed = (date.getDate() * 7 + date.getMonth() * 13) % 10
+        let count = 0
+        if (w < 10) { // 최근일수록 활동 많게
+          if (seed > 6) count = 3
+          else if (seed > 4) count = 2
+          else if (seed > 2) count = 1
+        }
+        if (w < 4 && seed > 1) count = Math.min(count + 1, 3) // 최근 4주 더 활발
+        week.push({ date, count })
+      }
+      data.push(week)
+    }
+    return data
+  }, [])
+
+  const cellColor = (count) => {
+    if (count === 0) return 'bg-gray-100'
+    if (count === 1) return 'bg-green-200'
+    if (count === 2) return 'bg-green-400'
+    return 'bg-green-600'
+  }
+
+  return (
+    <div className="mt-20 max-w-2xl mx-auto">
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium mb-3">
+          <CalendarDays size={14} /> Study Map
+        </div>
+        <h2 className="text-2xl font-bold mb-2">나만의 공부맵을 만들어보세요</h2>
+        <p className="text-text-secondary text-sm">매일의 연습이 쌓여 Band 점수로 이어집니다</p>
+      </div>
+
+      <div className="bg-surface rounded-2xl border border-border p-6 sm:p-8">
+        {/* 샘플 통계 */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-orange-500">12일</p>
+            <p className="text-xs text-text-secondary">연속 학습</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-primary">28회</p>
+            <p className="text-xs text-text-secondary">이번 달 연습</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-green-600">6.5</p>
+            <p className="text-xs text-text-secondary">최근 Band</p>
+          </div>
+        </div>
+
+        {/* 달력 히트맵 */}
+        <div className="mb-6">
+          <div className="flex justify-center gap-[3px]">
+            {weeks.map((week, wi) => (
+              <div key={wi} className="flex flex-col gap-[3px]">
+                {week.map((day, di) => (
+                  <div
+                    key={di}
+                    className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-sm ${cellColor(day.count)}`}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-end gap-1 mt-2 text-xs text-text-secondary">
+            <span>Less</span>
+            <div className="w-3 h-3 rounded-sm bg-gray-100" />
+            <div className="w-3 h-3 rounded-sm bg-green-200" />
+            <div className="w-3 h-3 rounded-sm bg-green-400" />
+            <div className="w-3 h-3 rounded-sm bg-green-600" />
+            <span>More</span>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <Link
+          to="/login"
+          className="block w-full text-center py-3 bg-primary text-white rounded-xl font-medium text-sm no-underline hover:bg-primary-dark transition-colors"
+        >
+          무료로 시작하기
+        </Link>
+      </div>
     </div>
   )
 }
