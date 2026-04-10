@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
-import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays } from 'lucide-react'
-import { useMemo } from 'react'
+import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink } from 'lucide-react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 
 export default function Home() {
@@ -86,9 +86,127 @@ export default function Home() {
         </Link>
       </div>
 
+      {/* 수강생 후기 */}
+      <ReviewCarousel />
+
       {/* 공부맵 미리보기 */}
       <StudyMapPreview />
 
+    </div>
+  )
+}
+
+const reviews = [
+  { id: 1, name: '수강생 A', score: '7.5', detail: 'L 8.0 · R 8.0 · W 6.5 · S 7.0', text: '스피킹 피드백 주는대로 쏙쏙 가져가더니 역시! 완전 잘 나왔네요.' },
+  { id: 2, name: '수강생 B', score: '6.5', detail: 'L 6.5 · R 6.5 · W 6.5 · S 6.0', text: '리테이크로 스피킹 다시 보면서 과외받고 바로 나와줌! 다행이다.' },
+  { id: 3, name: '수강생 C', score: '7.5', detail: 'L 8.5 · R 8.5 · W 7.0 · S 6.0', text: '라이팅 7.0 받았어요! 그래도 점수 멋지다. 수고했다!' },
+  { id: 4, name: '수강생 D', score: '6.5', detail: 'General Module · 한번에 합격', text: 'General module도 한번에 합격! 기분 좋아요.' },
+  { id: 5, name: '수강생 E', score: '7.5', detail: 'L 7.5 · R 8.0 · W 6.5', text: '짧은 시간이었지만 덕분에 빨리 점수 올린 것 같아요. 감사합니다!' },
+  { id: 6, name: '수강생 F', score: '6.5+', detail: '6시간 단기과외 · 1.5 이상 향상', text: '타학원에서 1개월 들었는데 점수 안 나와서 단기과외 받고 바로 향상!' },
+]
+
+function ReviewCarousel() {
+  const scrollRef = useRef(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
+
+  const checkScroll = () => {
+    const el = scrollRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 10)
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10)
+  }
+
+  useEffect(() => {
+    checkScroll()
+    const el = scrollRef.current
+    if (el) el.addEventListener('scroll', checkScroll)
+    return () => el?.removeEventListener('scroll', checkScroll)
+  }, [])
+
+  const scroll = (dir) => {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * 300, behavior: 'smooth' })
+  }
+
+  return (
+    <div className="mt-20 max-w-4xl mx-auto">
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-medium mb-3">
+          <Star size={14} /> Reviews
+        </div>
+        <h2 className="text-2xl font-bold mb-2">실제 수강생 후기</h2>
+        <p className="text-text-secondary text-sm">UpBand와 함께 목표 점수를 달성한 학생들</p>
+      </div>
+
+      <div className="relative">
+        {/* 좌우 화살표 */}
+        {canScrollLeft && (
+          <button
+            onClick={() => scroll(-1)}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-9 h-9 bg-white border border-border rounded-full flex items-center justify-center shadow-md hover:bg-gray-50 transition-colors"
+          >
+            <ChevronLeft size={18} className="text-text-secondary" />
+          </button>
+        )}
+        {canScrollRight && (
+          <button
+            onClick={() => scroll(1)}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-9 h-9 bg-white border border-border rounded-full flex items-center justify-center shadow-md hover:bg-gray-50 transition-colors"
+          >
+            <ChevronRight size={18} className="text-text-secondary" />
+          </button>
+        )}
+
+        {/* 카드 스크롤 */}
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {reviews.map(r => (
+            <div
+              key={r.id}
+              className="snap-start shrink-0 w-72 bg-surface rounded-2xl border border-border p-6 text-left"
+            >
+              {/* 점수 뱃지 */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-14 h-14 rounded-xl bg-primary/10 flex flex-col items-center justify-center">
+                  <span className="text-xl font-bold text-primary leading-none">{r.score}</span>
+                  <span className="text-[9px] text-primary/70">Band</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-text">{r.name}</p>
+                  <p className="text-[11px] text-text-secondary">{r.detail}</p>
+                </div>
+              </div>
+
+              {/* 후기 텍스트 */}
+              <p className="text-sm text-text leading-relaxed">"{r.text}"</p>
+
+              {/* 별점 */}
+              <div className="flex gap-0.5 mt-3">
+                {[1,2,3,4,5].map(i => (
+                  <Star key={i} size={14} className="text-amber-400 fill-amber-400" />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 인스타 링크 */}
+      <div className="text-center mt-6">
+        <a
+          href="https://www.instagram.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-sm font-medium no-underline hover:opacity-90 transition-opacity"
+        >
+          <ExternalLink size={16} /> 더 많은 후기 보기
+        </a>
+      </div>
     </div>
   )
 }
