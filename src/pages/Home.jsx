@@ -20,20 +20,22 @@ export default function Home() {
         AI의 꼼꼼함 + 10년차 아이엘츠 전문강사가 주는 방향성과 공부 흐름 피드백
       </p>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
+      <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
+        {/* Writing Mock Test — 숨김 처리 (나중에 다시 노출 예정) */}
+
         <Link
-          to="/writing"
+          to="/writing/homework"
           className="group bg-surface rounded-2xl border border-border p-8 no-underline text-left hover:border-primary hover:shadow-lg transition-all flex flex-col"
         >
           <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
             <PenLine size={24} className="text-primary" />
           </div>
-          <h2 className="text-xl font-semibold text-text mb-2">Writing Mock Test</h2>
+          <h2 className="text-xl font-semibold text-text mb-2">Writing 제출</h2>
           <p className="text-text-secondary text-sm mb-4">
-            에세이를 입력하면 TA/CC/LR/GRA 4개 기준으로 Band 점수와 상세 피드백을 받으세요. (피드백기능 업데이트 예정)
+            AI powered + 강사가 직접 확인한 꼼꼼한 피드백 받아보세요.
           </p>
           <span className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
-            시작하기 <ArrowRight size={14} />
+            제출하기 <ArrowRight size={14} />
           </span>
         </Link>
 
@@ -50,22 +52,6 @@ export default function Home() {
           </p>
           <span className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
             시작하기 <ArrowRight size={14} />
-          </span>
-        </Link>
-
-        <Link
-          to="/writing/homework"
-          className="group bg-surface rounded-2xl border border-border p-8 no-underline text-left hover:border-accent/50 hover:shadow-lg transition-all flex flex-col"
-        >
-          <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-4">
-            <Upload size={24} className="text-accent" />
-          </div>
-          <h2 className="text-xl font-semibold text-text mb-2">Writing</h2>
-          <p className="text-text-secondary text-sm mb-4">
-            AI powered + 강사가 직접 확인한 꼼꼼한 피드백 받아보세요.
-          </p>
-          <span className="text-accent text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
-            제출하기 <ArrowRight size={14} />
           </span>
         </Link>
 
