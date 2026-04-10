@@ -1,6 +1,6 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, BookOpen, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { bandLevels, topics, synonymData } from '../data/synonyms'
 
 function getProgress(bandId, topicId) {
@@ -10,8 +10,22 @@ function getProgress(bandId, topicId) {
 
 export default function VocabSelect() {
   const { bandId } = useParams()
-  const initialBand = bandId ? bandLevels.find(b => b.id === bandId) : null
-  const [selectedBand, setSelectedBand] = useState(initialBand)
+  const navigate = useNavigate()
+  const [selectedBand, setSelectedBand] = useState(null)
+
+  // URL 파라미터와 selectedBand 동기화
+  useEffect(() => {
+    if (bandId) {
+      const found = bandLevels.find(b => b.id === bandId)
+      setSelectedBand(found || null)
+    } else {
+      setSelectedBand(null)
+    }
+  }, [bandId])
+
+  const handleBandSelect = (band) => {
+    navigate(`/vocab/${band.id}`)
+  }
 
   return (
     <div className="max-w-2xl mx-auto py-10 px-4">
@@ -25,7 +39,7 @@ export default function VocabSelect() {
         </div>
         <h1 className="text-2xl font-bold">단어 공부</h1>
       </div>
-      <p className="text-text-secondary text-sm mb-8">Band 수준별 동의어를 학습하고 퀴즈로 확인하세요</p>
+      <p className="text-text-secondary text-sm mb-8">Band 수준별 동의어를 학습하고 마지막에 퀴즈로 확인하세요</p>
 
       {/* Band Level Selection */}
       {!selectedBand ? (
@@ -34,7 +48,7 @@ export default function VocabSelect() {
           {bandLevels.map(band => (
             <button
               key={band.id}
-              onClick={() => setSelectedBand(band)}
+              onClick={() => handleBandSelect(band)}
               className="w-full flex items-center justify-between p-5 bg-surface rounded-2xl border border-border hover:border-primary hover:shadow-md transition-all text-left"
             >
               <div className="flex items-center gap-4">
@@ -82,7 +96,6 @@ export default function VocabSelect() {
                   <span className="text-2xl">{topic.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-text text-sm">{topic.name}</p>
-                    <p className="text-xs text-text-secondary">{total} words · 카드 + 퀴즈</p>
                     {progress > 0 && (
                       <div className="mt-1.5">
                         <div className="w-full h-1 bg-gray-100 rounded-full">

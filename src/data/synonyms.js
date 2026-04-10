@@ -20,6 +20,11 @@ export const topics = [
   { id: 'crime', name: 'Crime', emoji: '⚖️' },
   { id: 'work', name: 'Work', emoji: '💼' },
   { id: 'academic', name: 'Academic', emoji: '🎓' },
+  { id: 'media', name: 'Media', emoji: '📱' },
+  { id: 'government', name: 'Government', emoji: '🏛️' },
+  { id: 'globalisation', name: 'Globalisation', emoji: '🌍' },
+  { id: 'transport', name: 'Transport', emoji: '🚆' },
+  { id: 'family', name: 'Family', emoji: '👨‍👩‍👧‍👦' },
 ]
 
 export const synonymData = { band56, band67, band7plus }
