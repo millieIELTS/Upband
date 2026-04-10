@@ -73,8 +73,9 @@ export default function VocabStudy() {
         >
           {!flipped ? (
             <div className="flex flex-col items-center justify-center h-full min-h-[220px]">
-              <p className="text-3xl font-bold text-text mb-3">{item.word}</p>
-              <p className="text-sm text-text-secondary">탭하여 동의어 보기</p>
+              <p className="text-3xl font-bold text-text mb-2">{item.word}</p>
+              {item.meaning && <p className="text-sm text-text-secondary mb-3">{item.meaning}</p>}
+              <p className="text-xs text-text-secondary/60">탭하여 동의어 보기</p>
             </div>
           ) : (
             <div className="flex flex-col justify-center h-full min-h-[220px]">

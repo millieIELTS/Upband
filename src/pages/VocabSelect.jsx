@@ -69,7 +69,7 @@ export default function VocabSelect() {
                 <span className="text-2xl">{topic.emoji}</span>
                 <div>
                   <p className="font-medium text-text text-sm">{topic.name}</p>
-                  <p className="text-xs text-text-secondary">20 words</p>
+                  <p className="text-xs text-text-secondary">50 words · 카드 학습 + 퀴즈</p>
                 </div>
               </Link>
             ))}
