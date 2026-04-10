@@ -1,7 +1,20 @@
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Check, X, Trophy } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { bandLevels, topics, synonymData } from '../data/synonyms'
+
+function getSavedIndex(bandId, topicId) {
+  const val = localStorage.getItem(`vocab_progress_${bandId}_${topicId}`)
+  return val ? parseInt(val, 10) : 0
+}
+
+function saveProgress(bandId, topicId, index) {
+  const prev = getSavedIndex(bandId, topicId)
+  // 최고 진행 기록만 저장 (뒤로 가도 리셋 안 됨)
+  if (index > prev) {
+    localStorage.setItem(`vocab_progress_${bandId}_${topicId}`, String(index))
+  }
+}
 
 export default function VocabStudy() {
   const { bandId, topicId } = useParams()
@@ -10,7 +23,7 @@ export default function VocabStudy() {
   const words = synonymData[bandId]?.[topicId] || []
 
   const [mode, setMode] = useState('cards') // cards | quiz | results
-  const [cardIndex, setCardIndex] = useState(0)
+  const [cardIndex, setCardIndex] = useState(() => getSavedIndex(bandId, topicId))
   const [flipped, setFlipped] = useState(false)
 
   // Quiz state
@@ -19,17 +32,23 @@ export default function VocabStudy() {
   const [selected, setSelected] = useState(null)
   const [showAnswer, setShowAnswer] = useState(false)
 
+  // 진행도 저장
+  useEffect(() => {
+    if (mode === 'cards' && words.length > 0) {
+      saveProgress(bandId, topicId, cardIndex)
+    }
+  }, [cardIndex, mode, bandId, topicId, words.length])
+
   const quizQuestions = useMemo(() => {
     return words.map(item => {
       const correct = item.synonyms[0]
-      // Pick 3 wrong answers from other words' synonyms
       const others = words
         .filter(w => w.word !== item.word)
         .flatMap(w => w.synonyms)
       const shuffled = others.sort(() => Math.random() - 0.5)
       const wrongs = shuffled.slice(0, 3)
       const options = [correct, ...wrongs].sort(() => Math.random() - 0.5)
-      return { word: item.word, correct, options }
+      return { word: item.word, meaning: item.meaning, correct, options }
     })
   }, [words])
 
@@ -42,28 +61,47 @@ export default function VocabStudy() {
     )
   }
 
+  const backUrl = `/vocab/${bandId}`
+
   // ─── Card Mode ───
   if (mode === 'cards') {
     const item = words[cardIndex]
     return (
       <div className="max-w-lg mx-auto py-10 px-4">
-        <Link to="/vocab" className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-primary mb-6 no-underline">
-          <ArrowLeft size={16} /> 목록으로
+        <Link to={backUrl} className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-primary mb-6 no-underline">
+          <ArrowLeft size={16} /> {topic.name} 목록으로
         </Link>
 
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2 mb-4">
           <span className={`px-2 py-0.5 rounded-md ${band.bg} text-xs font-bold ${band.color}`}>{band.label}</span>
           <span className="text-lg">{topic.emoji}</span>
           <span className="text-sm font-medium">{topic.name}</span>
         </div>
 
-        {/* Progress */}
-        <div className="flex items-center justify-between text-xs text-text-secondary mb-3">
-          <span>{cardIndex + 1} / {words.length}</span>
-          <span>카드를 탭하면 뒤집어집니다</span>
+        {/* 상단 네비게이션: < 3/50 > */}
+        <div className="flex items-center justify-center gap-4 mb-3">
+          <button
+            onClick={() => { setCardIndex(Math.max(0, cardIndex - 1)); setFlipped(false) }}
+            disabled={cardIndex === 0}
+            className="w-8 h-8 rounded-full border border-border flex items-center justify-center disabled:opacity-20 hover:bg-gray-50 transition-colors"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <span className="text-sm font-bold text-text tabular-nums">
+            {cardIndex + 1} <span className="text-text-secondary font-normal">/ {words.length}</span>
+          </span>
+          <button
+            onClick={() => { setCardIndex(Math.min(words.length - 1, cardIndex + 1)); setFlipped(false) }}
+            disabled={cardIndex === words.length - 1}
+            className="w-8 h-8 rounded-full border border-border flex items-center justify-center disabled:opacity-20 hover:bg-gray-50 transition-colors"
+          >
+            <ChevronRight size={16} />
+          </button>
         </div>
-        <div className="w-full h-1 bg-gray-100 rounded-full mb-6">
-          <div className="h-1 bg-primary rounded-full transition-all" style={{ width: `${((cardIndex + 1) / words.length) * 100}%` }} />
+
+        {/* Progress bar */}
+        <div className="w-full h-1.5 bg-gray-100 rounded-full mb-6">
+          <div className="h-1.5 bg-primary rounded-full transition-all" style={{ width: `${((cardIndex + 1) / words.length) * 100}%` }} />
         </div>
 
         {/* Card */}
@@ -93,29 +131,21 @@ export default function VocabStudy() {
           )}
         </div>
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between mt-6">
-          <button
-            onClick={() => { setCardIndex(Math.max(0, cardIndex - 1)); setFlipped(false) }}
-            disabled={cardIndex === 0}
-            className="flex items-center gap-1 px-4 py-2 rounded-xl border border-border text-sm disabled:opacity-30 hover:bg-gray-50 transition-colors"
-          >
-            <ChevronLeft size={16} /> 이전
-          </button>
-
+        {/* 하단: 퀴즈 시작 버튼 (마지막 카드일 때) */}
+        <div className="flex items-center justify-center mt-6">
           {cardIndex === words.length - 1 ? (
             <button
               onClick={() => setMode('quiz')}
-              className="px-6 py-2 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary-dark transition-colors"
+              className="px-8 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary-dark transition-colors"
             >
-              퀴즈 시작
+              퀴즈 시작하기
             </button>
           ) : (
             <button
-              onClick={() => { setCardIndex(cardIndex + 1); setFlipped(false) }}
-              className="flex items-center gap-1 px-4 py-2 rounded-xl border border-border text-sm hover:bg-gray-50 transition-colors"
+              onClick={() => setMode('quiz')}
+              className="text-xs text-text-secondary hover:text-primary transition-colors underline"
             >
-              다음 <ChevronRight size={16} />
+              바로 퀴즈 시작
             </button>
           )}
         </div>
@@ -137,12 +167,13 @@ export default function VocabStudy() {
         </div>
 
         {/* Progress */}
-        <div className="w-full h-1 bg-gray-100 rounded-full mb-8">
-          <div className="h-1 bg-violet-500 rounded-full transition-all" style={{ width: `${((quizIndex + 1) / quizQuestions.length) * 100}%` }} />
+        <div className="w-full h-1.5 bg-gray-100 rounded-full mb-8">
+          <div className="h-1.5 bg-violet-500 rounded-full transition-all" style={{ width: `${((quizIndex + 1) / quizQuestions.length) * 100}%` }} />
         </div>
 
         <p className="text-center text-text-secondary text-sm mb-2">다음 단어의 동의어를 고르세요</p>
-        <p className="text-center text-2xl font-bold mb-8">{q.word}</p>
+        <p className="text-center text-2xl font-bold mb-1">{q.word}</p>
+        {q.meaning && <p className="text-center text-sm text-text-secondary mb-8">{q.meaning}</p>}
 
         <div className="space-y-3">
           {q.options.map((opt, i) => {
@@ -191,6 +222,8 @@ export default function VocabStudy() {
             <button
               onClick={() => {
                 if (quizIndex === quizQuestions.length - 1) {
+                  // 퀴즈 완료 시 전체 진행도 저장
+                  localStorage.setItem(`vocab_progress_${bandId}_${topicId}`, String(words.length))
                   setMode('results')
                 } else {
                   setQuizIndex(quizIndex + 1)
@@ -248,7 +281,7 @@ export default function VocabStudy() {
           <RotateCcw size={16} /> 다시 학습
         </button>
         <Link
-          to="/vocab"
+          to={backUrl}
           className="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-medium no-underline hover:bg-primary-dark transition-colors"
         >
           다른 주제 선택

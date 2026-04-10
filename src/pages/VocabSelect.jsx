@@ -1,10 +1,17 @@
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, BookOpen, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
-import { bandLevels, topics } from '../data/synonyms'
+import { bandLevels, topics, synonymData } from '../data/synonyms'
+
+function getProgress(bandId, topicId) {
+  const val = localStorage.getItem(`vocab_progress_${bandId}_${topicId}`)
+  return val ? parseInt(val, 10) : 0
+}
 
 export default function VocabSelect() {
-  const [selectedBand, setSelectedBand] = useState(null)
+  const { bandId } = useParams()
+  const initialBand = bandId ? bandLevels.find(b => b.id === bandId) : null
+  const [selectedBand, setSelectedBand] = useState(initialBand)
 
   return (
     <div className="max-w-2xl mx-auto py-10 px-4">
@@ -47,12 +54,12 @@ export default function VocabSelect() {
       ) : (
         <>
           {/* Back to band selection */}
-          <button
-            onClick={() => setSelectedBand(null)}
-            className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-primary mb-4"
+          <Link
+            to="/vocab"
+            className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-primary mb-4 no-underline"
           >
             <ArrowLeft size={14} /> Band 수준 다시 선택
-          </button>
+          </Link>
 
           <div className={`inline-block px-3 py-1 rounded-lg ${selectedBand.bg} font-bold ${selectedBand.color} text-sm mb-6`}>
             {selectedBand.label}
@@ -60,19 +67,34 @@ export default function VocabSelect() {
 
           <p className="text-sm font-medium text-text-secondary mb-3">주제를 선택하세요</p>
           <div className="grid grid-cols-2 gap-3">
-            {topics.map(topic => (
-              <Link
-                key={topic.id}
-                to={`/vocab/${selectedBand.id}/${topic.id}`}
-                className="flex items-center gap-3 p-4 bg-surface rounded-xl border border-border hover:border-primary hover:shadow-md transition-all no-underline"
-              >
-                <span className="text-2xl">{topic.emoji}</span>
-                <div>
-                  <p className="font-medium text-text text-sm">{topic.name}</p>
-                  <p className="text-xs text-text-secondary">50 words · 카드 학습 + 퀴즈</p>
-                </div>
-              </Link>
-            ))}
+            {topics.map(topic => {
+              const words = synonymData[selectedBand.id]?.[topic.id] || []
+              const progress = getProgress(selectedBand.id, topic.id)
+              const total = words.length
+              const pct = total > 0 ? Math.round((progress / total) * 100) : 0
+
+              return (
+                <Link
+                  key={topic.id}
+                  to={`/vocab/${selectedBand.id}/${topic.id}`}
+                  className="flex items-center gap-3 p-4 bg-surface rounded-xl border border-border hover:border-primary hover:shadow-md transition-all no-underline"
+                >
+                  <span className="text-2xl">{topic.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-text text-sm">{topic.name}</p>
+                    <p className="text-xs text-text-secondary">{total} words · 카드 + 퀴즈</p>
+                    {progress > 0 && (
+                      <div className="mt-1.5">
+                        <div className="w-full h-1 bg-gray-100 rounded-full">
+                          <div className="h-1 bg-green-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                        <p className="text-[10px] text-green-600 mt-0.5">{progress}/{total}</p>
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </>
       )}

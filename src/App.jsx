@@ -48,6 +48,7 @@ function App() {
           <Route path="/dashboard/submissions" element={<RequireAuth><SubmissionDetail /></RequireAuth>} />
           <Route path="/dashboard/ebooks" element={<RequireAuth><AdminEbooks /></RequireAuth>} />
           <Route path="/vocab" element={<RequireAuth><VocabSelect /></RequireAuth>} />
+          <Route path="/vocab/:bandId" element={<RequireAuth><VocabSelect /></RequireAuth>} />
           <Route path="/vocab/:bandId/:topicId" element={<RequireAuth><VocabStudy /></RequireAuth>} />
           <Route path="/store" element={<Store />} />
           <Route path="/login" element={<Login />} />
