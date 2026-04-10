@@ -199,7 +199,7 @@ function ReviewCarousel() {
       {/* 인스타 링크 */}
       <div className="text-center mt-6">
         <a
-          href="https://www.instagram.com/"
+          href="http://www.instagram.com/m_jy4278"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-sm font-medium no-underline hover:opacity-90 transition-opacity"
@@ -213,7 +213,6 @@ function ReviewCarousel() {
 
 function StudyMapPreview() {
   const { user } = useAuth()
-  if (user) return null
   // 샘플 데이터: 최근 12주 활동량
   const weeks = useMemo(() => {
     const data = []
@@ -297,13 +296,15 @@ function StudyMapPreview() {
           </div>
         </div>
 
-        {/* CTA */}
-        <Link
-          to="/login"
-          className="block w-full text-center py-3 bg-primary text-white rounded-xl font-medium text-sm no-underline hover:bg-primary-dark transition-colors"
-        >
-          무료로 시작하기
-        </Link>
+        {/* CTA — 비회원만 */}
+        {!user && (
+          <Link
+            to="/login"
+            className="block w-full text-center py-3 bg-primary text-white rounded-xl font-medium text-sm no-underline hover:bg-primary-dark transition-colors"
+          >
+            무료로 시작하기
+          </Link>
+        )}
       </div>
     </div>
   )
