@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays } from 'lucide-react'
 import { useMemo } from 'react'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Home() {
   return (
@@ -93,6 +94,8 @@ export default function Home() {
 }
 
 function StudyMapPreview() {
+  const { user } = useAuth()
+  if (user) return null
   // 샘플 데이터: 최근 12주 활동량
   const weeks = useMemo(() => {
     const data = []
