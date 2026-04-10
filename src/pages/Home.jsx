@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink } from 'lucide-react'
+import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink, BookText } from 'lucide-react'
 import { useMemo, useState, useRef, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 
@@ -20,7 +20,7 @@ export default function Home() {
         AI의 꼼꼼함 + 10년차 아이엘츠 전문강사가 주는 방향성과 공부 흐름 피드백
       </p>
 
-      <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
+      <div className="grid sm:grid-cols-4 gap-6 max-w-4xl mx-auto">
         {/* Writing Mock Test — 숨김 처리 (나중에 다시 노출 예정) */}
 
         <Link
@@ -51,6 +51,22 @@ export default function Home() {
             질문을 듣고 연습해보세요. (녹음기능 업데이트 예정)
           </p>
           <span className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
+            시작하기 <ArrowRight size={14} />
+          </span>
+        </Link>
+
+        <Link
+          to="/vocab"
+          className="group bg-surface rounded-2xl border border-border p-8 no-underline text-left hover:border-violet-400 hover:shadow-lg transition-all flex flex-col"
+        >
+          <div className="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center mb-4">
+            <BookText size={24} className="text-violet-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-text mb-2">단어 공부</h2>
+          <p className="text-text-secondary text-sm mb-4">
+            Band별 동의어를 카드로 학습하고 퀴즈로 확인하세요.
+          </p>
+          <span className="text-violet-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
             시작하기 <ArrowRight size={14} />
           </span>
         </Link>

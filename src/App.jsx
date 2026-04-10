@@ -21,6 +21,8 @@ import SubmissionDetail from './pages/SubmissionDetail'
 import Store from './pages/Store'
 import AdminEbooks from './pages/AdminEbooks'
 import WritingSubmissions from './pages/WritingSubmissions'
+import VocabSelect from './pages/VocabSelect'
+import VocabStudy from './pages/VocabStudy'
 import RequireAuth from './components/RequireAuth'
 
 function App() {
@@ -45,6 +47,8 @@ function App() {
           <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
           <Route path="/dashboard/submissions" element={<RequireAuth><SubmissionDetail /></RequireAuth>} />
           <Route path="/dashboard/ebooks" element={<RequireAuth><AdminEbooks /></RequireAuth>} />
+          <Route path="/vocab" element={<RequireAuth><VocabSelect /></RequireAuth>} />
+          <Route path="/vocab/:bandId/:topicId" element={<RequireAuth><VocabStudy /></RequireAuth>} />
           <Route path="/store" element={<Store />} />
           <Route path="/login" element={<Login />} />
           <Route path="/mypage" element={<MyPage />} />
