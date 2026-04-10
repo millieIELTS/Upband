@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { History as HistoryIcon, PenLine, Mic, LogIn, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare, Flame, Calendar, TrendingUp } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { History as HistoryIcon, PenLine, Mic, LogIn, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare, Flame, Calendar } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { getWritingHistory, getSpeakingHistory } from '../lib/submissions'
 
@@ -83,18 +82,6 @@ export default function History() {
     return count
   }, [activitiesByDate, allActivities])
 
-  // Band 추이 데이터 (점수 있는 것만)
-  const bandTrend = useMemo(() => {
-    return allActivities
-      .filter(a => (a.teacher_band ?? a.overall_band) != null)
-      .reverse()
-      .map(a => ({
-        date: new Date(a.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
-        band: Number(a.teacher_band ?? a.overall_band),
-        type: a._type === 'writing' ? 'W' : 'S',
-      }))
-  }, [allActivities])
-
   // 이번 달 통계
   const monthStats = useMemo(() => {
     const now = new Date()
@@ -164,7 +151,15 @@ export default function History() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">학습 기록</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">학습 기록</h1>
+        <Link
+          to="/history/writing"
+          className="flex items-center gap-1.5 px-4 py-2 bg-surface border border-border rounded-lg text-sm font-medium text-text-secondary hover:border-primary hover:text-primary transition-colors no-underline"
+        >
+          <PenLine size={14} /> Writing 내역
+        </Link>
+      </div>
 
       {loading ? (
         <div className="text-center py-8 text-text-secondary">불러오는 중...</div>
@@ -398,33 +393,6 @@ export default function History() {
             )}
           </div>
 
-          {/* Band 추이 그래프 */}
-          {bandTrend.length >= 2 && (
-            <div className="bg-surface rounded-xl border border-border p-4">
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
-                <TrendingUp size={14} className="text-primary" />
-                Band 추이
-              </h3>
-              <ResponsiveContainer width="100%" height={180}>
-                <LineChart data={bandTrend}>
-                  <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-                  <YAxis domain={[0, 9]} ticks={[3, 4, 5, 6, 7, 8, 9]} tick={{ fontSize: 10 }} width={25} />
-                  <Tooltip
-                    contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
-                    formatter={(val, name, props) => [`Band ${val}`, props.payload.type === 'W' ? 'Writing' : 'Speaking']}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="band"
-                    stroke="#6366f1"
-                    strokeWidth={2}
-                    dot={{ r: 3, fill: '#6366f1' }}
-                    activeDot={{ r: 5 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
         </>
       )}
     </div>

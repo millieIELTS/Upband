@@ -20,6 +20,7 @@ import Settings from './pages/Settings'
 import SubmissionDetail from './pages/SubmissionDetail'
 import Store from './pages/Store'
 import AdminEbooks from './pages/AdminEbooks'
+import WritingSubmissions from './pages/WritingSubmissions'
 import RequireAuth from './components/RequireAuth'
 
 function App() {
@@ -40,6 +41,7 @@ function App() {
           <Route path="/speaking/part3" element={<RequireAuth><SpeakingPart3Select /></RequireAuth>} />
           <Route path="/speaking/part3/:topicId" element={<RequireAuth><SpeakingPart3 /></RequireAuth>} />
           <Route path="/history" element={<RequireAuth><History /></RequireAuth>} />
+          <Route path="/history/writing" element={<RequireAuth><WritingSubmissions /></RequireAuth>} />
           <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
           <Route path="/dashboard/submissions" element={<RequireAuth><SubmissionDetail /></RequireAuth>} />
           <Route path="/dashboard/ebooks" element={<RequireAuth><AdminEbooks /></RequireAuth>} />

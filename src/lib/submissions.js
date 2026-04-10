@@ -61,7 +61,7 @@ export async function saveSpeakingSubmission(userId, data) {
 export async function getWritingHistory(userId, limit = 50) {
   const { data, error } = await supabase
     .from('writing_submissions')
-    .select('id, task_type, word_count, overall_band, score_cc, score_lr, score_gra, score_ta, score_tr, question, essay, is_homework, teacher_band, teacher_feedback, created_at')
+    .select('id, task_type, word_count, overall_band, score_cc, score_lr, score_gra, score_ta, score_tr, question, question_image_url, essay, is_homework, teacher_band, teacher_feedback, created_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(limit)
