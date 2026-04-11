@@ -6,9 +6,9 @@ import { band67 } from './vocab-band67'
 import { band7plus } from './vocab-band7plus'
 
 export const bandLevels = [
-  { id: 'band56', label: 'Band 5-6', color: 'text-band-low', bg: 'bg-orange-50' },
-  { id: 'band67', label: 'Band 6-7', color: 'text-band-mid', bg: 'bg-amber-50' },
-  { id: 'band7plus', label: 'Band 7+', color: 'text-band-high', bg: 'bg-green-50' },
+  { id: 'band56', label: '기초 4-5점', color: 'text-band-low', bg: 'bg-orange-50' },
+  { id: 'band67', label: '중급 6점', color: 'text-band-mid', bg: 'bg-amber-50' },
+  { id: 'band7plus', label: '고급 7점', color: 'text-band-high', bg: 'bg-green-50' },
 ]
 
 export const topics = [

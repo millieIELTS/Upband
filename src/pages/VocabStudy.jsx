@@ -81,74 +81,76 @@ export default function VocabStudy() {
           <span className="text-sm font-medium">{topic.name}</span>
         </div>
 
-        {/* 상단 네비게이션: < 3/50 > */}
-        <div className="flex items-center justify-center gap-4 mb-3">
-          <button
-            onClick={() => { setCardIndex(Math.max(0, cardIndex - 1)); setFlipped(false) }}
-            disabled={cardIndex === 0}
-            className="w-8 h-8 rounded-full border border-border flex items-center justify-center disabled:opacity-20 hover:bg-gray-50 transition-colors"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <span className="text-sm font-bold text-text tabular-nums">
-            {cardIndex + 1} <span className="text-text-secondary font-normal">/ {words.length}</span>
-          </span>
-          <button
-            onClick={() => { setCardIndex(Math.min(words.length - 1, cardIndex + 1)); setFlipped(false) }}
-            disabled={cardIndex === words.length - 1}
-            className="w-8 h-8 rounded-full border border-border flex items-center justify-center disabled:opacity-20 hover:bg-gray-50 transition-colors"
-          >
-            <ChevronRight size={16} />
-          </button>
-        </div>
-
         {/* Progress bar */}
         <div className="w-full h-1.5 bg-gray-100 rounded-full mb-6">
           <div className="h-1.5 bg-primary rounded-full transition-all" style={{ width: `${((cardIndex + 1) / words.length) * 100}%` }} />
         </div>
 
-        {/* Card */}
-        <div
-          onClick={() => setFlipped(!flipped)}
-          className="relative w-full min-h-[280px] bg-surface rounded-2xl border border-border p-8 cursor-pointer hover:shadow-lg transition-all select-none"
-        >
-          {!flipped ? (
-            <div className="flex flex-col items-center justify-center h-full min-h-[220px]">
-              <p className="text-3xl font-bold text-text mb-2">{item.word}</p>
-              {item.meaning && <p className="text-sm text-text-secondary mb-3">{item.meaning}</p>}
-              <p className="text-xs text-text-secondary/60">탭하여 동의어 보기</p>
-            </div>
-          ) : (
-            <div className="flex flex-col justify-center h-full min-h-[220px]">
-              <p className="text-sm text-text-secondary mb-1">동의어</p>
-              <div className="flex flex-wrap gap-2 mb-5">
-                {item.synonyms.map((s, i) => (
-                  <span key={i} className="px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-sm font-medium">{s}</span>
-                ))}
+        {/* Card with side arrows */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => { setCardIndex(Math.max(0, cardIndex - 1)); setFlipped(false) }}
+            disabled={cardIndex === 0}
+            className="shrink-0 w-10 h-10 rounded-full border border-border flex items-center justify-center disabled:opacity-20 hover:bg-gray-50 transition-colors"
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          <div
+            onClick={() => setFlipped(!flipped)}
+            className="relative flex-1 min-h-[280px] bg-surface rounded-2xl border border-border p-8 cursor-pointer hover:shadow-lg transition-all select-none"
+          >
+            {!flipped ? (
+              <div className="flex flex-col items-center justify-center h-full min-h-[220px]">
+                <p className="text-3xl font-bold text-text mb-2">{item.word}</p>
+                {item.meaning && <p className="text-sm text-text-secondary mb-3">{item.meaning}</p>}
+                <p className="text-xs text-text-secondary/60">탭하여 동의어 보기</p>
               </div>
-              <div className="border-t border-border pt-4">
-                <p className="text-xs text-text-secondary mb-1">Example</p>
-                <p className="text-sm text-text italic leading-relaxed">{item.example}</p>
+            ) : (
+              <div className="flex flex-col justify-center h-full min-h-[220px]">
+                <p className="text-sm text-text-secondary mb-1">동의어</p>
+                <div className="flex flex-wrap gap-2 mb-5">
+                  {item.synonyms.map((s, i) => (
+                    <span key={i} className="px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-sm font-medium">{s}</span>
+                  ))}
+                </div>
+                <div className="border-t border-border pt-4">
+                  <p className="text-xs text-text-secondary mb-1">Example</p>
+                  <p className="text-sm text-text italic leading-relaxed">{item.example}</p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+
+          <button
+            onClick={() => { setCardIndex(Math.min(words.length - 1, cardIndex + 1)); setFlipped(false) }}
+            disabled={cardIndex === words.length - 1}
+            className="shrink-0 w-10 h-10 rounded-full border border-border flex items-center justify-center disabled:opacity-20 hover:bg-gray-50 transition-colors"
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
 
-        {/* 하단: 퀴즈 시작 버튼 (마지막 카드일 때) */}
-        <div className="flex items-center justify-center mt-6">
+        {/* 카드 카운팅 (카드 아래) */}
+        <p className="text-center text-sm text-text-secondary mt-3 tabular-nums">
+          {cardIndex + 1} / {words.length}
+        </p>
+
+        {/* 하단: 퀴즈 시작 버튼 */}
+        <div className="flex items-center justify-center mt-4">
           {cardIndex === words.length - 1 ? (
             <button
               onClick={() => setMode('quiz')}
               className="px-8 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary-dark transition-colors"
             >
-              퀴즈 시작하기
+              랜덤 10문제 퀴즈 시작
             </button>
           ) : (
             <button
               onClick={() => setMode('quiz')}
               className="text-xs text-text-secondary hover:text-primary transition-colors underline"
             >
-              바로 퀴즈 시작
+              바로 퀴즈 시작 (랜덤 10문제)
             </button>
           )}
         </div>
