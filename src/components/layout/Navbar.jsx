@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { PenLine, Mic, LayoutDashboard, History, LogIn, LogOut, User, Coins, Menu, X } from 'lucide-react'
+import { PenLine, Mic, LayoutDashboard, History, LogIn, LogOut, User, Coins, Menu, X, BookText, BookOpen } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
 const navItems = [
   { to: '/writing', label: 'Writing', icon: PenLine },
   { to: '/speaking', label: 'Speaking', icon: Mic },
+  { to: '/vocab', label: '단어학습', icon: BookText },
+  { to: '/store', label: 'E-Book', icon: BookOpen },
   { to: '/history', label: '히스토리', icon: History },
 ]
 
@@ -14,6 +16,11 @@ export default function Navbar() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { user, profile, signOut, isTeacher } = useAuth()
+
+  // 페이지 이동 시 모바일 메뉴 자동 닫기
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
 
   const handleSignOut = async () => {
     await signOut()

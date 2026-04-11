@@ -122,6 +122,8 @@ export default function WritingHomework() {
       await supabase.rpc('deduct_credit')
       refreshProfile()
       setFeedback({ submitted: true })
+      // 제출 성공 시 메인페이지로 이동
+      setTimeout(() => navigate('/'), 1500)
     } catch (err) {
       setError(err.message || '제출에 실패했습니다.')
     } finally {
@@ -154,8 +156,8 @@ export default function WritingHomework() {
           className="w-full h-28 p-3 rounded-lg border border-border bg-white resize-y text-sm leading-relaxed focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
         />
 
-        {/* Task 1 이미지 업로드 */}
-        {taskType === 'task1' && (
+        {/* Task 1 이미지 업로드 (일시 숨김) */}
+        {false && taskType === 'task1' && (
           <div className="mt-3">
             {!imagePreview ? (
               <div
