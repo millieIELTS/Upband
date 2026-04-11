@@ -186,8 +186,6 @@ export default function VocabStudy() {
               if (opt === q.correct) style = 'bg-green-50 border-green-400 text-green-800'
               else if (opt === selected && opt !== q.correct) style = 'bg-red-50 border-red-400 text-red-800'
               else style = 'bg-surface border-border opacity-50'
-            } else if (opt === selected) {
-              style = 'bg-primary/10 border-primary'
             }
 
             return (
@@ -196,6 +194,23 @@ export default function VocabStudy() {
                 onClick={() => {
                   if (showAnswer) return
                   setSelected(opt)
+                  setShowAnswer(true)
+                  if (opt === q.correct) {
+                    setScore(s => s + 1)
+                  } else {
+                    setWrongAnswers(prev => [...prev, { word: q.word, meaning: q.meaning, correct: q.correct }])
+                  }
+                  // 0.8초 후 자동으로 다음 문제
+                  setTimeout(() => {
+                    if (quizIndex === quizQuestions.length - 1) {
+                      localStorage.setItem(`vocab_progress_${bandId}_${topicId}`, String(words.length))
+                      setMode('results')
+                    } else {
+                      setQuizIndex(qi => qi + 1)
+                      setSelected(null)
+                      setShowAnswer(false)
+                    }
+                  }, 800)
                 }}
                 className={`w-full p-4 rounded-xl border text-left text-sm font-medium transition-all ${style}`}
               >
@@ -207,43 +222,6 @@ export default function VocabStudy() {
               </button>
             )
           })}
-        </div>
-
-        <div className="mt-6 text-center">
-          {!showAnswer ? (
-            <button
-              onClick={() => {
-                if (!selected) return
-                setShowAnswer(true)
-                if (selected === q.correct) {
-                  setScore(score + 1)
-                } else {
-                  setWrongAnswers(prev => [...prev, { word: q.word, meaning: q.meaning, correct: q.correct }])
-                }
-              }}
-              disabled={!selected}
-              className="px-8 py-2.5 bg-primary text-white rounded-xl text-sm font-medium disabled:opacity-40 hover:bg-primary-dark transition-colors"
-            >
-              확인
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                if (quizIndex === quizQuestions.length - 1) {
-                  // 퀴즈 완료 시 전체 진행도 저장
-                  localStorage.setItem(`vocab_progress_${bandId}_${topicId}`, String(words.length))
-                  setMode('results')
-                } else {
-                  setQuizIndex(quizIndex + 1)
-                  setSelected(null)
-                  setShowAnswer(false)
-                }
-              }}
-              className="px-8 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary-dark transition-colors"
-            >
-              {quizIndex === quizQuestions.length - 1 ? '결과 보기' : '다음 문제'}
-            </button>
-          )}
         </div>
       </div>
     )
