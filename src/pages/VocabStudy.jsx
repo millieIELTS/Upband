@@ -31,6 +31,7 @@ export default function VocabStudy() {
   const [score, setScore] = useState(0)
   const [selected, setSelected] = useState(null)
   const [showAnswer, setShowAnswer] = useState(false)
+  const [wrongAnswers, setWrongAnswers] = useState([])
 
   // 진행도 저장
   useEffect(() => {
@@ -40,7 +41,9 @@ export default function VocabStudy() {
   }, [cardIndex, mode, bandId, topicId, words.length])
 
   const quizQuestions = useMemo(() => {
-    return words.map(item => {
+    // 랜덤 10개 출제
+    const shuffledWords = [...words].sort(() => Math.random() - 0.5).slice(0, 10)
+    return shuffledWords.map(item => {
       const correct = item.synonyms[0]
       const others = words
         .filter(w => w.word !== item.word)
@@ -50,7 +53,7 @@ export default function VocabStudy() {
       const options = [correct, ...wrongs].sort(() => Math.random() - 0.5)
       return { word: item.word, meaning: item.meaning, correct, options }
     })
-  }, [words])
+  }, [words, mode])
 
   if (!band || !topic || words.length === 0) {
     return (
@@ -172,8 +175,7 @@ export default function VocabStudy() {
         </div>
 
         <p className="text-center text-text-secondary text-sm mb-2">다음 단어의 동의어를 고르세요</p>
-        <p className="text-center text-2xl font-bold mb-1">{q.word}</p>
-        {q.meaning && <p className="text-center text-sm text-text-secondary mb-8">{q.meaning}</p>}
+        <p className="text-center text-2xl font-bold mb-8">{q.word}</p>
 
         <div className="space-y-3">
           {q.options.map((opt, i) => {
@@ -211,7 +213,11 @@ export default function VocabStudy() {
               onClick={() => {
                 if (!selected) return
                 setShowAnswer(true)
-                if (selected === q.correct) setScore(score + 1)
+                if (selected === q.correct) {
+                  setScore(score + 1)
+                } else {
+                  setWrongAnswers(prev => [...prev, { word: q.word, meaning: q.meaning, correct: q.correct }])
+                }
               }}
               disabled={!selected}
               className="px-8 py-2.5 bg-primary text-white rounded-xl text-sm font-medium disabled:opacity-40 hover:bg-primary-dark transition-colors"
@@ -265,6 +271,24 @@ export default function VocabStudy() {
         </p>
       </div>
 
+      {/* 틀린 문제 리스트 */}
+      {wrongAnswers.length > 0 && (
+        <div className="bg-surface rounded-2xl border border-border p-6 mb-6 text-left">
+          <p className="text-sm font-bold text-red-500 mb-3">틀린 단어 ({wrongAnswers.length}개)</p>
+          <div className="space-y-2">
+            {wrongAnswers.map((item, i) => (
+              <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                <div>
+                  <span className="font-medium text-text">{item.word}</span>
+                  {item.meaning && <span className="text-text-secondary text-sm ml-2">{item.meaning}</span>}
+                </div>
+                <span className="text-xs text-green-600 font-medium">→ {item.correct}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-3 justify-center">
         <button
           onClick={() => {
@@ -275,6 +299,7 @@ export default function VocabStudy() {
             setScore(0)
             setSelected(null)
             setShowAnswer(false)
+            setWrongAnswers([])
           }}
           className="flex items-center gap-2 px-5 py-2.5 border border-border rounded-xl text-sm hover:bg-gray-50 transition-colors"
         >
