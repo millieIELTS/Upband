@@ -179,8 +179,8 @@ function ConcernCarousel() {
       </div>
 
       <div className="text-center mt-8">
-        <div className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl px-8 py-5">
-          <p className="text-lg font-bold text-white">그래서 UpBand를 만들었어요.</p>
+        <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-sm font-medium">
+          그래서 UpBand를 만들었어요.
         </div>
       </div>
     </div>
