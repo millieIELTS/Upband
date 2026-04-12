@@ -89,33 +89,7 @@ export default function Home() {
       </div>
 
       {/* 이런 고민 섹션 */}
-      <div className="mt-20 max-w-2xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-50 text-violet-700 text-xs font-medium mb-3">
-          <PenLine size={14} /> For You
-        </div>
-        <h2 className="text-2xl font-bold mb-8">이런 고민, 혹시 나만 하는 걸까?</h2>
-        <div className="space-y-4 text-left">
-          {[
-            'AI로 피드백 받아봤는데, 뭘 어떻게 물어봐야 점수가 오르는 피드백을 받는 건지 모르겠어요',
-            '스피킹 연습하고 싶은데 할 곳이 마땅치 않아요',
-            '해외에 있어서 학원을 다닐 수가 없어요',
-            '혼자서 빠르게 점수 따고 싶은데 방법을 모르겠어요',
-          ].map((text, i) => (
-            <div key={i} className="bg-surface rounded-xl border border-border px-5 py-4">
-              <p className="text-sm text-text leading-relaxed">"{text}"</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-8 bg-primary/5 rounded-2xl p-6 sm:p-8 text-left">
-          <p className="text-lg font-bold text-primary mb-2">그래서 UpBand를 만들었어요.</p>
-          <p className="text-sm text-text leading-relaxed">
-            현직 IELTS 강사가 설계한 채점 기준으로 AI가 즉시 피드백합니다.
-          </p>
-          <p className="text-sm text-text leading-relaxed">
-            프롬프트 고민 없이, 제출만 하면 전문적인 피드백이 바로.
-          </p>
-        </div>
-      </div>
+      <ConcernCarousel />
 
       {/* 수강생 후기 */}
       <ReviewCarousel />
@@ -123,6 +97,98 @@ export default function Home() {
       {/* 공부맵 미리보기 */}
       <StudyMapPreview />
 
+    </div>
+  )
+}
+
+const concerns = [
+  'AI로 피드백 받아봤는데, 뭘 어떻게 물어봐야 점수가 오르는 피드백을 받는 건지 모르겠어요',
+  '스피킹 연습하고 싶은데 할 곳이 마땅치 않아요',
+  '해외에 있어서 학원을 다닐 수가 없어요',
+  '혼자서 빠르게 점수 따고 싶은데 방법을 모르겠어요',
+  '너무 바빠서 시간을 많이 할애할 수 없어요. 핵심만 확실히 알고싶어요.',
+  '리딩, 리스닝은 혼자서 공부할 수 있는데 라이팅, 스피킹은 계속 점수가 안올라요.',
+]
+
+function ConcernCarousel() {
+  const scrollRef = useRef(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
+
+  const checkScroll = () => {
+    const el = scrollRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 10)
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10)
+  }
+
+  useEffect(() => {
+    checkScroll()
+    const el = scrollRef.current
+    if (el) el.addEventListener('scroll', checkScroll)
+    return () => el?.removeEventListener('scroll', checkScroll)
+  }, [])
+
+  const scroll = (dir) => {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * 300, behavior: 'smooth' })
+  }
+
+  return (
+    <div className="mt-20 max-w-4xl mx-auto">
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-50 text-violet-700 text-xs font-medium mb-3">
+          <PenLine size={14} /> For You
+        </div>
+        <h2 className="text-2xl font-bold mb-2">이런 고민, 혹시 나만 하는 걸까?</h2>
+      </div>
+
+      <div className="relative">
+        {canScrollLeft && (
+          <button
+            onClick={() => scroll(-1)}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-9 h-9 bg-white border border-border rounded-full flex items-center justify-center shadow-md hover:bg-gray-50 transition-colors"
+          >
+            <ChevronLeft size={18} className="text-text-secondary" />
+          </button>
+        )}
+        {canScrollRight && (
+          <button
+            onClick={() => scroll(1)}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-9 h-9 bg-white border border-border rounded-full flex items-center justify-center shadow-md hover:bg-gray-50 transition-colors"
+          >
+            <ChevronRight size={18} className="text-text-secondary" />
+          </button>
+        )}
+
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {concerns.map((text, i) => (
+            <div
+              key={i}
+              className="snap-start shrink-0 w-72 bg-surface rounded-2xl border border-border p-6 flex items-center"
+            >
+              <p className="text-sm text-text leading-relaxed">"{text}"</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="text-center mt-8">
+        <div className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 sm:p-8 text-left max-w-xl">
+          <p className="text-lg font-bold text-white mb-2">그래서 UpBand를 만들었어요.</p>
+          <p className="text-sm text-white/90 leading-relaxed">
+            현직 IELTS 강사가 설계한 채점 기준으로 AI가 즉시 피드백합니다.
+          </p>
+          <p className="text-sm text-white/90 leading-relaxed">
+            프롬프트 고민 없이, 제출만 하면 전문적인 피드백이 바로.
+          </p>
+        </div>
+      </div>
     </div>
   )
 }
