@@ -179,14 +179,8 @@ function ConcernCarousel() {
       </div>
 
       <div className="text-center mt-8">
-        <div className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 sm:p-8 text-left max-w-xl">
-          <p className="text-lg font-bold text-white mb-2">그래서 UpBand를 만들었어요.</p>
-          <p className="text-sm text-white/90 leading-relaxed">
-            현직 IELTS 강사가 설계한 채점 기준으로 AI가 즉시 피드백합니다.
-          </p>
-          <p className="text-sm text-white/90 leading-relaxed">
-            프롬프트 고민 없이, 제출만 하면 전문적인 피드백이 바로.
-          </p>
+        <div className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl px-8 py-5">
+          <p className="text-lg font-bold text-white">그래서 UpBand를 만들었어요.</p>
         </div>
       </div>
     </div>
