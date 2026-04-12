@@ -37,8 +37,12 @@ export default function CommunityBoard() {
 
   const handleDelete = async (postId) => {
     if (!confirm('정말 삭제하시겠습니까?')) return
-    await supabase.from('community_posts').delete().eq('id', postId)
-    setPosts(posts.filter(p => p.id !== postId))
+    const { error } = await supabase.from('community_posts').delete().eq('id', postId)
+    if (error) {
+      alert('삭제에 실패했습니다: ' + error.message)
+    } else {
+      setPosts(posts.filter(p => p.id !== postId))
+    }
   }
 
   const handleTogglePin = async (post) => {
