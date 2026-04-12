@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Plus, Pin, Pencil, Trash2, MessageCircleQuestion, Star } from 'lucide-react'
+import { ArrowLeft, Plus, Pin, Pencil, Trash2, MessageCircleQuestion, Star, Heart, MessageSquare } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 
@@ -15,6 +15,8 @@ export default function CommunityBoard() {
   const { user, isTeacher } = useAuth()
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [likeCounts, setLikeCounts] = useState({})
+  const [commentCounts, setCommentCounts] = useState({})
 
   const info = categoryInfo[categoryId]
 
@@ -31,7 +33,28 @@ export default function CommunityBoard() {
       .order('is_pinned', { ascending: false })
       .order('created_at', { ascending: false })
 
-    if (!error) setPosts(data || [])
+    if (!error && data) {
+      setPosts(data)
+      // 좋아요/댓글 수 로드
+      const postIds = data.map(p => p.id)
+      if (postIds.length > 0) {
+        const { data: likes } = await supabase
+          .from('community_likes')
+          .select('post_id')
+          .in('post_id', postIds)
+        const lc = {}
+        likes?.forEach(l => { lc[l.post_id] = (lc[l.post_id] || 0) + 1 })
+        setLikeCounts(lc)
+
+        const { data: cmts } = await supabase
+          .from('community_comments')
+          .select('post_id')
+          .in('post_id', postIds)
+        const cc = {}
+        cmts?.forEach(c => { cc[c.post_id] = (cc[c.post_id] || 0) + 1 })
+        setCommentCounts(cc)
+      }
+    }
     setLoading(false)
   }
 
@@ -124,10 +147,21 @@ export default function CommunityBoard() {
                     )}
                     <h3 className="font-semibold text-text text-sm truncate">{post.title}</h3>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-text-secondary">
+                  <div className="flex items-center gap-2 text-xs text-text-secondary mt-1">
                     <span>{post.author_name}</span>
                     <span>·</span>
                     <span>{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
+                    {(likeCounts[post.id] > 0 || commentCounts[post.id] > 0) && (
+                      <>
+                        <span>·</span>
+                        {likeCounts[post.id] > 0 && (
+                          <span className="flex items-center gap-0.5"><Heart size={11} className="text-red-400" /> {likeCounts[post.id]}</span>
+                        )}
+                        {commentCounts[post.id] > 0 && (
+                          <span className="flex items-center gap-0.5"><MessageSquare size={11} /> {commentCounts[post.id]}</span>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
 

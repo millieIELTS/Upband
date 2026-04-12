@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Pin, Pencil, Trash2, Send, Loader2, MessageSquare } from 'lucide-react'
+import { ArrowLeft, Pin, Pencil, Trash2, Send, Loader2, MessageSquare, Heart } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 
@@ -18,9 +18,15 @@ export default function CommunityPost() {
   const [commentText, setCommentText] = useState('')
   const [commentLoading, setCommentLoading] = useState(false)
 
+  // 좋아요 state
+  const [likeCount, setLikeCount] = useState(0)
+  const [liked, setLiked] = useState(false)
+  const [likeLoading, setLikeLoading] = useState(false)
+
   useEffect(() => {
     loadPost()
     loadComments()
+    loadLikes()
   }, [postId])
 
   const loadPost = async () => {
@@ -44,10 +50,56 @@ export default function CommunityPost() {
     setComments(data || [])
   }
 
+  const loadLikes = async () => {
+    // 총 좋아요 수
+    const { count } = await supabase
+      .from('community_likes')
+      .select('*', { count: 'exact', head: true })
+      .eq('post_id', postId)
+    setLikeCount(count || 0)
+
+    // 내가 좋아요 했는지
+    if (user) {
+      const { data } = await supabase
+        .from('community_likes')
+        .select('id')
+        .eq('post_id', postId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+      setLiked(Boolean(data))
+    }
+  }
+
+  const handleToggleLike = async () => {
+    if (!user || likeLoading) return
+    setLikeLoading(true)
+
+    if (liked) {
+      await supabase
+        .from('community_likes')
+        .delete()
+        .eq('post_id', postId)
+        .eq('user_id', user.id)
+      setLiked(false)
+      setLikeCount(c => c - 1)
+    } else {
+      await supabase
+        .from('community_likes')
+        .insert({ post_id: postId, user_id: user.id })
+      setLiked(true)
+      setLikeCount(c => c + 1)
+    }
+    setLikeLoading(false)
+  }
+
   const handleDelete = async () => {
     if (!confirm('정말 삭제하시겠습니까?')) return
-    await supabase.from('community_posts').delete().eq('id', postId)
-    navigate(`/community/${categoryId}`)
+    const { error } = await supabase.from('community_posts').delete().eq('id', postId)
+    if (error) {
+      alert('삭제에 실패했습니다: ' + error.message)
+    } else {
+      navigate(`/community/${categoryId}`)
+    }
   }
 
   const handleTogglePin = async () => {
@@ -127,10 +179,36 @@ export default function CommunityPost() {
         </div>
 
         {/* 본문 */}
-        <div className="bg-surface rounded-2xl border border-border p-6 sm:p-8 mb-6">
+        <div className="bg-surface rounded-2xl border border-border p-6 sm:p-8 mb-4">
           <div className="text-sm text-text leading-relaxed whitespace-pre-wrap">
             {post.content}
           </div>
+          {post.image_url && (
+            <img
+              src={post.image_url}
+              alt="첨부 이미지"
+              className="mt-4 rounded-xl border border-border max-w-full"
+            />
+          )}
+        </div>
+
+        {/* 좋아요 + 댓글 수 */}
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={handleToggleLike}
+            disabled={!user || likeLoading}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+              liked
+                ? 'bg-red-50 text-red-500 border border-red-200'
+                : 'bg-gray-50 text-text-secondary border border-border hover:bg-red-50 hover:text-red-400'
+            } disabled:opacity-50`}
+          >
+            <Heart size={16} className={liked ? 'fill-red-500' : ''} />
+            {likeCount > 0 && <span>{likeCount}</span>}
+          </button>
+          <span className="flex items-center gap-1.5 text-sm text-text-secondary">
+            <MessageSquare size={16} /> {comments.length}
+          </span>
         </div>
 
         {/* 액션 버튼 */}
