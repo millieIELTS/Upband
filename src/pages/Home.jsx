@@ -88,6 +88,32 @@ export default function Home() {
         </Link>
       </div>
 
+      {/* 이런 고민 섹션 */}
+      <div className="mt-20 max-w-2xl mx-auto">
+        <h2 className="text-2xl font-bold mb-8">이런 고민, 혹시 나만 하는 걸까?</h2>
+        <div className="space-y-4 text-left">
+          {[
+            'AI로 피드백 받아봤는데, 뭘 어떻게 물어봐야 점수가 오르는 피드백을 받는 건지 모르겠어요',
+            '스피킹 연습하고 싶은데 할 곳이 마땅치 않아요',
+            '해외에 있어서 학원을 다닐 수가 없어요',
+            '혼자서 빠르게 점수 따고 싶은데 방법을 모르겠어요',
+          ].map((text, i) => (
+            <div key={i} className="bg-surface rounded-xl border border-border px-5 py-4">
+              <p className="text-sm text-text leading-relaxed">"{text}"</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8 bg-primary/5 rounded-2xl p-6 sm:p-8 text-left">
+          <p className="text-lg font-bold text-primary mb-2">그래서 UpBand를 만들었어요.</p>
+          <p className="text-sm text-text leading-relaxed">
+            현직 IELTS 강사가 설계한 채점 기준으로 AI가 즉시 피드백합니다.
+          </p>
+          <p className="text-sm text-text leading-relaxed">
+            프롬프트 고민 없이, 제출만 하면 전문적인 피드백이 바로.
+          </p>
+        </div>
+      </div>
+
       {/* 수강생 후기 */}
       <ReviewCarousel />
 
