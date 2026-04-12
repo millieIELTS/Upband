@@ -23,6 +23,10 @@ import AdminEbooks from './pages/AdminEbooks'
 import WritingSubmissions from './pages/WritingSubmissions'
 import VocabSelect from './pages/VocabSelect'
 import VocabStudy from './pages/VocabStudy'
+import Community from './pages/Community'
+import CommunityBoard from './pages/CommunityBoard'
+import CommunityWrite from './pages/CommunityWrite'
+import CommunityPost from './pages/CommunityPost'
 import RequireAuth from './components/RequireAuth'
 
 function App() {
@@ -50,6 +54,11 @@ function App() {
           <Route path="/vocab" element={<RequireAuth><VocabSelect /></RequireAuth>} />
           <Route path="/vocab/:bandId" element={<RequireAuth><VocabSelect /></RequireAuth>} />
           <Route path="/vocab/:bandId/:topicId" element={<RequireAuth><VocabStudy /></RequireAuth>} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/community/:categoryId" element={<CommunityBoard />} />
+          <Route path="/community/:categoryId/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
+          <Route path="/community/:categoryId/edit/:postId" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
+          <Route path="/community/:categoryId/:postId" element={<CommunityPost />} />
           <Route path="/store" element={<Store />} />
           <Route path="/login" element={<Login />} />
           <Route path="/mypage" element={<MyPage />} />

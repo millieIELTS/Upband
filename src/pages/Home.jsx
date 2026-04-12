@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink, BookText } from 'lucide-react'
+import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink, BookText, Users } from 'lucide-react'
 import { useMemo, useState, useRef, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 
@@ -20,7 +20,7 @@ export default function Home() {
         AI의 꼼꼼함 + 10년차 아이엘츠 전문강사가 주는 방향성과 공부 흐름 피드백
       </p>
 
-      <div className="grid sm:grid-cols-4 gap-6 max-w-4xl mx-auto">
+      <div className="grid sm:grid-cols-5 gap-6 max-w-5xl mx-auto">
         {/* Writing Mock Test — 숨김 처리 (나중에 다시 노출 예정) */}
 
         <Link
@@ -84,6 +84,22 @@ export default function Home() {
           </p>
           <span className="text-emerald-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
             둘러보기 <ArrowRight size={14} />
+          </span>
+        </Link>
+
+        <Link
+          to="/community"
+          className="group bg-surface rounded-2xl border border-border p-8 no-underline text-left hover:border-blue-400 hover:shadow-lg transition-all flex flex-col"
+        >
+          <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
+            <Users size={24} className="text-blue-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-text mb-2">커뮤니티</h2>
+          <p className="text-text-secondary text-sm mb-4">
+            Q&A, 후기를 나누고 함께 준비해요.
+          </p>
+          <span className="text-blue-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
+            입장하기 <ArrowRight size={14} />
           </span>
         </Link>
       </div>
