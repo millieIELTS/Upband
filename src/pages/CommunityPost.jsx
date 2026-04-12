@@ -180,16 +180,16 @@ export default function CommunityPost() {
 
         {/* 본문 */}
         <div className="bg-surface rounded-2xl border border-border p-6 sm:p-8 mb-4">
-          <div className="text-sm text-text leading-relaxed whitespace-pre-wrap">
-            {post.content}
-          </div>
           {post.image_url && (
             <img
               src={post.image_url}
               alt="첨부 이미지"
-              className="mt-4 rounded-xl border border-border max-w-full"
+              className="mb-4 rounded-xl border border-border max-w-full"
             />
           )}
+          <div className="text-sm text-text leading-relaxed whitespace-pre-wrap">
+            {post.content}
+          </div>
         </div>
 
         {/* 좋아요 + 댓글 수 */}
