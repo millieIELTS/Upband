@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Pin, Pencil, Trash2 } from 'lucide-react'
+import { ArrowLeft, Pin, Pencil, Trash2, Send, Loader2, MessageSquare } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 
@@ -9,12 +9,18 @@ const categoryNames = { qna: 'Q&A', reviews: '후기' }
 export default function CommunityPost() {
   const { categoryId, postId } = useParams()
   const navigate = useNavigate()
-  const { user, isTeacher } = useAuth()
+  const { user, profile, isTeacher } = useAuth()
   const [post, setPost] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // 댓글 state
+  const [comments, setComments] = useState([])
+  const [commentText, setCommentText] = useState('')
+  const [commentLoading, setCommentLoading] = useState(false)
+
   useEffect(() => {
     loadPost()
+    loadComments()
   }, [postId])
 
   const loadPost = async () => {
@@ -26,6 +32,16 @@ export default function CommunityPost() {
 
     if (!error) setPost(data)
     setLoading(false)
+  }
+
+  const loadComments = async () => {
+    const { data } = await supabase
+      .from('community_comments')
+      .select('*')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true })
+
+    setComments(data || [])
   }
 
   const handleDelete = async () => {
@@ -40,6 +56,33 @@ export default function CommunityPost() {
       .update({ is_pinned: !post.is_pinned })
       .eq('id', postId)
     if (!error) setPost({ ...post, is_pinned: !post.is_pinned })
+  }
+
+  const handleAddComment = async (e) => {
+    e.preventDefault()
+    if (!commentText.trim() || !user) return
+
+    setCommentLoading(true)
+    const { error } = await supabase
+      .from('community_comments')
+      .insert({
+        post_id: postId,
+        user_id: user.id,
+        content: commentText.trim(),
+        author_name: profile?.display_name || '익명',
+      })
+
+    if (!error) {
+      setCommentText('')
+      loadComments()
+    }
+    setCommentLoading(false)
+  }
+
+  const handleDeleteComment = async (commentId) => {
+    if (!confirm('댓글을 삭제하시겠습니까?')) return
+    await supabase.from('community_comments').delete().eq('id', commentId)
+    setComments(comments.filter(c => c.id !== commentId))
   }
 
   if (loading) {
@@ -92,7 +135,7 @@ export default function CommunityPost() {
 
         {/* 액션 버튼 */}
         {canEdit && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-8">
             {isTeacher && (
               <button
                 onClick={handleTogglePin}
@@ -120,6 +163,64 @@ export default function CommunityPost() {
           </div>
         )}
       </article>
+
+      {/* 댓글 섹션 */}
+      <div className="border-t border-border pt-6">
+        <div className="flex items-center gap-2 mb-4">
+          <MessageSquare size={18} className="text-text-secondary" />
+          <h3 className="font-semibold text-sm">댓글 {comments.length > 0 && `(${comments.length})`}</h3>
+        </div>
+
+        {/* 댓글 목록 */}
+        {comments.length > 0 && (
+          <div className="space-y-3 mb-6">
+            {comments.map(comment => (
+              <div key={comment.id} className="bg-gray-50 rounded-xl px-4 py-3">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2 text-xs text-text-secondary">
+                    <span className="font-medium text-text">{comment.author_name}</span>
+                    <span>·</span>
+                    <span>{new Date(comment.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  {(isTeacher || user?.id === comment.user_id) && (
+                    <button
+                      onClick={() => handleDeleteComment(comment.id)}
+                      className="p-1 rounded text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
+                </div>
+                <p className="text-sm text-text leading-relaxed whitespace-pre-wrap">{comment.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 댓글 입력 */}
+        {user ? (
+          <form onSubmit={handleAddComment} className="flex gap-2">
+            <input
+              type="text"
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="댓글을 입력하세요"
+              className="flex-1 px-4 py-2.5 rounded-xl border border-border bg-surface text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            />
+            <button
+              type="submit"
+              disabled={commentLoading || !commentText.trim()}
+              className="px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-medium disabled:opacity-40 hover:bg-primary-dark transition-colors"
+            >
+              {commentLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            </button>
+          </form>
+        ) : (
+          <p className="text-xs text-text-secondary text-center">
+            댓글을 작성하려면 <Link to="/login" className="text-primary no-underline">로그인</Link>해주세요.
+          </p>
+        )}
+      </div>
     </div>
   )
 }
