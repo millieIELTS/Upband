@@ -90,6 +90,9 @@ export default function Home() {
 
       {/* 이런 고민 섹션 */}
       <div className="mt-20 max-w-2xl mx-auto">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-50 text-violet-700 text-xs font-medium mb-3">
+          <PenLine size={14} /> For You
+        </div>
         <h2 className="text-2xl font-bold mb-8">이런 고민, 혹시 나만 하는 걸까?</h2>
         <div className="space-y-4 text-left">
           {[
