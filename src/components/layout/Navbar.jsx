@@ -30,34 +30,42 @@ export default function Navbar() {
     navigate('/')
   }
 
-  const NavLink = ({ to, label, icon: Icon }) => (
+  const NavLink = ({ to, label, icon: Icon, compact }) => (
     <Link
       to={to}
       onClick={() => setMobileOpen(false)}
-      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm no-underline transition-colors ${
-        pathname.startsWith(to)
-          ? 'bg-primary text-white'
-          : 'text-text-secondary hover:bg-gray-100'
+      className={`flex items-center no-underline transition-colors ${
+        compact
+          ? `px-2.5 py-1.5 rounded-md text-[13px] font-medium ${
+              pathname.startsWith(to)
+                ? 'bg-primary text-white'
+                : 'text-text-secondary hover:text-text hover:bg-gray-100'
+            }`
+          : `gap-2 px-3 py-2 rounded-lg text-sm ${
+              pathname.startsWith(to)
+                ? 'bg-primary text-white'
+                : 'text-text-secondary hover:bg-gray-100'
+            }`
       }`}
     >
-      <Icon size={16} />
+      {!compact && Icon && <Icon size={16} />}
       {label}
     </Link>
   )
 
   return (
     <nav className="bg-surface border-b border-border sticky top-0 z-50">
-      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link to="/" className="text-xl font-bold text-primary no-underline" onClick={() => setMobileOpen(false)}>
           UpBand
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden lg:flex items-center gap-0.5">
           {navItems.map((item) => (
-            <NavLink key={item.to} {...item} />
+            <NavLink key={item.to} {...item} compact />
           ))}
-          {isTeacher && <NavLink to="/dashboard" label="대시보드" icon={LayoutDashboard} />}
+          {isTeacher && <NavLink to="/dashboard" label="대시보드" icon={LayoutDashboard} compact />}
 
           {user ? (
             <div className="flex items-center gap-2 ml-2">
@@ -90,10 +98,10 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile hamburger */}
+        {/* Mobile/Tablet hamburger */}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors"
+          className="lg:hidden flex items-center justify-center w-10 h-10 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors"
         >
           {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
@@ -101,7 +109,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-surface px-4 py-3 space-y-1">
+        <div className="lg:hidden border-t border-border bg-surface px-4 py-3 space-y-1">
           {navItems.map((item) => (
             <NavLink key={item.to} {...item} />
           ))}
