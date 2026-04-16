@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink, BookText, Users } from 'lucide-react'
+import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink, BookText, Users, FileText } from 'lucide-react'
 import { useMemo, useState, useRef, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 
@@ -20,8 +20,22 @@ export default function Home() {
         AI의 꼼꼼함 + 10년차 아이엘츠 전문강사가 주는 방향성과 공부 흐름 피드백
       </p>
 
-      <div className="grid sm:grid-cols-5 gap-6 max-w-5xl mx-auto">
-        {/* Writing Mock Test — 숨김 처리 (나중에 다시 노출 예정) */}
+      <div className="grid sm:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <Link
+          to="/mock-test"
+          className="group bg-surface rounded-2xl border border-border p-8 no-underline text-left hover:border-amber-400 hover:shadow-lg transition-all flex flex-col"
+        >
+          <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center mb-4">
+            <FileText size={24} className="text-amber-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-text mb-2">Mock Test</h2>
+          <p className="text-text-secondary text-sm mb-4">
+            실전과 동일한 IELTS 모의고사를 풀어보세요.
+          </p>
+          <span className="text-amber-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
+            입장하기 <ArrowRight size={14} />
+          </span>
+        </Link>
 
         <Link
           to="/writing/homework"

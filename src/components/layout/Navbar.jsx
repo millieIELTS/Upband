@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { PenLine, Mic, LayoutDashboard, History, LogIn, LogOut, User, Coins, Menu, X, BookText, BookOpen, Users } from 'lucide-react'
+import { PenLine, Mic, LayoutDashboard, History, LogIn, LogOut, User, Coins, Menu, X, BookText, BookOpen, Users, FileText } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
 const navItems = [
+  { to: '/mock-test', label: 'Mock Test', icon: FileText },
   { to: '/writing/homework', label: 'Writing', icon: PenLine },
   { to: '/speaking', label: 'Speaking', icon: Mic },
   { to: '/vocab', label: '단어학습', icon: BookText },

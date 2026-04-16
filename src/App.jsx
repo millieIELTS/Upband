@@ -27,6 +27,7 @@ import Community from './pages/Community'
 import CommunityBoard from './pages/CommunityBoard'
 import CommunityWrite from './pages/CommunityWrite'
 import CommunityPost from './pages/CommunityPost'
+import MockTest from './pages/MockTest'
 import RequireAuth from './components/RequireAuth'
 
 function App() {
@@ -59,6 +60,7 @@ function App() {
           <Route path="/community/:categoryId/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
           <Route path="/community/:categoryId/edit/:postId" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
           <Route path="/community/:categoryId/:postId" element={<CommunityPost />} />
+          <Route path="/mock-test" element={<MockTest />} />
           <Route path="/store" element={<Store />} />
           <Route path="/login" element={<Login />} />
           <Route path="/mypage" element={<MyPage />} />
