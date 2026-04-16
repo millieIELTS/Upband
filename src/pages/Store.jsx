@@ -6,13 +6,19 @@ export default function Store() {
   const [ebooks, setEbooks] = useState([])
   const [loading, setLoading] = useState(true)
 
+  const [error, setError] = useState(null)
+
   useEffect(() => {
     supabase
       .from('ebooks')
       .select('*')
       .eq('is_published', true)
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
+      .then(({ data, error: err }) => {
+        if (err) {
+          console.error('E-Book fetch error:', err)
+          setError(err.message)
+        }
         setEbooks(data || [])
         setLoading(false)
       })
@@ -25,7 +31,15 @@ export default function Store() {
       <h1 className="text-2xl font-bold mb-2">E-Book Store</h1>
       <p className="text-text-secondary text-sm mb-8">IELTS 학습에 도움이 되는 전자책을 만나보세요.</p>
 
-      {ebooks.length === 0 ? (
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+          <p className="font-medium mb-1">데이터를 불러오지 못했습니다.</p>
+          <p className="text-xs text-red-500">{error}</p>
+        </div>
+      )}
+
+      {ebooks.length === 0 && !error ? (
+        /* 전자책 없음 */
         <div className="text-center py-16 bg-surface rounded-xl border border-border">
           <BookOpen size={48} className="text-text-secondary mx-auto mb-4" />
           <p className="text-text-secondary mb-2">아직 등록된 전자책이 없습니다.</p>

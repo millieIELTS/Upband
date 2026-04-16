@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [expandedUser, setExpandedUser] = useState(null)
   const [expandedSubmissions, setExpandedSubmissions] = useState([])
   const [creditInput, setCreditInput] = useState({})
+  const [selectedSubmission, setSelectedSubmission] = useState(null)
 
   const isAdmin = profile?.role === 'teacher' || profile?.role === 'admin'
 
@@ -84,9 +85,11 @@ export default function Dashboard() {
     if (expandedUser === userId) {
       setExpandedUser(null)
       setExpandedSubmissions([])
+      setSelectedSubmission(null)
     } else {
       setExpandedUser(userId)
       setExpandedSubmissions(submissions.filter(s => s.user_id === userId))
+      setSelectedSubmission(null)
     }
   }
 
@@ -305,34 +308,135 @@ export default function Dashboard() {
                     {expandedSubmissions.length === 0 ? (
                       <p className="text-xs text-text-secondary">제출 내역이 없습니다.</p>
                     ) : (
-                      <div className="space-y-1.5 max-h-60 overflow-y-auto">
-                        {expandedSubmissions.map((sub) => (
-                          <div key={sub.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-border">
-                            <div className="flex items-center gap-2">
-                              {sub._type === 'writing' ? (
-                                <PenLine size={13} className="text-primary shrink-0" />
-                              ) : (
-                                <Mic size={13} className="text-primary shrink-0" />
-                              )}
-                              <span className="text-xs font-medium">
-                                {sub._type === 'writing'
-                                  ? `${sub.task_type === 'task1' ? 'Task 1' : 'Task 2'} · ${sub.word_count}w`
-                                  : `${sub.part?.replace('part', 'Part ')} · ${sub.question?.slice(0, 30)}...`
-                                }
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              {(sub.teacher_band ?? sub.overall_band) != null ? (
-                                <span className={`text-sm font-bold ${bandColor(sub.teacher_band ?? sub.overall_band)}`}>
-                                  {sub.teacher_band ?? sub.overall_band}
+                      <div className="space-y-1.5">
+                        <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                          {expandedSubmissions.map((sub) => (
+                            <div
+                              key={sub.id}
+                              onClick={() => setSelectedSubmission(selectedSubmission?.id === sub.id ? null : sub)}
+                              className={`flex items-center justify-between bg-white rounded-lg px-3 py-2 border cursor-pointer transition-colors ${
+                                selectedSubmission?.id === sub.id
+                                  ? 'border-primary bg-primary/5'
+                                  : 'border-border hover:border-primary/40 hover:bg-gray-50'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                {sub._type === 'writing' ? (
+                                  <PenLine size={13} className="text-primary shrink-0" />
+                                ) : (
+                                  <Mic size={13} className="text-primary shrink-0" />
+                                )}
+                                <span className="text-xs font-medium">
+                                  {sub._type === 'writing'
+                                    ? `${sub.task_type === 'task1' ? 'Task 1' : 'Task 2'} · ${sub.word_count}w`
+                                    : `${sub.part?.replace('part', 'Part ')} · ${sub.question?.slice(0, 30)}...`
+                                  }
                                 </span>
-                              ) : (
-                                <span className="text-xs text-text-secondary">미채점</span>
-                              )}
-                              <span className="text-[10px] text-text-secondary">{formatDate(sub.created_at)}</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                {(sub.teacher_band ?? sub.overall_band) != null ? (
+                                  <span className={`text-sm font-bold ${bandColor(sub.teacher_band ?? sub.overall_band)}`}>
+                                    {sub.teacher_band ?? sub.overall_band}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-text-secondary">미채점</span>
+                                )}
+                                <span className="text-[10px] text-text-secondary">{formatDate(sub.created_at)}</span>
+                                <Eye size={12} className={selectedSubmission?.id === sub.id ? 'text-primary' : 'text-text-secondary'} />
+                              </div>
                             </div>
+                          ))}
+                        </div>
+
+                        {/* 선택한 제출물 상세 보기 */}
+                        {selectedSubmission && selectedSubmission.user_id === s.id && (
+                          <div className="mt-3 bg-white rounded-xl border border-primary/20 p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-semibold text-primary">
+                                {selectedSubmission._type === 'writing' ? 'Writing' : 'Speaking'} 상세
+                              </h4>
+                              <button
+                                onClick={() => setSelectedSubmission(null)}
+                                className="text-xs text-text-secondary hover:text-primary"
+                              >
+                                닫기
+                              </button>
+                            </div>
+
+                            {/* 문제 */}
+                            {selectedSubmission.question && (
+                              <div>
+                                <p className="text-xs font-medium text-text-secondary mb-1">문제</p>
+                                <p className="text-sm bg-bg p-3 rounded-lg border border-border">{selectedSubmission.question}</p>
+                              </div>
+                            )}
+
+                            {/* Writing: 에세이 */}
+                            {selectedSubmission._type === 'writing' && selectedSubmission.essay && (
+                              <div>
+                                <p className="text-xs font-medium text-text-secondary mb-1">에세이</p>
+                                <div className="text-sm bg-bg p-3 rounded-lg border border-border whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
+                                  {selectedSubmission.essay}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Speaking: 답변 텍스트 */}
+                            {selectedSubmission._type === 'speaking' && selectedSubmission.transcript && (
+                              <div>
+                                <p className="text-xs font-medium text-text-secondary mb-1">답변 (음성 텍스트)</p>
+                                <div className="text-sm bg-bg p-3 rounded-lg border border-border whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
+                                  {selectedSubmission.transcript}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Speaking: 모범 답안 */}
+                            {selectedSubmission._type === 'speaking' && selectedSubmission.model_answer && (
+                              <div>
+                                <p className="text-xs font-medium text-text-secondary mb-1">모범 답안 (Band 7+)</p>
+                                <div className="text-sm bg-bg p-3 rounded-lg border border-border whitespace-pre-wrap leading-relaxed text-primary/80">
+                                  {selectedSubmission.model_answer}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* AI 밴드 점수 */}
+                            {selectedSubmission.overall_band != null && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium text-text-secondary">AI 채점:</span>
+                                <span className={`text-sm font-bold ${bandColor(selectedSubmission.overall_band)}`}>
+                                  Band {selectedSubmission.overall_band}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* AI 피드백 */}
+                            {selectedSubmission.feedback && (
+                              <div>
+                                <p className="text-xs font-medium text-text-secondary mb-1">AI 피드백</p>
+                                <div className="text-sm bg-bg p-3 rounded-lg border border-border whitespace-pre-wrap leading-relaxed">
+                                  {selectedSubmission.feedback}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* 선생님 채점/피드백 */}
+                            {selectedSubmission.teacher_band != null && (
+                              <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs font-medium text-primary">선생님 채점</span>
+                                  <span className={`text-sm font-bold ${bandColor(selectedSubmission.teacher_band)}`}>
+                                    Band {selectedSubmission.teacher_band}
+                                  </span>
+                                </div>
+                                {selectedSubmission.teacher_feedback && (
+                                  <p className="text-sm text-text whitespace-pre-wrap">{selectedSubmission.teacher_feedback}</p>
+                                )}
+                              </div>
+                            )}
                           </div>
-                        ))}
+                        )}
                       </div>
                     )}
                   </div>
