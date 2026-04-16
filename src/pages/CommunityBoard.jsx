@@ -17,6 +17,7 @@ export default function CommunityBoard() {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [likeCounts, setLikeCounts] = useState({})
+  const [likedPosts, setLikedPosts] = useState({})   // 내가 좋아요한 글
   const [commentCounts, setCommentCounts] = useState({})
 
   const info = categoryInfo[categoryId]
@@ -41,11 +42,16 @@ export default function CommunityBoard() {
       if (postIds.length > 0) {
         const { data: likes } = await supabase
           .from('community_likes')
-          .select('post_id')
+          .select('post_id, user_id')
           .in('post_id', postIds)
         const lc = {}
-        likes?.forEach(l => { lc[l.post_id] = (lc[l.post_id] || 0) + 1 })
+        const myLikes = {}
+        likes?.forEach(l => {
+          lc[l.post_id] = (lc[l.post_id] || 0) + 1
+          if (user && l.user_id === user.id) myLikes[l.post_id] = true
+        })
         setLikeCounts(lc)
+        setLikedPosts(myLikes)
 
         const { data: cmts } = await supabase
           .from('community_comments')
@@ -66,6 +72,19 @@ export default function CommunityBoard() {
       alert('삭제에 실패했습니다: ' + error.message)
     } else {
       setPosts(posts.filter(p => p.id !== postId))
+    }
+  }
+
+  const handleToggleLike = async (postId) => {
+    if (!user) return
+    if (likedPosts[postId]) {
+      await supabase.from('community_likes').delete().eq('post_id', postId).eq('user_id', user.id)
+      setLikedPosts(prev => ({ ...prev, [postId]: false }))
+      setLikeCounts(prev => ({ ...prev, [postId]: (prev[postId] || 1) - 1 }))
+    } else {
+      await supabase.from('community_likes').insert({ post_id: postId, user_id: user.id })
+      setLikedPosts(prev => ({ ...prev, [postId]: true }))
+      setLikeCounts(prev => ({ ...prev, [postId]: (prev[postId] || 0) + 1 }))
     }
   }
 
@@ -164,19 +183,30 @@ export default function CommunityBoard() {
                   {post.content}
                 </p>
 
-                {/* 하단 메타 */}
+                {/* 하단: 작성자 + 좋아요/댓글 */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs text-text-secondary">
                     <span className="font-medium">{post.author_name}</span>
                     <span>·</span>
                     <span>{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-text-secondary">
-                    {likeCounts[post.id] > 0 && (
-                      <span className="flex items-center gap-0.5"><Heart size={11} className="text-red-400" /> {likeCounts[post.id]}</span>
-                    )}
+                  <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                    <button
+                      onClick={() => handleToggleLike(post.id)}
+                      disabled={!user}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all ${
+                        likedPosts[post.id]
+                          ? 'bg-red-50 text-red-500'
+                          : 'text-text-secondary hover:bg-red-50 hover:text-red-400'
+                      } disabled:opacity-40`}
+                    >
+                      <Heart size={12} className={likedPosts[post.id] ? 'fill-red-500' : ''} />
+                      {likeCounts[post.id] > 0 && <span>{likeCounts[post.id]}</span>}
+                    </button>
                     {commentCounts[post.id] > 0 && (
-                      <span className="flex items-center gap-0.5"><MessageSquare size={11} /> {commentCounts[post.id]}</span>
+                      <span className="flex items-center gap-0.5 text-xs text-text-secondary">
+                        <MessageSquare size={11} /> {commentCounts[post.id]}
+                      </span>
                     )}
                   </div>
                 </div>
