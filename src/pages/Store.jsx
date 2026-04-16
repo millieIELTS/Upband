@@ -70,8 +70,7 @@ export default function Store() {
                   </span>
                   {book.file_url && (
                     <a
-                      href={book.file_url}
-                      download
+                      href={`${book.file_url}?download=`}
                       className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors no-underline"
                     >
                       <Download size={14} />
