@@ -22,22 +22,6 @@ export default function Home() {
 
       <div className="grid sm:grid-cols-3 gap-6 max-w-5xl mx-auto">
         <Link
-          to="/mock-test"
-          className="group bg-surface rounded-2xl border border-border p-8 no-underline text-left hover:border-amber-400 hover:shadow-lg transition-all flex flex-col"
-        >
-          <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center mb-4">
-            <FileText size={24} className="text-amber-600" />
-          </div>
-          <h2 className="text-xl font-semibold text-text mb-2">Mock Test</h2>
-          <p className="text-text-secondary text-sm mb-4">
-            실전과 동일한 IELTS 모의고사를 풀어보세요.
-          </p>
-          <span className="text-amber-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
-            입장하기 <ArrowRight size={14} />
-          </span>
-        </Link>
-
-        <Link
           to="/writing/homework"
           className="group bg-surface rounded-2xl border border-border p-8 no-underline text-left hover:border-primary hover:shadow-lg transition-all flex flex-col"
         >
@@ -98,6 +82,22 @@ export default function Home() {
           </p>
           <span className="text-emerald-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
             둘러보기 <ArrowRight size={14} />
+          </span>
+        </Link>
+
+        <Link
+          to="/mock-test"
+          className="group bg-surface rounded-2xl border border-border p-8 no-underline text-left hover:border-amber-400 hover:shadow-lg transition-all flex flex-col"
+        >
+          <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center mb-4">
+            <FileText size={24} className="text-amber-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-text mb-2">Mock Test</h2>
+          <p className="text-text-secondary text-sm mb-4">
+            실전과 동일한 IELTS 모의고사를 풀어보세요.
+          </p>
+          <span className="text-amber-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
+            입장하기 <ArrowRight size={14} />
           </span>
         </Link>
 
