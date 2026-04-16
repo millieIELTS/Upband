@@ -25,6 +25,13 @@ export const topics = [
   { id: 'globalisation', name: 'Globalisation', emoji: '🌍' },
   { id: 'transport', name: 'Transport', emoji: '🚆' },
   { id: 'family', name: 'Family', emoji: '👨‍👩‍👧‍👦' },
+  { id: 'culture', name: 'Culture', emoji: '🎭' },
+  { id: 'tourism', name: 'Tourism', emoji: '✈️' },
+  { id: 'housing', name: 'Housing', emoji: '🏠' },
+  { id: 'food', name: 'Food', emoji: '🍽️' },
+  { id: 'sports', name: 'Sports', emoji: '⚽' },
+  { id: 'money', name: 'Money', emoji: '💰' },
+  { id: 'language', name: 'Language', emoji: '🗣️' },
 ]
 
 export const synonymData = { band56, band67, band7plus }
