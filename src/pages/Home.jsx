@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
-import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink, BookText, Users, FileText } from 'lucide-react'
+import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink, BookText, Users, FileText, Pin, MessageSquare } from 'lucide-react'
 import { useMemo, useState, useRef, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { supabase } from '../lib/supabase'
 
 export default function Home() {
   return (
@@ -117,6 +118,9 @@ export default function Home() {
           </span>
         </Link>
       </div>
+
+      {/* 시작 전 필독 */}
+      <MustReadSection />
 
       {/* 이런 고민 섹션 */}
       <ConcernCarousel />
@@ -424,6 +428,79 @@ function StudyMapPreview() {
             className="block w-full text-center py-3 bg-primary text-white rounded-xl font-medium text-sm no-underline hover:bg-primary-dark transition-colors"
           >
             무료로 시작하기
+          </Link>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── 시작 전 필독 섹션 ───
+function MustReadSection() {
+  const [guidePost, setGuidePost] = useState(null)
+  const [reviewPost, setReviewPost] = useState(null)
+
+  useEffect(() => {
+    // Q&A에서 "어플처럼" 포함 글 찾기
+    supabase
+      .from('community_posts')
+      .select('id, title')
+      .eq('category', 'qna')
+      .ilike('title', '%어플처럼%')
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => { if (data) setGuidePost(data) })
+
+    // 후기에서 "자료 및 피드백" 포함 글 찾기
+    supabase
+      .from('community_posts')
+      .select('id, title')
+      .eq('category', 'reviews')
+      .ilike('title', '%자료 및 피드백%')
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => { if (data) setReviewPost(data) })
+  }, [])
+
+  if (!guidePost && !reviewPost) return null
+
+  return (
+    <div className="mt-16 max-w-2xl mx-auto">
+      <div className="flex items-center justify-center gap-2 mb-3">
+        <Pin size={16} className="text-primary" />
+        <span className="text-sm font-semibold text-primary">시작하기 전에 꼭 읽어주세요</span>
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        {guidePost && (
+          <Link
+            to={`/community/qna/${guidePost.id}`}
+            className="group bg-surface rounded-2xl border border-border p-6 no-underline hover:border-primary hover:shadow-lg transition-all"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-2xl">📱</span>
+              <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-medium">Q&A</span>
+            </div>
+            <h3 className="font-semibold text-text text-sm mb-1">{guidePost.title}</h3>
+            <span className="text-primary text-xs font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-2">
+              읽으러 가기 <ArrowRight size={12} />
+            </span>
+          </Link>
+        )}
+
+        {reviewPost && (
+          <Link
+            to={`/community/reviews/${reviewPost.id}`}
+            className="group bg-surface rounded-2xl border border-border p-6 no-underline hover:border-amber-400 hover:shadow-lg transition-all"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-2xl">⭐</span>
+              <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[11px] font-medium">후기</span>
+            </div>
+            <h3 className="font-semibold text-text text-sm mb-1">{reviewPost.title}</h3>
+            <span className="text-amber-600 text-xs font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-2">
+              읽으러 가기 <ArrowRight size={12} />
+            </span>
           </Link>
         )}
       </div>
