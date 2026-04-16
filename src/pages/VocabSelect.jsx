@@ -2,16 +2,13 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, BookOpen, ChevronRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { bandLevels, topics, synonymData } from '../data/synonyms'
-
-function getProgress(bandId, topicId) {
-  const val = localStorage.getItem(`vocab_progress_${bandId}_${topicId}`)
-  return val ? parseInt(val, 10) : 0
-}
+import { useVocabProgress } from '../hooks/useVocabProgress'
 
 export default function VocabSelect() {
   const { bandId } = useParams()
   const navigate = useNavigate()
   const [selectedBand, setSelectedBand] = useState(null)
+  const { getProgress } = useVocabProgress()
 
   // URL 파라미터와 selectedBand 동기화
   useEffect(() => {

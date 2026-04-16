@@ -2,29 +2,26 @@ import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Check, X, Trophy } from 'lucide-react'
 import { useState, useMemo, useEffect } from 'react'
 import { bandLevels, topics, synonymData } from '../data/synonyms'
-
-function getSavedIndex(bandId, topicId) {
-  const val = localStorage.getItem(`vocab_progress_${bandId}_${topicId}`)
-  return val ? parseInt(val, 10) : 0
-}
-
-function saveProgress(bandId, topicId, index) {
-  const prev = getSavedIndex(bandId, topicId)
-  // 최고 진행 기록만 저장 (뒤로 가도 리셋 안 됨)
-  if (index > prev) {
-    localStorage.setItem(`vocab_progress_${bandId}_${topicId}`, String(index))
-  }
-}
+import { useVocabProgress } from '../hooks/useVocabProgress'
 
 export default function VocabStudy() {
   const { bandId, topicId } = useParams()
   const band = bandLevels.find(b => b.id === bandId)
   const topic = topics.find(t => t.id === topicId)
   const words = synonymData[bandId]?.[topicId] || []
+  const { getProgress, saveProgress, loaded } = useVocabProgress()
 
   const [mode, setMode] = useState('cards') // cards | quiz | results
-  const [cardIndex, setCardIndex] = useState(() => getSavedIndex(bandId, topicId))
+  const [cardIndex, setCardIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
+
+  // Supabase에서 진행도 로드 후 카드 위치 복원
+  useEffect(() => {
+    if (loaded) {
+      const saved = getProgress(bandId, topicId)
+      if (saved > 0 && saved < words.length) setCardIndex(saved)
+    }
+  }, [loaded, bandId, topicId])
 
   // Quiz state
   const [quizIndex, setQuizIndex] = useState(0)
@@ -203,7 +200,7 @@ export default function VocabStudy() {
                   // 0.8초 후 자동으로 다음 문제
                   setTimeout(() => {
                     if (quizIndex === quizQuestions.length - 1) {
-                      localStorage.setItem(`vocab_progress_${bandId}_${topicId}`, String(words.length))
+                      saveProgress(bandId, topicId, words.length)
                       setMode('results')
                     } else {
                       setQuizIndex(qi => qi + 1)
