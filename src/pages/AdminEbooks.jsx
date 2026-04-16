@@ -69,7 +69,7 @@ export default function AdminEbooks() {
         cover_url = await uploadFile(coverFile, 'covers')
       }
       if (pdfFile) {
-        setUploadProgress('PDF 파일 업로드 중...')
+        setUploadProgress('파일 업로드 중...')
         file_url = await uploadFile(pdfFile, 'pdfs')
       }
 
@@ -134,7 +134,7 @@ export default function AdminEbooks() {
         updates.cover_url = await uploadFile(editCoverFile, 'covers')
       }
       if (editPdfFile) {
-        setUploadProgress('PDF 파일 업로드 중...')
+        setUploadProgress('파일 업로드 중...')
         updates.file_url = await uploadFile(editPdfFile, 'pdfs')
       }
 
@@ -254,16 +254,16 @@ export default function AdminEbooks() {
           <div>
             <label className="block text-xs text-text-secondary mb-1">
               <FileText size={12} className="inline mr-1" />
-              PDF 파일
+              파일 (PDF/ZIP)
             </label>
             <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors">
               <Upload size={14} className="text-text-secondary" />
               <span className="text-sm text-text-secondary">
-                {pdfFile ? pdfFile.name : 'PDF 파일 선택'}
+                {pdfFile ? pdfFile.name : 'PDF / ZIP 파일 선택'}
               </span>
               <input
                 type="file"
-                accept=".pdf,application/pdf"
+                accept=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed"
                 onChange={(e) => setPdfFile(e.target.files[0] || null)}
                 className="hidden"
               />
@@ -362,16 +362,16 @@ export default function AdminEbooks() {
                   <div>
                     <label className="block text-xs text-text-secondary mb-1">
                       <FileText size={12} className="inline mr-1" />
-                      PDF 파일 변경
+                      파일 (PDF/ZIP) 변경
                     </label>
                     <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors">
                       <Upload size={14} className="text-text-secondary" />
                       <span className="text-sm text-text-secondary">
-                        {editPdfFile ? editPdfFile.name : (book.file_url ? '현재 PDF 유지 (변경하려면 클릭)' : 'PDF 파일 선택')}
+                        {editPdfFile ? editPdfFile.name : (book.file_url ? '현재 파일 유지 (변경하려면 클릭)' : 'PDF / ZIP 파일 선택')}
                       </span>
                       <input
                         type="file"
-                        accept=".pdf,application/pdf"
+                        accept=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed"
                         onChange={(e) => setEditPdfFile(e.target.files[0] || null)}
                         className="hidden"
                       />

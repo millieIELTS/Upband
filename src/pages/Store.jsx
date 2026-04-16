@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BookOpen, ExternalLink } from 'lucide-react'
+import { BookOpen, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 export default function Store() {
@@ -71,11 +71,10 @@ export default function Store() {
                   {book.file_url && (
                     <a
                       href={book.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      download
                       className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors no-underline"
                     >
-                      <ExternalLink size={14} />
+                      <Download size={14} />
                       {book.price === 0 ? '다운로드' : '구매하기'}
                     </a>
                   )}
