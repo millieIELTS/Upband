@@ -4,7 +4,7 @@ import { Volume2, Eye, MessageSquare } from 'lucide-react'
 export default function Speaking() {
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-2">Speaking 피드백</h1>
+      <h1 className="text-2xl font-bold mb-2">스피킹 연습</h1>
       <p className="text-text-secondary mb-8">Part를 선택하세요.</p>
 
       <div className="grid sm:grid-cols-3 gap-6 max-w-3xl">
