@@ -465,9 +465,9 @@ function MustReadSection() {
   if (!guidePost && !reviewPost) return null
 
   return (
-    <div className="mt-16 max-w-2xl mx-auto">
-      <div className="flex items-center justify-center gap-2 mb-3">
-        <Pin size={16} className="text-primary" />
+    <div className="mt-16 max-w-2xl mx-auto text-center">
+      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 mb-4">
+        <Pin size={14} className="text-primary" />
         <span className="text-sm font-semibold text-primary">시작하기 전에 꼭 읽어주세요</span>
       </div>
 
@@ -475,14 +475,12 @@ function MustReadSection() {
         {guidePost && (
           <Link
             to={`/community/qna/${guidePost.id}`}
-            className="group bg-surface rounded-2xl border border-border p-6 no-underline hover:border-primary hover:shadow-lg transition-all"
+            className="group bg-surface rounded-2xl border border-border p-6 no-underline text-center hover:border-primary hover:shadow-lg transition-all"
           >
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-2xl">📱</span>
-              <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-medium">Q&A</span>
-            </div>
-            <h3 className="font-semibold text-text text-sm mb-1">{guidePost.title}</h3>
-            <span className="text-primary text-xs font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-2">
+            <span className="text-3xl block mb-3">📱</span>
+            <span className="inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-medium mb-2">Q&A</span>
+            <h3 className="font-semibold text-text text-sm mb-2">{guidePost.title}</h3>
+            <span className="text-primary text-xs font-medium inline-flex items-center gap-1 group-hover:gap-2 transition-all">
               읽으러 가기 <ArrowRight size={12} />
             </span>
           </Link>
@@ -491,14 +489,12 @@ function MustReadSection() {
         {reviewPost && (
           <Link
             to={`/community/reviews/${reviewPost.id}`}
-            className="group bg-surface rounded-2xl border border-border p-6 no-underline hover:border-amber-400 hover:shadow-lg transition-all"
+            className="group bg-surface rounded-2xl border border-border p-6 no-underline text-center hover:border-amber-400 hover:shadow-lg transition-all"
           >
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-2xl">⭐</span>
-              <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[11px] font-medium">후기</span>
-            </div>
-            <h3 className="font-semibold text-text text-sm mb-1">{reviewPost.title}</h3>
-            <span className="text-amber-600 text-xs font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-2">
+            <span className="text-3xl block mb-3">⭐</span>
+            <span className="inline-block px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[11px] font-medium mb-2">후기</span>
+            <h3 className="font-semibold text-text text-sm mb-2">{reviewPost.title}</h3>
+            <span className="text-amber-600 text-xs font-medium inline-flex items-center gap-1 group-hover:gap-2 transition-all">
               읽으러 가기 <ArrowRight size={12} />
             </span>
           </Link>
