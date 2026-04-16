@@ -12,7 +12,7 @@ export default function WritingHomeworkSelect() {
       </Link>
 
       <h1 className="text-2xl font-bold mb-2">Writing</h1>
-      <p className="text-text-secondary mb-8">Task를 선택하세요.</p>
+      <p className="text-text-secondary mb-8">(AI 채점 후 강사님이 매의 눈으로 검토하여 꼼꼼하게 피드백 나갑니다.)</p>
 
       <div className="grid sm:grid-cols-2 gap-6 max-w-2xl">
         <Link
