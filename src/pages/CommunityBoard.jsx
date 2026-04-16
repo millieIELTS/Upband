@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus, Pin, Pencil, Trash2, MessageCircleQuestion, Star, Heart, MessageSquare } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { parseImageUrls } from './CommunityWrite'
 
 const categoryInfo = {
   qna: { name: 'Q&A', icon: MessageCircleQuestion, color: 'text-primary', bg: 'bg-primary/10' },
@@ -127,7 +128,93 @@ export default function CommunityBoard() {
             </Link>
           )}
         </div>
+      ) : categoryId === 'reviews' ? (
+        /* 후기 — 카드형 레이아웃 */
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {posts.map(post => (
+            <div
+              key={post.id}
+              className={`bg-surface rounded-2xl border ${post.is_pinned ? 'border-primary/30 bg-primary/5' : 'border-border'} overflow-hidden hover:shadow-lg transition-all cursor-pointer group`}
+              onClick={() => navigate(`/community/${categoryId}/${post.id}`)}
+            >
+              {/* 썸네일 이미지 (첫 번째 이미지 사용) */}
+              {post.image_url && parseImageUrls(post.image_url)[0] && (
+                <div className="w-full h-40 overflow-hidden">
+                  <img
+                    src={parseImageUrls(post.image_url)[0]}
+                    alt=""
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              )}
+
+              <div className="p-4">
+                {/* 공지 뱃지 */}
+                {post.is_pinned && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-medium mb-2">
+                    <Pin size={10} /> 공지
+                  </span>
+                )}
+
+                {/* 제목 */}
+                <h3 className="font-semibold text-text text-sm mb-1.5 line-clamp-2">{post.title}</h3>
+
+                {/* 본문 미리보기 */}
+                <p className="text-xs text-text-secondary line-clamp-2 mb-3 leading-relaxed">
+                  {post.content}
+                </p>
+
+                {/* 하단 메타 */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs text-text-secondary">
+                    <span className="font-medium">{post.author_name}</span>
+                    <span>·</span>
+                    <span>{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-text-secondary">
+                    {likeCounts[post.id] > 0 && (
+                      <span className="flex items-center gap-0.5"><Heart size={11} className="text-red-400" /> {likeCounts[post.id]}</span>
+                    )}
+                    {commentCounts[post.id] > 0 && (
+                      <span className="flex items-center gap-0.5"><MessageSquare size={11} /> {commentCounts[post.id]}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* 관리 버튼 (이벤트 버블링 차단) */}
+                {(isTeacher || user?.id === post.user_id) && (
+                  <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border" onClick={e => e.stopPropagation()}>
+                    {isTeacher && (
+                      <button
+                        onClick={() => handleTogglePin(post)}
+                        className={`p-1.5 rounded-lg transition-colors ${post.is_pinned ? 'text-primary bg-primary/10' : 'text-text-secondary hover:bg-gray-100'}`}
+                        title={post.is_pinned ? '공지 해제' : '공지로 고정'}
+                      >
+                        <Pin size={13} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => navigate(`/community/${categoryId}/edit/${post.id}`)}
+                      className="p-1.5 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors"
+                      title="수정"
+                    >
+                      <Pencil size={13} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(post.id)}
+                      className="p-1.5 rounded-lg text-text-secondary hover:bg-red-50 hover:text-red-500 transition-colors"
+                      title="삭제"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
+        /* Q&A — 기존 목록형 레이아웃 */
         <div className="space-y-3">
           {posts.map(post => (
             <div

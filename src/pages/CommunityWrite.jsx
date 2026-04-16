@@ -6,19 +6,31 @@ import { useAuth } from '../hooks/useAuth'
 
 const categoryNames = { qna: 'Q&A', reviews: '후기' }
 
+// image_url 파싱 헬퍼 (JSON 배열 또는 단일 URL)
+export function parseImageUrls(imageUrl) {
+  if (!imageUrl) return []
+  if (imageUrl.startsWith('[')) {
+    try { return JSON.parse(imageUrl) } catch { return [] }
+  }
+  return [imageUrl]
+}
+
 export default function CommunityWrite() {
   const { categoryId, postId } = useParams()
   const navigate = useNavigate()
   const { user, profile } = useAuth()
   const isEdit = Boolean(postId)
   const fileInputRef = useRef(null)
+  const isMultiImage = categoryId === 'qna'
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [image, setImage] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
-  const [existingImageUrl, setExistingImageUrl] = useState(null)
-  const [removeExistingImage, setRemoveExistingImage] = useState(false)
+  // 다중 이미지 (Q&A)
+  const [images, setImages] = useState([])           // File[]
+  const [imagePreviews, setImagePreviews] = useState([]) // string[]
+  // 기존 이미지 (수정 시)
+  const [existingUrls, setExistingUrls] = useState([])   // string[]
+  const [removedExisting, setRemovedExisting] = useState([]) // 삭제할 기존 URL
   const [loading, setLoading] = useState(false)
   const [loadingPost, setLoadingPost] = useState(isEdit)
   const [error, setError] = useState('')
@@ -41,26 +53,52 @@ export default function CommunityWrite() {
     } else {
       setTitle(data.title)
       setContent(data.content)
-      if (data.image_url) setExistingImageUrl(data.image_url)
+      if (data.image_url) {
+        setExistingUrls(parseImageUrls(data.image_url))
+      }
     }
     setLoadingPost(false)
   }
 
-  const handleImageFile = (file) => {
-    if (!file) return
-    if (file.size > 5 * 1024 * 1024) {
-      setError('이미지 크기는 5MB 이하만 가능합니다.')
+  const handleImageFiles = (files) => {
+    if (!files || files.length === 0) return
+    const maxCount = isMultiImage ? 5 : 1
+    const totalCount = images.length + (existingUrls.length - removedExisting.length) + files.length
+
+    if (totalCount > maxCount) {
+      setError(`이미지는 최대 ${maxCount}장까지 업로드 가능합니다.`)
       return
     }
-    setImage(file)
-    setImagePreview(URL.createObjectURL(file))
-    setRemoveExistingImage(true)
+
+    const newImages = []
+    const newPreviews = []
+    for (const file of files) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError('이미지 크기는 5MB 이하만 가능합니다.')
+        return
+      }
+      newImages.push(file)
+      newPreviews.push(URL.createObjectURL(file))
+    }
+
+    if (isMultiImage) {
+      setImages(prev => [...prev, ...newImages])
+      setImagePreviews(prev => [...prev, ...newPreviews])
+    } else {
+      // 후기: 단일 이미지 교체
+      setImages(newImages)
+      setImagePreviews(newPreviews)
+      setRemovedExisting([...existingUrls])
+    }
   }
 
-  const clearImage = () => {
-    setImage(null)
-    setImagePreview(null)
-    if (existingImageUrl) setRemoveExistingImage(true)
+  const removeNewImage = (index) => {
+    setImages(prev => prev.filter((_, i) => i !== index))
+    setImagePreviews(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const removeExistingUrl = (url) => {
+    setRemovedExisting(prev => [...prev, url])
   }
 
   const handleSubmit = async (e) => {
@@ -71,19 +109,31 @@ export default function CommunityWrite() {
     setError('')
 
     try {
-      // 이미지 업로드
-      let imageUrl = removeExistingImage ? null : existingImageUrl
-      if (image) {
-        const ext = image.name.split('.').pop()
-        const path = `posts/${user.id}/${Date.now()}.${ext}`
+      // 기존 이미지 중 삭제 안 한 것들
+      const keptUrls = existingUrls.filter(u => !removedExisting.includes(u))
+
+      // 새 이미지 업로드
+      const uploadedUrls = []
+      for (const img of images) {
+        const ext = img.name.split('.').pop()
+        const path = `posts/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`
         const { error: uploadErr } = await supabase.storage
           .from('community-images')
-          .upload(path, image)
+          .upload(path, img)
         if (uploadErr) throw new Error('이미지 업로드 실패: ' + uploadErr.message)
         const { data: urlData } = supabase.storage
           .from('community-images')
           .getPublicUrl(path)
-        imageUrl = urlData.publicUrl
+        uploadedUrls.push(urlData.publicUrl)
+      }
+
+      const allUrls = [...keptUrls, ...uploadedUrls]
+      // 단일이면 문자열, 다중이면 JSON 배열
+      let imageUrlValue = null
+      if (allUrls.length === 1 && !isMultiImage) {
+        imageUrlValue = allUrls[0]
+      } else if (allUrls.length > 0) {
+        imageUrlValue = JSON.stringify(allUrls)
       }
 
       if (isEdit) {
@@ -92,7 +142,7 @@ export default function CommunityWrite() {
           .update({
             title: title.trim(),
             content: content.trim(),
-            image_url: imageUrl,
+            image_url: imageUrlValue,
             updated_at: new Date().toISOString(),
           })
           .eq('id', postId)
@@ -105,7 +155,7 @@ export default function CommunityWrite() {
             category: categoryId,
             title: title.trim(),
             content: content.trim(),
-            image_url: imageUrl,
+            image_url: imageUrlValue,
             author_name: profile?.display_name || '익명',
           })
         if (error) throw error
@@ -127,8 +177,10 @@ export default function CommunityWrite() {
     return <div className="max-w-2xl mx-auto py-20 text-center text-text-secondary text-sm">불러오는 중...</div>
   }
 
-  const showPreview = imagePreview || (existingImageUrl && !removeExistingImage)
-  const previewSrc = imagePreview || existingImageUrl
+  const activeExisting = existingUrls.filter(u => !removedExisting.includes(u))
+  const totalImages = activeExisting.length + images.length
+  const maxImages = isMultiImage ? 5 : 1
+  const canAddMore = totalImages < maxImages
 
   return (
     <div className="max-w-2xl mx-auto py-10 px-4">
@@ -167,37 +219,57 @@ export default function CommunityWrite() {
 
         {/* 이미지 업로드 */}
         <div>
-          <label className="block text-sm font-medium text-text mb-1.5">이미지 (선택)</label>
-          {!showPreview ? (
+          <label className="block text-sm font-medium text-text mb-1.5">
+            이미지 (선택){isMultiImage && <span className="text-text-secondary font-normal ml-1">최대 5장</span>}
+          </label>
+
+          {/* 기존 이미지 + 새 이미지 미리보기 */}
+          {(activeExisting.length > 0 || imagePreviews.length > 0) && (
+            <div className="flex flex-wrap gap-3 mb-3">
+              {activeExisting.map((url, i) => (
+                <div key={`existing-${i}`} className="relative">
+                  <img src={url} alt="" className="w-28 h-28 object-cover rounded-xl border border-border" />
+                  <button
+                    type="button"
+                    onClick={() => removeExistingUrl(url)}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-error text-white rounded-full flex items-center justify-center hover:bg-error/80 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+              {imagePreviews.map((src, i) => (
+                <div key={`new-${i}`} className="relative">
+                  <img src={src} alt="" className="w-28 h-28 object-cover rounded-xl border border-border" />
+                  <button
+                    type="button"
+                    onClick={() => removeNewImage(i)}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-error text-white rounded-full flex items-center justify-center hover:bg-error/80 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 업로드 버튼 */}
+          {canAddMore && (
             <div
               onClick={() => fileInputRef.current?.click()}
               className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
             >
               <ImagePlus size={24} className="text-text-secondary mx-auto mb-2" />
               <p className="text-sm text-text-secondary">클릭하여 이미지 업로드</p>
-              <p className="text-xs text-text-secondary mt-1">JPG, PNG, WEBP · 최대 5MB</p>
+              <p className="text-xs text-text-secondary mt-1">JPG, PNG, WEBP · 최대 5MB{isMultiImage && ` · ${totalImages}/${maxImages}장`}</p>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={(e) => handleImageFile(e.target.files[0])}
+                multiple={isMultiImage}
+                onChange={(e) => { handleImageFiles(Array.from(e.target.files)); e.target.value = '' }}
               />
-            </div>
-          ) : (
-            <div className="relative inline-block">
-              <img
-                src={previewSrc}
-                alt="미리보기"
-                className="max-h-48 rounded-xl border border-border"
-              />
-              <button
-                type="button"
-                onClick={clearImage}
-                className="absolute -top-2 -right-2 w-6 h-6 bg-error text-white rounded-full flex items-center justify-center hover:bg-error/80 transition-colors"
-              >
-                <X size={14} />
-              </button>
             </div>
           )}
         </div>

@@ -4,7 +4,7 @@ import { PenLine, Mic, LayoutDashboard, History, LogIn, LogOut, User, Coins, Men
 import { useAuth } from '../../hooks/useAuth'
 
 const navItems = [
-  { to: '/writing', label: 'Writing', icon: PenLine },
+  { to: '/writing/homework', label: 'Writing', icon: PenLine },
   { to: '/speaking', label: 'Speaking', icon: Mic },
   { to: '/vocab', label: '단어학습', icon: BookText },
   { to: '/store', label: 'E-Book', icon: BookOpen },

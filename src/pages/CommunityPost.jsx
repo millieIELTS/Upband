@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Pin, Pencil, Trash2, Send, Loader2, MessageSquare, Heart } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { parseImageUrls } from './CommunityWrite'
 
 const categoryNames = { qna: 'Q&A', reviews: '후기' }
 
@@ -180,13 +181,23 @@ export default function CommunityPost() {
 
         {/* 본문 */}
         <div className="bg-surface rounded-2xl border border-border p-6 sm:p-8 mb-4">
-          {post.image_url && (
-            <img
-              src={post.image_url}
-              alt="첨부 이미지"
-              className="mb-4 rounded-xl border border-border max-w-full"
-            />
-          )}
+          {post.image_url && (() => {
+            const urls = parseImageUrls(post.image_url)
+            if (urls.length === 0) return null
+            return (
+              <div className={`mb-4 ${urls.length > 1 ? 'grid grid-cols-2 gap-2' : ''}`}>
+                {urls.map((url, i) => (
+                  <img
+                    key={i}
+                    src={url}
+                    alt={`첨부 이미지 ${i + 1}`}
+                    className="rounded-xl border border-border max-w-full cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => window.open(url, '_blank')}
+                  />
+                ))}
+              </div>
+            )
+          })()}
           <div className="text-sm text-text leading-relaxed whitespace-pre-wrap">
             {post.content}
           </div>
