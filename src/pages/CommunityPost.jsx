@@ -185,7 +185,7 @@ export default function CommunityPost() {
             const urls = parseImageUrls(post.image_url)
             if (urls.length === 0) return null
             return (
-              <div className={`mb-4 ${urls.length > 1 ? 'grid grid-cols-2 gap-2' : ''}`}>
+              <div className="mb-4 flex flex-col gap-3">
                 {urls.map((url, i) => (
                   <img
                     key={i}
