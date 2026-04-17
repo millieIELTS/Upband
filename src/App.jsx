@@ -28,6 +28,9 @@ import CommunityBoard from './pages/CommunityBoard'
 import CommunityWrite from './pages/CommunityWrite'
 import CommunityPost from './pages/CommunityPost'
 import MockTest from './pages/MockTest'
+import Terms from './pages/Terms'
+import Privacy from './pages/Privacy'
+import Refund from './pages/Refund'
 import RequireAuth from './components/RequireAuth'
 
 function App() {
@@ -65,6 +68,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/refund" element={<Refund />} />
         </Route>
       </Routes>
     </BrowserRouter>
