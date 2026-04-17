@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { BookOpen, Download, Coins, Lock } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { BookOpen, Download, Coins, Lock, ArrowRight } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 
@@ -109,20 +109,32 @@ export default function Store() {
 
             return (
               <div key={book.id} className="bg-surface rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-all">
-                {book.cover_url ? (
-                  <div className="aspect-[3/4] bg-bg overflow-hidden">
-                    <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover" />
-                  </div>
-                ) : (
-                  <div className="aspect-[3/4] bg-primary/5 flex items-center justify-center">
-                    <BookOpen size={48} className="text-primary/30" />
-                  </div>
-                )}
+                <Link to={`/store/${book.id}`} className="block no-underline text-text">
+                  {book.cover_url ? (
+                    <div className="aspect-[3/4] bg-bg overflow-hidden">
+                      <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover hover:scale-105 transition-transform" />
+                    </div>
+                  ) : (
+                    <div className="aspect-[3/4] bg-primary/5 flex items-center justify-center">
+                      <BookOpen size={48} className="text-primary/30" />
+                    </div>
+                  )}
+                </Link>
                 <div className="p-5">
-                  <h3 className="text-base font-semibold mb-1">{book.title}</h3>
+                  <Link to={`/store/${book.id}`} className="block no-underline text-text mb-1 hover:text-primary transition-colors">
+                    <h3 className="text-base font-semibold">{book.title}</h3>
+                  </Link>
                   {book.description && (
                     <p className="text-sm text-text-secondary mb-3 line-clamp-2">{book.description}</p>
                   )}
+
+                  <Link
+                    to={`/store/${book.id}`}
+                    className="inline-flex items-center gap-1 text-xs text-primary font-medium mb-3 no-underline hover:gap-2 transition-all"
+                  >
+                    자세히 보기 <ArrowRight size={12} />
+                  </Link>
+
 
                   {flash && (
                     <p className={`text-xs mb-2 ${flash.type === 'error' ? 'text-red-500' : 'text-emerald-600'}`}>

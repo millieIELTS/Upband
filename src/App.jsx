@@ -19,6 +19,7 @@ import MyPage from './pages/MyPage'
 import Settings from './pages/Settings'
 import SubmissionDetail from './pages/SubmissionDetail'
 import Store from './pages/Store'
+import StoreDetail from './pages/StoreDetail'
 import AdminEbooks from './pages/AdminEbooks'
 import WritingSubmissions from './pages/WritingSubmissions'
 import VocabSelect from './pages/VocabSelect'
@@ -66,6 +67,7 @@ function App() {
           <Route path="/community/:categoryId/:postId" element={<CommunityPost />} />
           <Route path="/mock-test" element={<MockTest />} />
           <Route path="/store" element={<Store />} />
+          <Route path="/store/:id" element={<StoreDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
