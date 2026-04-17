@@ -10,7 +10,6 @@ const navItems = [
   { to: '/store', label: 'E-Book 및 자료실', icon: BookOpen },
   { to: '/mock-test', label: 'Mock Test', icon: FileText },
   { to: '/community', label: '커뮤니티', icon: Users },
-  { to: '/history', label: '히스토리', icon: History },
 ]
 
 export default function Navbar() {
@@ -78,7 +77,7 @@ export default function Navbar() {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-text-secondary no-underline hover:bg-gray-100 transition-colors"
               >
                 <User size={16} />
-                {profile?.display_name || '사용자'}
+                마이페이지
               </Link>
               <button
                 onClick={handleSignOut}
@@ -126,7 +125,7 @@ export default function Navbar() {
               >
                 <div className="flex items-center gap-2 text-sm text-text-secondary">
                   <User size={16} />
-                  {profile?.display_name || '사용자'}
+                  마이페이지
                 </div>
                 <span className="flex items-center gap-1 text-xs text-text-secondary bg-bg px-2.5 py-1 rounded-full">
                   <Coins size={12} className="text-accent" />

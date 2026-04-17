@@ -106,12 +106,12 @@ export default function MyPage() {
       {/* Menu */}
       <div className="bg-surface rounded-xl border border-border divide-y divide-border">
         <Link
-          to="/history"
+          to="/history/writing"
           className="flex items-center justify-between px-5 py-4 no-underline text-text hover:bg-gray-50 transition-colors rounded-t-xl"
         >
           <div className="flex items-center gap-3">
             <PenLine size={18} className="text-text-secondary" />
-            <span className="text-sm font-medium">제출 히스토리</span>
+            <span className="text-sm font-medium">Writing 제출 히스토리</span>
           </div>
           <ChevronRight size={16} className="text-text-secondary" />
         </Link>
