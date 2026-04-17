@@ -16,7 +16,7 @@ export default function Footer() {
           <p><span className="text-text font-medium">상호</span> 밀리 에듀케이션 &nbsp;|&nbsp; <span className="text-text font-medium">대표자</span> 박지연</p>
           <p><span className="text-text font-medium">사업자등록번호</span> 567-18-02826</p>
           <p><span className="text-text font-medium">통신판매업신고</span> 제2026-인천미추홀-0496호</p>
-          <p><span className="text-text font-medium">주소</span> 인천광역시 미추홀구 길파로27번길 70, A동</p>
+          <p><span className="text-text font-medium">주소</span> 인천광역시 미추홀구 길파로27번길 70</p>
           <p><span className="text-text font-medium">이메일</span> milliejiyeon@gmail.com</p>
         </div>
 
