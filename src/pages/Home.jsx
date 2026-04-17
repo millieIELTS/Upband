@@ -77,7 +77,7 @@ export default function Home() {
           <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-4">
             <BookOpen size={24} className="text-emerald-600" />
           </div>
-          <h2 className="text-xl font-semibold text-text mb-2">E-Book</h2>
+          <h2 className="text-xl font-semibold text-text mb-2">E-Book 및 자료실</h2>
           <p className="text-text-secondary text-sm mb-4">
             IELTS 학습에 도움이 되는 전자책을 만나보세요.
           </p>

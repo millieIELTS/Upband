@@ -7,7 +7,7 @@ const navItems = [
   { to: '/writing/homework', label: 'Writing', icon: PenLine },
   { to: '/speaking', label: 'Speaking', icon: Mic },
   { to: '/vocab', label: '단어학습', icon: BookText },
-  { to: '/store', label: 'E-Book', icon: BookOpen },
+  { to: '/store', label: 'E-Book 및 자료실', icon: BookOpen },
   { to: '/mock-test', label: 'Mock Test', icon: FileText },
   { to: '/community', label: '커뮤니티', icon: Users },
   { to: '/history', label: '히스토리', icon: History },
