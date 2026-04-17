@@ -64,7 +64,19 @@ export default function Navbar() {
           {navItems.map((item) => (
             <NavLink key={item.to} {...item} compact />
           ))}
-          {isTeacher && <NavLink to="/dashboard" label="대시보드" icon={LayoutDashboard} compact />}
+          {isTeacher && (
+            <Link
+              to="/dashboard"
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center px-2.5 py-1.5 rounded-md text-[13px] font-semibold no-underline transition-colors ${
+                pathname.startsWith('/dashboard')
+                  ? 'bg-accent text-white'
+                  : 'text-accent hover:bg-accent/10'
+              }`}
+            >
+              대시보드
+            </Link>
+          )}
 
           {user ? (
             <div className="flex items-center gap-2 ml-2">
@@ -77,7 +89,7 @@ export default function Navbar() {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-text-secondary no-underline hover:bg-gray-100 transition-colors"
               >
                 <User size={16} />
-                마이페이지
+                {isTeacher ? (profile?.display_name || '사용자') : '마이페이지'}
               </Link>
               <button
                 onClick={handleSignOut}
@@ -112,7 +124,20 @@ export default function Navbar() {
           {navItems.map((item) => (
             <NavLink key={item.to} {...item} />
           ))}
-          {isTeacher && <NavLink to="/dashboard" label="대시보드" icon={LayoutDashboard} />}
+          {isTeacher && (
+            <Link
+              to="/dashboard"
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold no-underline transition-colors ${
+                pathname.startsWith('/dashboard')
+                  ? 'bg-accent text-white'
+                  : 'text-accent hover:bg-accent/10'
+              }`}
+            >
+              <LayoutDashboard size={16} />
+              대시보드
+            </Link>
+          )}
 
           <div className="border-t border-border my-2" />
 
@@ -125,7 +150,7 @@ export default function Navbar() {
               >
                 <div className="flex items-center gap-2 text-sm text-text-secondary">
                   <User size={16} />
-                  마이페이지
+                  {isTeacher ? (profile?.display_name || '사용자') : '마이페이지'}
                 </div>
                 <span className="flex items-center gap-1 text-xs text-text-secondary bg-bg px-2.5 py-1 rounded-full">
                   <Coins size={12} className="text-accent" />
