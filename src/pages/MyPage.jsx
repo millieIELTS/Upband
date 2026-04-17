@@ -136,7 +136,7 @@ export default function MyPage() {
           <ChevronRight size={16} className="text-text-secondary" />
         </Link>
         <a
-          href="https://open.kakao.com/o/sOpMnVoi"
+          href="http://pf.kakao.com/_xbKxlCX"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-between px-5 py-4 no-underline text-text hover:bg-gray-50 transition-colors rounded-b-xl"
