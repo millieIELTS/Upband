@@ -31,6 +31,7 @@ import MockTest from './pages/MockTest'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Refund from './pages/Refund'
+import CreditHistory from './pages/CreditHistory'
 import RequireAuth from './components/RequireAuth'
 
 function App() {
@@ -68,6 +69,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+          <Route path="/mypage/credits" element={<RequireAuth><CreditHistory /></RequireAuth>} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/refund" element={<Refund />} />

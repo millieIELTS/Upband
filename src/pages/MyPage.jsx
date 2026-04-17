@@ -116,6 +116,16 @@ export default function MyPage() {
           <ChevronRight size={16} className="text-text-secondary" />
         </Link>
         <Link
+          to="/mypage/credits"
+          className="flex items-center justify-between px-5 py-4 no-underline text-text hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Coins size={18} className="text-text-secondary" />
+            <span className="text-sm font-medium">크레딧 사용 내역</span>
+          </div>
+          <ChevronRight size={16} className="text-text-secondary" />
+        </Link>
+        <Link
           to="/settings"
           className="flex items-center justify-between px-5 py-4 no-underline text-text hover:bg-gray-50 transition-colors"
         >
