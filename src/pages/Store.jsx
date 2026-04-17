@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BookOpen, Download } from 'lucide-react'
+import { BookOpen, Download, Coins } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 export default function Store() {
@@ -65,8 +65,13 @@ export default function Store() {
                   <p className="text-sm text-text-secondary mb-3 line-clamp-2">{book.description}</p>
                 )}
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-primary">
-                    {book.price === 0 ? '무료' : `₩${book.price.toLocaleString()}`}
+                  <span className="flex items-center gap-1 text-lg font-bold text-primary">
+                    {book.price === 0 ? '무료' : (
+                      <>
+                        <Coins size={18} className="text-accent" />
+                        {book.price.toLocaleString()}
+                      </>
+                    )}
                   </span>
                   {book.file_url && (
                     <a
