@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { MessageCircle } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -19,6 +20,17 @@ export default function Footer() {
           <p><span className="text-text font-medium">주소</span> 인천광역시 미추홀구 길파로27번길 70</p>
           <p><span className="text-text font-medium">이메일</span> milliejiyeon@gmail.com</p>
         </div>
+
+        {/* 카카오 문의 */}
+        <a
+          href="http://pf.kakao.com/_xbKxlCX"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-yellow-400 hover:bg-yellow-500 text-black text-xs font-medium rounded-lg no-underline transition-colors mb-6"
+        >
+          <MessageCircle size={14} />
+          카카오톡 문의하기
+        </a>
 
         {/* 약관 링크 */}
         <div className="flex flex-wrap gap-4 text-xs text-text-secondary mb-6">
