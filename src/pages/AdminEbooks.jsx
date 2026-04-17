@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, Plus, Trash2, Save, Loader2, BookOpen, Eye, EyeOff, Upload, Image as ImageIcon, FileText, Pencil, X,
+  ArrowLeft, Plus, Trash2, Save, Loader2, BookOpen, Eye, EyeOff, Upload, Image as ImageIcon, FileText, Pencil, X, Coins,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
@@ -224,7 +224,7 @@ export default function AdminEbooks() {
             />
           </div>
           <div>
-            <label className="block text-xs text-text-secondary mb-1">가격 (원, 0=무료)</label>
+            <label className="block text-xs text-text-secondary mb-1">가격 (크레딧, 0=무료)</label>
             <input
               type="number"
               min="0"
@@ -332,7 +332,7 @@ export default function AdminEbooks() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-text-secondary mb-1">가격 (원, 0=무료)</label>
+                    <label className="block text-xs text-text-secondary mb-1">가격 (크레딧, 0=무료)</label>
                     <input
                       type="number"
                       min="0"
@@ -419,8 +419,13 @@ export default function AdminEbooks() {
                         }`}>
                           {book.is_published ? '공개' : '비공개'}
                         </span>
-                        <span className="text-xs text-accent font-medium">
-                          {book.price === 0 ? '무료' : `₩${book.price.toLocaleString()}`}
+                        <span className="inline-flex items-center gap-0.5 text-xs text-accent font-medium">
+                          {book.price === 0 ? '무료' : (
+                            <>
+                              <Coins size={12} />
+                              {book.price.toLocaleString()}
+                            </>
+                          )}
                         </span>
                       </div>
                       {book.description && (
