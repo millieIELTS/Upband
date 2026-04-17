@@ -6,6 +6,20 @@ import {
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 
+// textarea(줄별 리스트) <-> 배열 변환 헬퍼
+const linesToArray = (text) => text.split('\n').map(s => s.trim()).filter(Boolean)
+const arrayToLines = (arr) => (arr || []).join('\n')
+
+const EMPTY_FORM = {
+  title: '',
+  description: '',
+  price: 0,
+  teacher_note: '',
+  recommended_for: '',
+  toc: '',
+  learnings: '',
+}
+
 export default function AdminEbooks() {
   const { user, profile, loading: authLoading } = useAuth()
   const navigate = useNavigate()
@@ -13,15 +27,18 @@ export default function AdminEbooks() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(null)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ title: '', description: '', price: 0 })
+  const [form, setForm] = useState(EMPTY_FORM)
   const [coverFile, setCoverFile] = useState(null)
   const [pdfFile, setPdfFile] = useState(null)
+  const [previewFiles, setPreviewFiles] = useState([])
   const [uploadProgress, setUploadProgress] = useState('')
   // 수정 모드
   const [editingId, setEditingId] = useState(null)
-  const [editForm, setEditForm] = useState({ title: '', description: '', price: 0 })
+  const [editForm, setEditForm] = useState(EMPTY_FORM)
   const [editCoverFile, setEditCoverFile] = useState(null)
   const [editPdfFile, setEditPdfFile] = useState(null)
+  const [editPreviewFiles, setEditPreviewFiles] = useState([])
+  const [editExistingPreviews, setEditExistingPreviews] = useState([])
 
   const isAdmin = profile?.role === 'admin'
 
@@ -46,12 +63,20 @@ export default function AdminEbooks() {
   async function uploadFile(file, folder) {
     const ext = file.name.split('.').pop()
     const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('ebooks')
       .upload(fileName, file, { cacheControl: '3600', upsert: false })
     if (error) throw error
     const { data: urlData } = supabase.storage.from('ebooks').getPublicUrl(fileName)
     return urlData.publicUrl
+  }
+
+  async function uploadMultiple(files, folder) {
+    const urls = []
+    for (const file of files) {
+      urls.push(await uploadFile(file, folder))
+    }
+    return urls
   }
 
   async function handleCreate(e) {
@@ -63,6 +88,7 @@ export default function AdminEbooks() {
     try {
       let cover_url = null
       let file_url = null
+      let preview_urls = []
 
       if (coverFile) {
         setUploadProgress('커버 이미지 업로드 중...')
@@ -71,6 +97,10 @@ export default function AdminEbooks() {
       if (pdfFile) {
         setUploadProgress('파일 업로드 중...')
         file_url = await uploadFile(pdfFile, 'pdfs')
+      }
+      if (previewFiles.length > 0) {
+        setUploadProgress(`미리보기 이미지 업로드 중... (${previewFiles.length}장)`)
+        preview_urls = await uploadMultiple(previewFiles, 'previews')
       }
 
       setUploadProgress('저장 중...')
@@ -83,15 +113,21 @@ export default function AdminEbooks() {
           file_url,
           cover_url,
           is_published: false,
+          teacher_note: form.teacher_note.trim() || null,
+          recommended_for: linesToArray(form.recommended_for),
+          toc: linesToArray(form.toc),
+          learnings: linesToArray(form.learnings),
+          preview_images: preview_urls,
         })
         .select()
         .single()
 
       if (data) {
         setEbooks(prev => [data, ...prev])
-        setForm({ title: '', description: '', price: 0 })
+        setForm(EMPTY_FORM)
         setCoverFile(null)
         setPdfFile(null)
+        setPreviewFiles([])
         setShowForm(false)
       }
       if (error) throw error
@@ -105,15 +141,27 @@ export default function AdminEbooks() {
 
   function startEdit(book) {
     setEditingId(book.id)
-    setEditForm({ title: book.title, description: book.description || '', price: book.price || 0 })
+    setEditForm({
+      title: book.title,
+      description: book.description || '',
+      price: book.price || 0,
+      teacher_note: book.teacher_note || '',
+      recommended_for: arrayToLines(book.recommended_for),
+      toc: arrayToLines(book.toc),
+      learnings: arrayToLines(book.learnings),
+    })
     setEditCoverFile(null)
     setEditPdfFile(null)
+    setEditPreviewFiles([])
+    setEditExistingPreviews(book.preview_images || [])
   }
 
   function cancelEdit() {
     setEditingId(null)
     setEditCoverFile(null)
     setEditPdfFile(null)
+    setEditPreviewFiles([])
+    setEditExistingPreviews([])
   }
 
   async function handleEdit(e, book) {
@@ -127,6 +175,10 @@ export default function AdminEbooks() {
         title: editForm.title.trim(),
         description: editForm.description.trim() || null,
         price: parseInt(editForm.price) || 0,
+        teacher_note: editForm.teacher_note.trim() || null,
+        recommended_for: linesToArray(editForm.recommended_for),
+        toc: linesToArray(editForm.toc),
+        learnings: linesToArray(editForm.learnings),
       }
 
       if (editCoverFile) {
@@ -138,20 +190,30 @@ export default function AdminEbooks() {
         updates.file_url = await uploadFile(editPdfFile, 'pdfs')
       }
 
+      let mergedPreviews = [...editExistingPreviews]
+      if (editPreviewFiles.length > 0) {
+        setUploadProgress(`미리보기 이미지 업로드 중... (${editPreviewFiles.length}장)`)
+        const newUrls = await uploadMultiple(editPreviewFiles, 'previews')
+        mergedPreviews = [...mergedPreviews, ...newUrls]
+      }
+      updates.preview_images = mergedPreviews
+
       setUploadProgress('저장 중...')
       const { error } = await supabase.from('ebooks').update(updates).eq('id', book.id)
       if (error) throw error
 
       setEbooks(prev => prev.map(e => e.id === book.id ? { ...e, ...updates } : e))
-      setEditingId(null)
-      setEditCoverFile(null)
-      setEditPdfFile(null)
+      cancelEdit()
     } catch (err) {
       alert('수정 실패: ' + (err.message || '알 수 없는 오류'))
     } finally {
       setSaving(null)
       setUploadProgress('')
     }
+  }
+
+  function removeExistingPreview(url) {
+    setEditExistingPreviews(prev => prev.filter(u => u !== url))
   }
 
   async function togglePublish(id, current) {
@@ -202,9 +264,10 @@ export default function AdminEbooks() {
 
       {/* 등록 폼 */}
       {showForm && (
-        <form onSubmit={handleCreate} className="bg-surface rounded-xl border border-border p-5 mb-6 space-y-3">
-          <div>
-            <label className="block text-xs text-text-secondary mb-1">제목 *</label>
+        <form onSubmit={handleCreate} className="bg-surface rounded-xl border border-border p-5 mb-6 space-y-4">
+          <h3 className="text-sm font-semibold pb-2 border-b border-border">기본 정보</h3>
+
+          <FormField label="제목 *">
             <input
               type="text"
               value={form.title}
@@ -213,18 +276,18 @@ export default function AdminEbooks() {
               placeholder="전자책 제목"
               required
             />
-          </div>
-          <div>
-            <label className="block text-xs text-text-secondary mb-1">설명</label>
+          </FormField>
+
+          <FormField label="짧은 설명 (카드에 표시)">
             <textarea
               value={form.description}
               onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
               className="w-full h-20 px-3 py-2 rounded-lg border border-border text-sm resize-y focus:outline-none focus:border-primary"
-              placeholder="전자책 설명"
+              placeholder="리스트 카드에 노출되는 1~2줄 설명"
             />
-          </div>
-          <div>
-            <label className="block text-xs text-text-secondary mb-1">가격 (크레딧, 0=무료)</label>
+          </FormField>
+
+          <FormField label="가격 (크레딧, 0=무료)">
             <input
               type="number"
               min="0"
@@ -232,49 +295,76 @@ export default function AdminEbooks() {
               onChange={(e) => setForm(prev => ({ ...prev, price: e.target.value }))}
               className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:border-primary"
             />
-          </div>
-          <div>
-            <label className="block text-xs text-text-secondary mb-1">
-              <ImageIcon size={12} className="inline mr-1" />
-              커버 이미지
-            </label>
+          </FormField>
+
+          <FormField label={<><ImageIcon size={12} className="inline mr-1" /> 커버 이미지</>}>
+            <FileInput file={coverFile} onChange={setCoverFile} accept="image/*" placeholder="이미지 파일 선택 (JPG, PNG)" />
+          </FormField>
+
+          <FormField label={<><FileText size={12} className="inline mr-1" /> 파일 (PDF/ZIP)</>}>
+            <FileInput file={pdfFile} onChange={setPdfFile} accept=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed" placeholder="PDF / ZIP 파일 선택" />
+          </FormField>
+
+          <h3 className="text-sm font-semibold pt-3 pb-2 border-b border-border">상세 페이지 내용 (선택)</h3>
+
+          <FormField label="💬 강사의 한마디" hint="자료에 대한 소개, 추천 공부법 등을 자유롭게 작성해주세요.">
+            <textarea
+              value={form.teacher_note}
+              onChange={(e) => setForm(prev => ({ ...prev, teacher_note: e.target.value }))}
+              className="w-full h-28 px-3 py-2 rounded-lg border border-border text-sm resize-y focus:outline-none focus:border-primary"
+              placeholder="안녕하세요, 밀리예요 🙋‍♀️..."
+            />
+          </FormField>
+
+          <FormField label="🎯 이런 분께 추천" hint="한 줄에 하나씩 입력하세요.">
+            <textarea
+              value={form.recommended_for}
+              onChange={(e) => setForm(prev => ({ ...prev, recommended_for: e.target.value }))}
+              className="w-full h-24 px-3 py-2 rounded-lg border border-border text-sm resize-y focus:outline-none focus:border-primary font-mono"
+              placeholder={'Band 6.0 → 6.5 목표인 분\nCambridge 문제집 단어 정리하고 싶은 분'}
+            />
+          </FormField>
+
+          <FormField label="📑 목차" hint="한 줄에 하나씩 입력하세요.">
+            <textarea
+              value={form.toc}
+              onChange={(e) => setForm(prev => ({ ...prev, toc: e.target.value }))}
+              className="w-full h-24 px-3 py-2 rounded-lg border border-border text-sm resize-y focus:outline-none focus:border-primary font-mono"
+              placeholder={'Chapter 1. 빈출 어휘\nChapter 2. 주제별 테마'}
+            />
+          </FormField>
+
+          <FormField label="✨ 이런 걸 배울 수 있어요" hint="한 줄에 하나씩 입력하세요.">
+            <textarea
+              value={form.learnings}
+              onChange={(e) => setForm(prev => ({ ...prev, learnings: e.target.value }))}
+              className="w-full h-24 px-3 py-2 rounded-lg border border-border text-sm resize-y focus:outline-none focus:border-primary font-mono"
+              placeholder={'문맥 속 예문으로 사용법 체득\n유의어 묶음 학습'}
+            />
+          </FormField>
+
+          <FormField label="👀 미리보기 이미지 (여러 장 가능)">
             <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors">
               <Upload size={14} className="text-text-secondary" />
               <span className="text-sm text-text-secondary">
-                {coverFile ? coverFile.name : '이미지 파일 선택 (JPG, PNG)'}
+                {previewFiles.length > 0 ? `${previewFiles.length}장 선택됨` : '미리보기 이미지 선택 (여러 장 가능)'}
               </span>
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => setCoverFile(e.target.files[0] || null)}
+                multiple
+                onChange={(e) => setPreviewFiles(Array.from(e.target.files || []))}
                 className="hidden"
               />
             </label>
-          </div>
-          <div>
-            <label className="block text-xs text-text-secondary mb-1">
-              <FileText size={12} className="inline mr-1" />
-              파일 (PDF/ZIP)
-            </label>
-            <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors">
-              <Upload size={14} className="text-text-secondary" />
-              <span className="text-sm text-text-secondary">
-                {pdfFile ? pdfFile.name : 'PDF / ZIP 파일 선택'}
-              </span>
-              <input
-                type="file"
-                accept=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed"
-                onChange={(e) => setPdfFile(e.target.files[0] || null)}
-                className="hidden"
-              />
-            </label>
-          </div>
+          </FormField>
+
           {uploadProgress && (
             <p className="text-xs text-primary flex items-center gap-1">
               <Loader2 size={12} className="animate-spin" /> {uploadProgress}
             </p>
           )}
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-2">
             <button
               type="submit"
               disabled={saving === 'new'}
@@ -285,7 +375,7 @@ export default function AdminEbooks() {
             </button>
             <button
               type="button"
-              onClick={() => { setShowForm(false); setCoverFile(null); setPdfFile(null) }}
+              onClick={() => { setShowForm(false); setForm(EMPTY_FORM); setCoverFile(null); setPdfFile(null); setPreviewFiles([]) }}
               className="px-4 py-2 border border-border rounded-lg text-sm text-text-secondary hover:bg-gray-50 transition-colors"
             >
               취소
@@ -304,17 +394,16 @@ export default function AdminEbooks() {
         <div className="space-y-2">
           {ebooks.map((book) => (
             <div key={book.id} className="bg-surface rounded-xl border border-border overflow-hidden">
-              {/* 수정 모드 */}
               {editingId === book.id ? (
-                <form onSubmit={(e) => handleEdit(e, book)} className="p-5 space-y-3">
+                <form onSubmit={(e) => handleEdit(e, book)} className="p-5 space-y-4">
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="text-sm font-semibold">전자책 수정</h3>
                     <button type="button" onClick={cancelEdit} className="p-1 text-text-secondary hover:text-error">
                       <X size={16} />
                     </button>
                   </div>
-                  <div>
-                    <label className="block text-xs text-text-secondary mb-1">제목 *</label>
+
+                  <FormField label="제목 *">
                     <input
                       type="text"
                       value={editForm.title}
@@ -322,17 +411,17 @@ export default function AdminEbooks() {
                       className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:border-primary"
                       required
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-text-secondary mb-1">설명</label>
+                  </FormField>
+
+                  <FormField label="짧은 설명 (카드에 표시)">
                     <textarea
                       value={editForm.description}
                       onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                       className="w-full h-20 px-3 py-2 rounded-lg border border-border text-sm resize-y focus:outline-none focus:border-primary"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-text-secondary mb-1">가격 (크레딧, 0=무료)</label>
+                  </FormField>
+
+                  <FormField label="가격 (크레딧, 0=무료)">
                     <input
                       type="number"
                       min="0"
@@ -340,49 +429,98 @@ export default function AdminEbooks() {
                       onChange={(e) => setEditForm(prev => ({ ...prev, price: e.target.value }))}
                       className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:border-primary"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-text-secondary mb-1">
-                      <ImageIcon size={12} className="inline mr-1" />
-                      커버 이미지 변경
-                    </label>
+                  </FormField>
+
+                  <FormField label={<><ImageIcon size={12} className="inline mr-1" /> 커버 이미지 변경</>}>
+                    <FileInput
+                      file={editCoverFile}
+                      onChange={setEditCoverFile}
+                      accept="image/*"
+                      placeholder={book.cover_url ? '현재 이미지 유지 (변경하려면 클릭)' : '이미지 파일 선택'}
+                    />
+                  </FormField>
+
+                  <FormField label={<><FileText size={12} className="inline mr-1" /> 파일 (PDF/ZIP) 변경</>}>
+                    <FileInput
+                      file={editPdfFile}
+                      onChange={setEditPdfFile}
+                      accept=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed"
+                      placeholder={book.file_url ? '현재 파일 유지 (변경하려면 클릭)' : 'PDF / ZIP 파일 선택'}
+                    />
+                  </FormField>
+
+                  <h4 className="text-xs font-semibold text-text-secondary pt-2 border-t border-border">상세 페이지 내용</h4>
+
+                  <FormField label="💬 강사의 한마디">
+                    <textarea
+                      value={editForm.teacher_note}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, teacher_note: e.target.value }))}
+                      className="w-full h-28 px-3 py-2 rounded-lg border border-border text-sm resize-y focus:outline-none focus:border-primary"
+                    />
+                  </FormField>
+
+                  <FormField label="🎯 이런 분께 추천 (한 줄에 하나)">
+                    <textarea
+                      value={editForm.recommended_for}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, recommended_for: e.target.value }))}
+                      className="w-full h-24 px-3 py-2 rounded-lg border border-border text-sm resize-y focus:outline-none focus:border-primary font-mono"
+                    />
+                  </FormField>
+
+                  <FormField label="📑 목차 (한 줄에 하나)">
+                    <textarea
+                      value={editForm.toc}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, toc: e.target.value }))}
+                      className="w-full h-24 px-3 py-2 rounded-lg border border-border text-sm resize-y focus:outline-none focus:border-primary font-mono"
+                    />
+                  </FormField>
+
+                  <FormField label="✨ 이런 걸 배울 수 있어요 (한 줄에 하나)">
+                    <textarea
+                      value={editForm.learnings}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, learnings: e.target.value }))}
+                      className="w-full h-24 px-3 py-2 rounded-lg border border-border text-sm resize-y focus:outline-none focus:border-primary font-mono"
+                    />
+                  </FormField>
+
+                  <FormField label="👀 미리보기 이미지">
+                    {editExistingPreviews.length > 0 && (
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        {editExistingPreviews.map((url) => (
+                          <div key={url} className="relative group">
+                            <img src={url} alt="" className="w-full aspect-[3/4] rounded-lg object-cover border border-border" />
+                            <button
+                              type="button"
+                              onClick={() => removeExistingPreview(url)}
+                              className="absolute -top-1 -right-1 w-6 h-6 bg-error text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors">
                       <Upload size={14} className="text-text-secondary" />
                       <span className="text-sm text-text-secondary">
-                        {editCoverFile ? editCoverFile.name : (book.cover_url ? '현재 이미지 유지 (변경하려면 클릭)' : '이미지 파일 선택')}
+                        {editPreviewFiles.length > 0 ? `${editPreviewFiles.length}장 추가 선택됨` : '이미지 추가 (여러 장 가능)'}
                       </span>
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => setEditCoverFile(e.target.files[0] || null)}
+                        multiple
+                        onChange={(e) => setEditPreviewFiles(Array.from(e.target.files || []))}
                         className="hidden"
                       />
                     </label>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-text-secondary mb-1">
-                      <FileText size={12} className="inline mr-1" />
-                      파일 (PDF/ZIP) 변경
-                    </label>
-                    <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors">
-                      <Upload size={14} className="text-text-secondary" />
-                      <span className="text-sm text-text-secondary">
-                        {editPdfFile ? editPdfFile.name : (book.file_url ? '현재 파일 유지 (변경하려면 클릭)' : 'PDF / ZIP 파일 선택')}
-                      </span>
-                      <input
-                        type="file"
-                        accept=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed"
-                        onChange={(e) => setEditPdfFile(e.target.files[0] || null)}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
+                  </FormField>
+
                   {uploadProgress && (
                     <p className="text-xs text-primary flex items-center gap-1">
                       <Loader2 size={12} className="animate-spin" /> {uploadProgress}
                     </p>
                   )}
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 pt-2">
                     <button
                       type="submit"
                       disabled={saving === book.id}
@@ -401,7 +539,6 @@ export default function AdminEbooks() {
                   </div>
                 </form>
               ) : (
-                /* 보기 모드 */
                 <div className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3 min-w-0">
                     {book.cover_url ? (
@@ -462,5 +599,32 @@ export default function AdminEbooks() {
         </div>
       )}
     </div>
+  )
+}
+
+function FormField({ label, hint, children }) {
+  return (
+    <div>
+      <label className="block text-xs text-text-secondary mb-1">{label}</label>
+      {children}
+      {hint && <p className="text-[11px] text-text-secondary mt-1">{hint}</p>}
+    </div>
+  )
+}
+
+function FileInput({ file, onChange, accept, placeholder }) {
+  return (
+    <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors">
+      <Upload size={14} className="text-text-secondary" />
+      <span className="text-sm text-text-secondary">
+        {file ? file.name : placeholder}
+      </span>
+      <input
+        type="file"
+        accept={accept}
+        onChange={(e) => onChange(e.target.files[0] || null)}
+        className="hidden"
+      />
+    </label>
   )
 }
