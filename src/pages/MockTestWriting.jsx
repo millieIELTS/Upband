@@ -53,29 +53,70 @@ export default function MockTestWriting() {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
   const [confirmSubmit, setConfirmSubmit] = useState(false)
+  const [preflightState, setPreflightState] = useState('checking') // checking | already_submitted | expired_abandoned | ready
   const submittedRef = useRef(false)
 
-  // 상태 복원 (페이지 새로고침 대비)
+  // 사전 체크: 이미 응시한 기록이 있는지 DB 조회 + localStorage 만료여부 확인
   useEffect(() => {
-    if (!user || !test) return
-    const saved = localStorage.getItem(STORAGE_KEY(id, user.id))
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        setStartedAt(parsed.startedAt)
-        setTask1Essay(parsed.task1Essay || '')
-        setTask2Essay(parsed.task2Essay || '')
-      } catch {
-        const start = Date.now()
-        setStartedAt(start)
+    let cancelled = false
+    async function preflight() {
+      if (!user || !test) return
+
+      // 1) DB에 이 모의고사 제출 기록이 있으면 차단
+      const { data: priorSubs } = await supabase
+        .from('writing_submissions')
+        .select('id, feedback_json, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(100)
+      if (cancelled) return
+      const alreadyDone = (priorSubs || []).some(s => s.feedback_json?.mock_test_id === id)
+      if (alreadyDone) {
+        setPreflightState('already_submitted')
+        return
       }
-    } else {
+
+      // 2) localStorage 복원 — 만료된 세션은 버림(자동 제출 금지)
+      const saved = localStorage.getItem(STORAGE_KEY(id, user.id))
+      const totalMs = test.durationMin * 60 * 1000
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved)
+          const expired = Date.now() - parsed.startedAt >= totalMs
+          const hasContent = (parsed.task1Essay || '').trim() || (parsed.task2Essay || '').trim()
+          if (expired && !hasContent) {
+            // 빈 채로 방치되어 만료된 세션 — 그냥 초기화
+            localStorage.removeItem(STORAGE_KEY(id, user.id))
+          } else if (expired && hasContent) {
+            // 작성 내용은 있는데 시간이 지난 경우 — 사용자가 선택할 수 있게 표시
+            setTask1Essay(parsed.task1Essay || '')
+            setTask2Essay(parsed.task2Essay || '')
+            setStartedAt(parsed.startedAt)
+            setPreflightState('expired_abandoned')
+            return
+          } else {
+            // 정상 복원
+            setStartedAt(parsed.startedAt)
+            setTask1Essay(parsed.task1Essay || '')
+            setTask2Essay(parsed.task2Essay || '')
+            setPreflightState('ready')
+            return
+          }
+        } catch {
+          localStorage.removeItem(STORAGE_KEY(id, user.id))
+        }
+      }
+
+      // 3) 새 세션 시작
       const start = Date.now()
       setStartedAt(start)
       localStorage.setItem(STORAGE_KEY(id, user.id), JSON.stringify({
         startedAt: start, task1Essay: '', task2Essay: '',
       }))
+      setPreflightState('ready')
     }
+    preflight()
+    return () => { cancelled = true }
   }, [user, id, test])
 
   // 진행상황 저장
@@ -108,11 +149,17 @@ export default function MockTestWriting() {
     if (submittedRef.current) return
     if (!user) { navigate('/login'); return }
 
-    if (!forced) {
-      if (!task1Essay.trim() && !task2Essay.trim()) {
-        setError('최소 한 개 이상의 Task를 작성해야 제출할 수 있어요.')
+    // 빈 에세이는 강제제출이라도 저장하지 않음 (크레딧 차감 방지)
+    if (!task1Essay.trim() && !task2Essay.trim()) {
+      if (forced) {
+        // 시간 만료 자동 제출인데 작성한 게 없음 — 그냥 초기화 후 목록으로
+        localStorage.removeItem(STORAGE_KEY(id, user.id))
+        submittedRef.current = true
+        navigate('/mock-test')
         return
       }
+      setError('최소 한 개 이상의 Task를 작성해야 제출할 수 있어요.')
+      return
     }
 
     submittedRef.current = true
@@ -160,13 +207,14 @@ export default function MockTestWriting() {
     }
   }
 
-  // 시간 만료 시 자동 강제제출
+  // 시간 만료 시 자동 강제제출 (사전 체크 통과 후에만)
   useEffect(() => {
+    if (preflightState !== 'ready') return
     if (isOvertime && startedAt && !submittedRef.current && !submitted) {
       handleSubmit(true)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOvertime, startedAt])
+  }, [isOvertime, startedAt, preflightState])
 
   if (!test) {
     return (
@@ -194,6 +242,63 @@ export default function MockTestWriting() {
         <p className="text-sm text-text-secondary">
           선생님이 곧 채점해 드릴게요. 잠시 후 홈으로 이동합니다.
         </p>
+      </div>
+    )
+  }
+
+  if (preflightState === 'checking') {
+    return <div className="text-center py-16 text-text-secondary">불러오는 중...</div>
+  }
+
+  if (preflightState === 'already_submitted') {
+    return (
+      <div className="max-w-xl mx-auto py-16 text-center">
+        <CheckCircle2 size={56} className="text-success mx-auto mb-4" />
+        <h2 className="text-xl font-bold mb-2">이미 응시한 모의고사예요</h2>
+        <p className="text-sm text-text-secondary mb-6">
+          Writing Mock Test {id}회는 이미 제출하셨어요. 결과는 선생님 채점 후 히스토리에서 확인할 수 있어요.
+        </p>
+        <div className="flex items-center justify-center gap-2">
+          <Link to="/mock-test" className="px-4 py-2 rounded-lg border border-border text-sm text-text-secondary no-underline hover:bg-gray-50">
+            목록으로
+          </Link>
+          <Link to="/history" className="px-4 py-2 rounded-lg bg-primary text-white text-sm no-underline hover:bg-primary-dark">
+            히스토리 보기
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (preflightState === 'expired_abandoned') {
+    return (
+      <div className="max-w-xl mx-auto py-16 text-center">
+        <AlertTriangle size={48} className="text-amber-500 mx-auto mb-4" />
+        <h2 className="text-xl font-bold mb-2">이전 시도가 시간 만료되었어요</h2>
+        <p className="text-sm text-text-secondary mb-2">
+          작성하신 내용이 남아 있어요. 지금 제출하시겠어요? (제출 시 1 크레딧 차감)
+        </p>
+        <p className="text-xs text-text-secondary mb-6">
+          Task 1: {t1Words}w · Task 2: {t2Words}w
+        </p>
+        <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={() => {
+              localStorage.removeItem(STORAGE_KEY(id, user.id))
+              navigate('/mock-test')
+            }}
+            className="px-4 py-2 rounded-lg border border-border text-sm text-text-secondary hover:bg-gray-50"
+          >
+            버리고 나가기
+          </button>
+          <button
+            onClick={() => handleSubmit(false)}
+            disabled={submitting || (!task1Essay.trim() && !task2Essay.trim())}
+            className="px-4 py-2 rounded-lg bg-accent text-white text-sm hover:bg-accent/90 disabled:opacity-50"
+          >
+            {submitting ? '제출 중...' : '지금 제출'}
+          </button>
+        </div>
       </div>
     )
   }
