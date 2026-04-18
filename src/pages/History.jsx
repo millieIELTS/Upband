@@ -60,6 +60,8 @@ export default function History() {
     return map
   }, [allActivities])
 
+  const isMockTest = (item) => item._type === 'writing' && !item.is_homework
+
   // 연속 학습일 계산
   const streak = useMemo(() => {
     if (allActivities.length === 0) return 0
@@ -108,7 +110,13 @@ export default function History() {
     // 날짜 칸
     for (let d = 1; d <= daysInMonth; d++) {
       const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-      cells.push({ day: d, key, count: (activitiesByDate[key] || []).length })
+      const dayItems = activitiesByDate[key] || []
+      cells.push({
+        day: d,
+        key,
+        count: dayItems.length,
+        hasMock: dayItems.some(isMockTest),
+      })
     }
     return cells
   }, [calMonth, activitiesByDate])
@@ -241,6 +249,9 @@ export default function History() {
                     `}
                   >
                     {cell.day}
+                    {cell.hasMock && (
+                      <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-amber-500" title="모의고사" />
+                    )}
                     {isToday && (
                       <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
                     )}
@@ -250,13 +261,19 @@ export default function History() {
             </div>
 
             {/* 범례 */}
-            <div className="flex items-center justify-end gap-1.5 mt-3 text-[10px] text-text-secondary">
-              <span>적음</span>
-              <div className="w-3 h-3 rounded bg-gray-50 border border-gray-200" />
-              <div className="w-3 h-3 rounded bg-green-100" />
-              <div className="w-3 h-3 rounded bg-green-300" />
-              <div className="w-3 h-3 rounded bg-green-500" />
-              <span>많음</span>
+            <div className="flex items-center justify-between mt-3 text-[10px] text-text-secondary">
+              <span className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                모의고사
+              </span>
+              <div className="flex items-center gap-1.5">
+                <span>적음</span>
+                <div className="w-3 h-3 rounded bg-gray-50 border border-gray-200" />
+                <div className="w-3 h-3 rounded bg-green-100" />
+                <div className="w-3 h-3 rounded bg-green-300" />
+                <div className="w-3 h-3 rounded bg-green-500" />
+                <span>많음</span>
+              </div>
             </div>
           </div>
 
@@ -304,6 +321,9 @@ export default function History() {
                                   : `Speaking ${item.part?.replace('part', 'Part ')}`
                                 }
                               </span>
+                              {isMockTest(item) && (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[10px] font-medium">모의고사</span>
+                              )}
                               {item.is_homework && (
                                 <span className="px-1.5 py-0.5 rounded bg-accent/10 text-accent text-[10px] font-medium">숙제</span>
                               )}
