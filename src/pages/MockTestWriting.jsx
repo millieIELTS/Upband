@@ -54,7 +54,10 @@ export default function MockTestWriting() {
   const [error, setError] = useState('')
   const [confirmSubmit, setConfirmSubmit] = useState(false)
   const [preflightState, setPreflightState] = useState('checking') // checking | already_submitted | expired_abandoned | ready
+  const [retryError, setRetryError] = useState('')
+  const [retryDeducting, setRetryDeducting] = useState(false)
   const submittedRef = useRef(false)
+  const retryPaidRef = useRef(false) // 재응시 시 이미 크레딧 차감한 경우 중복 차감 방지
 
   // 사전 체크: 이미 응시한 기록이 있는지 DB 조회 + localStorage 만료여부 확인
   useEffect(() => {
@@ -192,7 +195,8 @@ export default function MockTestWriting() {
         await saveWritingSubmission(user.id, s)
       }
       // 모의고사는 1 크레딧만 차감 (Task 1 + Task 2 합쳐서)
-      if (submissions.length > 0) {
+      // 재응시 시작 시 이미 차감했다면 중복 차감하지 않음
+      if (submissions.length > 0 && !retryPaidRef.current) {
         await supabase.rpc('deduct_credit_with_reason', { p_reason: 'mock_test' })
       }
 
@@ -204,6 +208,35 @@ export default function MockTestWriting() {
       submittedRef.current = false
       setError(err.message || '제출에 실패했습니다. 다시 시도해주세요.')
       setSubmitting(false)
+    }
+  }
+
+  // 이미 응시한 모의고사를 재응시 — 확인 시 크레딧 1 차감하고 새 세션 시작
+  const handleRetry = async () => {
+    if (retryDeducting || !user) return
+    if ((profile?.credits ?? 0) < 1) {
+      setRetryError('크레딧이 부족해요. 관리자에게 문의해 주세요.')
+      return
+    }
+    setRetryDeducting(true)
+    setRetryError('')
+    try {
+      await supabase.rpc('deduct_credit_with_reason', { p_reason: 'mock_test' })
+      await refreshProfile()
+      retryPaidRef.current = true
+      // 새 세션 시작
+      localStorage.removeItem(STORAGE_KEY(id, user.id))
+      setTask1Essay('')
+      setTask2Essay('')
+      const start = Date.now()
+      setStartedAt(start)
+      localStorage.setItem(STORAGE_KEY(id, user.id), JSON.stringify({
+        startedAt: start, task1Essay: '', task2Essay: '',
+      }))
+      setPreflightState('ready')
+    } catch (err) {
+      setRetryError(err.message || '크레딧 차감에 실패했어요. 다시 시도해 주세요.')
+      setRetryDeducting(false)
     }
   }
 
@@ -251,20 +284,37 @@ export default function MockTestWriting() {
   }
 
   if (preflightState === 'already_submitted') {
+    const notEnoughCredits = (profile?.credits ?? 0) < 1
     return (
       <div className="max-w-xl mx-auto py-16 text-center">
-        <CheckCircle2 size={56} className="text-success mx-auto mb-4" />
-        <h2 className="text-xl font-bold mb-2">이미 응시한 모의고사예요</h2>
-        <p className="text-sm text-text-secondary mb-6">
-          Writing Mock Test {id}회는 이미 제출하셨어요. 결과는 선생님 채점 후 히스토리에서 확인할 수 있어요.
+        <AlertTriangle size={48} className="text-amber-500 mx-auto mb-4" />
+        <h2 className="text-xl font-bold mb-2">이미 응시한 모의고사입니다</h2>
+        <p className="text-sm text-text-secondary mb-2">
+          Writing Mock Test {id}회는 이미 제출하셨어요.
         </p>
+        <p className="text-sm text-text mb-1">
+          다시 응시하시겠어요?
+        </p>
+        <p className="text-xs text-text-secondary mb-6">
+          다시 응시하면 <b className="text-accent">1 크레딧이 차감</b>되고 새 세션이 시작돼요. (현재 잔액: {profile?.credits ?? 0})
+        </p>
+        {retryError && (
+          <p className="text-sm text-error mb-4">{retryError}</p>
+        )}
         <div className="flex items-center justify-center gap-2">
-          <Link to="/mock-test" className="px-4 py-2 rounded-lg border border-border text-sm text-text-secondary no-underline hover:bg-gray-50">
-            목록으로
-          </Link>
-          <Link to="/history" className="px-4 py-2 rounded-lg bg-primary text-white text-sm no-underline hover:bg-primary-dark">
-            히스토리 보기
-          </Link>
+          <button
+            onClick={() => navigate('/')}
+            className="px-4 py-2 rounded-lg border border-border text-sm text-text-secondary hover:bg-gray-50"
+          >
+            아니요, 홈으로
+          </button>
+          <button
+            onClick={handleRetry}
+            disabled={retryDeducting || notEnoughCredits}
+            className="px-4 py-2 rounded-lg bg-accent text-white text-sm hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {retryDeducting ? '차감 중...' : notEnoughCredits ? '크레딧 부족' : '네, 다시 응시하기 (−1)'}
+          </button>
         </div>
       </div>
     )
