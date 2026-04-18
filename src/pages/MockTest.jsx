@@ -2,11 +2,11 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, FileText, Lock, Clock, PenLine, ChevronRight, Mic } from 'lucide-react'
 
 const writingTests = [
-  { id: '1', label: 'Writing 모의고사 1회', available: true },
+  { id: '1', label: 'Mock Test 1회', available: true },
 ]
 
 const speakingTests = [
-  { id: '1', label: 'Speaking 모의고사 1회', available: true },
+  { id: '1', label: 'Mock Test 1회', available: true },
 ]
 
 const lockedTests = Array.from({ length: 9 }, (_, i) => ({
@@ -43,7 +43,8 @@ export default function MockTest() {
         <div>
           <p className="text-sm font-medium text-amber-800">모의고사 안내</p>
           <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
-            실제 시험과 동일한 형식과 시간으로 응시하세요. 제출 후 선생님의 피드백이 도착해요.
+            한 회차에 <b>Writing 모의고사</b>와 <b>Speaking 모의고사</b>가 각각 준비되어 있어요.
+            실제 시험과 동일한 형식·시간으로 응시하시고, 제출 후 선생님의 피드백을 받아보세요.
           </p>
         </div>
       </div>

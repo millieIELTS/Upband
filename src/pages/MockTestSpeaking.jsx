@@ -302,7 +302,7 @@ export default function MockTestSpeaking() {
         <ArrowLeft size={14} /> 모의고사 목록
       </Link>
 
-      <h1 className="text-xl font-bold mb-1">{test.title}</h1>
+      <h1 className="text-xl font-bold mb-1">Mock Test {id}회 — Speaking</h1>
       <p className="text-text-secondary text-sm mb-6">Part 1 → Part 2 → Part 3 순서로 진행됩니다.</p>
 
       {/* 진행 표시 */}

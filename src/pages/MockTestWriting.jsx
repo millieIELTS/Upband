@@ -213,9 +213,9 @@ export default function MockTestWriting() {
       <div className="sticky top-14 z-40 bg-bg/95 backdrop-blur py-3 mb-4 border-b border-border">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-lg font-bold leading-tight">{test.title}</h1>
+            <h1 className="text-lg font-bold leading-tight">Mock Test {id}회 — Writing</h1>
             <p className="text-xs text-text-secondary mt-0.5">
-              총 {test.durationMin}분 · Task 1 + Task 2 자유 작성
+              총 {test.durationMin}분 · Task 1 + Task 2 자유 작성 · 붙여넣기 금지
             </p>
           </div>
           <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono font-bold text-lg ${
@@ -277,7 +277,13 @@ export default function MockTestWriting() {
       <textarea
         value={currentEssay}
         onChange={(e) => setCurrentEssay(e.target.value)}
-        placeholder={`${currentTask.title} 에세이를 입력하세요...`}
+        onPaste={(e) => {
+          e.preventDefault()
+          setError('모의고사에서는 붙여넣기가 허용되지 않아요. 직접 입력해 주세요.')
+          setTimeout(() => setError(''), 3000)
+        }}
+        onDrop={(e) => e.preventDefault()}
+        placeholder={`${currentTask.title} 에세이를 입력하세요... (붙여넣기 불가)`}
         autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
