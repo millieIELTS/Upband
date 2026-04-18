@@ -12,7 +12,7 @@ const MOCK_TESTS = {
     title: 'Speaking 모의고사 1회',
     part1: {
       label: 'Part 1 — Personal Questions',
-      maxSeconds: 45,
+      maxSeconds: 30,
       questions: [
         'Do you work or are you a student?',
         'What do you enjoy doing in your free time?',
@@ -59,7 +59,7 @@ export default function MockTestSpeaking() {
   const [phase, setPhase] = useState('intro')
   const [partKey, setPartKey] = useState(null) // 'part1' | 'part3'
   const [qIndex, setQIndex] = useState(0)
-  const [countdown, setCountdown] = useState(COUNTDOWN_SECS)
+  const [countdown, setCountdown] = useState(0)
   const [recordSecs, setRecordSecs] = useState(0)
   const [prepSecs, setPrepSecs] = useState(0)
   const [questionPlayed, setQuestionPlayed] = useState(false)
@@ -320,7 +320,7 @@ export default function MockTestSpeaking() {
           <div>
             <p className="text-sm font-semibold mb-1">시험 안내</p>
             <ul className="text-sm text-text-secondary space-y-1.5 list-disc pl-5">
-              <li>Part 1: 4개 질문 (각 최대 45초 답변)</li>
+              <li>Part 1: 4개 질문 (각 최대 30초 답변)</li>
               <li>Part 2: 1분 준비 후 2분 스피치</li>
               <li>Part 3: 4개 질문 (각 최대 60초 답변)</li>
               <li>각 질문은 음성으로 들려드려요. 다 듣고 녹음 시작 버튼을 누르세요.</li>
@@ -344,18 +344,28 @@ export default function MockTestSpeaking() {
           <p className="text-xs text-primary font-semibold mb-2">
             {currentPart.label} · 질문 {qIndex + 1} / {currentPart.questions.length}
           </p>
-          <p className="text-base font-medium mb-4">{currentQuestion}</p>
+
+          {/* 질문은 녹음 완료 후에만 노출 — 실제 시험처럼 음성으로만 들음 */}
+          {!audioUrl && (
+            <div className="bg-bg border border-border rounded-lg p-4 mb-4 flex items-center gap-3">
+              <Volume2 size={18} className="text-primary shrink-0" />
+              <p className="text-sm text-text-secondary">
+                질문은 음성으로만 들려드려요. 다 듣고 녹음 시작 버튼을 눌러주세요.
+              </p>
+            </div>
+          )}
 
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => playQuestion(currentQuestion)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-sm text-text-secondary hover:bg-gray-50"
+              disabled={recording || countdown > 0}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-sm text-text-secondary hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Volume2 size={14} /> 다시 듣기
             </button>
           </div>
 
-          {!recording && recordSecs === 0 && !audioUrl && (
+          {!recording && recordSecs === 0 && !audioUrl && countdown === 0 && (
             <button
               onClick={onRecordReadyClick}
               disabled={!questionPlayed}
@@ -365,7 +375,7 @@ export default function MockTestSpeaking() {
             </button>
           )}
 
-          {countdown > 0 && countdown < COUNTDOWN_SECS + 1 && !recording && recordSecs === 0 && (
+          {countdown > 0 && !recording && recordSecs === 0 && !audioUrl && (
             <div className="text-center py-6">
               <div className="text-5xl font-bold text-primary">{countdown}</div>
               <p className="text-xs text-text-secondary mt-2">곧 녹음이 시작됩니다</p>
@@ -396,6 +406,10 @@ export default function MockTestSpeaking() {
               <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-center gap-2">
                 <CheckCircle2 size={16} className="text-emerald-600" />
                 <span className="text-sm text-emerald-700">녹음 완료</span>
+              </div>
+              <div className="bg-bg border border-border rounded-lg p-4">
+                <p className="text-[11px] text-text-secondary mb-1">방금 들으신 질문은:</p>
+                <p className="text-sm font-medium">{currentQuestion}</p>
               </div>
               <audio src={audioUrl} controls className="w-full" />
               <button

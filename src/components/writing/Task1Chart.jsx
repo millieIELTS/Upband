@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  XAxis, YAxis, CartesianGrid, Legend,
 } from 'recharts'
 
 const COLORS = ['#5B5FC7', '#F59E0B', '#10B981', '#EF4444', '#8B5CF6', '#EC4899']
@@ -35,11 +35,10 @@ function BarChartQ0() {
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         <XAxis dataKey="year" tick={{ fontSize: 12 }} />
         <YAxis tick={{ fontSize: 12 }} />
-        <Tooltip />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Bar dataKey="Business" fill={COLORS[0]} radius={[2, 2, 0, 0]} />
-        <Bar dataKey="Engineering" fill={COLORS[1]} radius={[2, 2, 0, 0]} />
-        <Bar dataKey="Art & Design" fill={COLORS[2]} radius={[2, 2, 0, 0]} />
+        <Bar dataKey="Business" fill={COLORS[0]} radius={[2, 2, 0, 0]} isAnimationActive={false} />
+        <Bar dataKey="Engineering" fill={COLORS[1]} radius={[2, 2, 0, 0]} isAnimationActive={false} />
+        <Bar dataKey="Art & Design" fill={COLORS[2]} radius={[2, 2, 0, 0]} isAnimationActive={false} />
       </BarChart>
     </div>
   )
@@ -77,7 +76,6 @@ function PieChartQ1() {
             <Pie data={data1985} cx={cx} cy={cy} outerRadius={r} innerRadius={0} dataKey="value" label={renderLabel} labelLine={false} fontSize={11} isAnimationActive={false}>
               {data1985.map((_, i) => <Cell key={`c1-${i}`} fill={COLORS[i]} />)}
             </Pie>
-            <Tooltip formatter={(v) => `${v}%`} />
           </PieChart>
         </div>
         <div style={{ textAlign: 'center' }}>
@@ -86,7 +84,6 @@ function PieChartQ1() {
             <Pie data={data2010} cx={cx} cy={cy} outerRadius={r} innerRadius={0} dataKey="value" label={renderLabel} labelLine={false} fontSize={11} isAnimationActive={false}>
               {data2010.map((_, i) => <Cell key={`c2-${i}`} fill={COLORS[i]} />)}
             </Pie>
-            <Tooltip formatter={(v) => `${v}%`} />
           </PieChart>
         </div>
       </div>
@@ -125,11 +122,10 @@ function LineChartQ2() {
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         <XAxis dataKey="month" tick={{ fontSize: 11 }} />
         <YAxis tick={{ fontSize: 12 }} unit="°C" />
-        <Tooltip formatter={(v) => `${v}°C`} />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Line type="monotone" dataKey="London" stroke={COLORS[0]} strokeWidth={2} dot={{ r: 3 }} />
-        <Line type="monotone" dataKey="Sydney" stroke={COLORS[1]} strokeWidth={2} dot={{ r: 3 }} />
-        <Line type="monotone" dataKey="Tokyo" stroke={COLORS[2]} strokeWidth={2} dot={{ r: 3 }} />
+        <Line type="monotone" dataKey="London" stroke={COLORS[0]} strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+        <Line type="monotone" dataKey="Sydney" stroke={COLORS[1]} strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+        <Line type="monotone" dataKey="Tokyo" stroke={COLORS[2]} strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
       </LineChart>
     </div>
   )
