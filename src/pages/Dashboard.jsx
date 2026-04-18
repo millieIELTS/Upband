@@ -44,6 +44,7 @@ export default function Dashboard() {
 
     // 모의고사는 별도 페이지(/dashboard/mock-tests)에서 관리 — 일반 라이팅 목록에서는 제외
     const regularWriting = (allWriting || []).filter(s => !s.feedback_json?.mock_test_id)
+    const mockWriting = (allWriting || []).filter(s => s.feedback_json?.mock_test_id)
 
     setStudents(allProfiles || [])
     setSubmissions([
@@ -55,8 +56,10 @@ export default function Dashboard() {
       totalStudents: (allProfiles || []).filter(p => p.role === 'student').length,
       totalWriting: regularWriting.length,
       totalSpeaking: (allSpeaking || []).length,
+      totalMock: mockWriting.length,
       unreviewedWriting: regularWriting.filter(s => !s.reviewed).length,
       unreviewedSpeaking: (allSpeaking || []).filter(s => !s.reviewed).length,
+      unreviewedMock: mockWriting.filter(s => !s.reviewed).length,
     })
 
     setLoading(false)
@@ -162,18 +165,25 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 제출 내역 관리 바로가기 */}
+      {/* 제출 내역 관리 바로가기 (일반 Writing · Speaking) */}
       <Link
         to="/dashboard/submissions"
-        className="block mb-6 p-4 bg-accent/5 border border-accent/20 rounded-xl no-underline hover:bg-accent/10 transition-colors"
+        className="block mb-3 p-4 bg-accent/5 border border-accent/20 rounded-xl no-underline hover:bg-accent/10 transition-colors"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Eye size={18} className="text-accent" />
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Eye size={18} className="text-accent shrink-0" />
             <span className="text-sm font-medium text-text">제출 내역 관리</span>
-            <span className="text-xs text-text-secondary">학생 에세이 확인 · 확인여부 체크</span>
+            <span className="text-xs text-text-secondary truncate">일반 Writing · Speaking · 확인여부 체크</span>
           </div>
-          <span className="text-xs text-accent font-medium">바로가기 →</span>
+          <div className="flex items-center gap-2 shrink-0">
+            {(stats.unreviewedWriting > 0 || stats.unreviewedSpeaking > 0) && (
+              <span className="px-2 py-0.5 rounded-full bg-error text-white text-[10px] font-bold">
+                미채점 {stats.unreviewedWriting + stats.unreviewedSpeaking}
+              </span>
+            )}
+            <span className="text-xs text-accent font-medium">바로가기 →</span>
+          </div>
         </div>
       </Link>
 
@@ -182,13 +192,20 @@ export default function Dashboard() {
         to="/dashboard/mock-tests"
         className="block mb-3 p-4 bg-amber-50 border border-amber-200 rounded-xl no-underline hover:bg-amber-100 transition-colors"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FileText size={18} className="text-amber-600" />
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <FileText size={18} className="text-amber-600 shrink-0" />
             <span className="text-sm font-medium text-text">모의고사 채점</span>
-            <span className="text-xs text-text-secondary">Writing · Speaking 모의고사 응시 채점</span>
+            <span className="text-xs text-text-secondary truncate">Writing 모의고사 응시 채점</span>
           </div>
-          <span className="text-xs text-amber-600 font-medium">바로가기 →</span>
+          <div className="flex items-center gap-2 shrink-0">
+            {stats.unreviewedMock > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-error text-white text-[10px] font-bold">
+                미채점 {stats.unreviewedMock}
+              </span>
+            )}
+            <span className="text-xs text-amber-600 font-medium">바로가기 →</span>
+          </div>
         </div>
       </Link>
 
