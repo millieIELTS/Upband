@@ -7,7 +7,7 @@ create table profiles (
   email text not null,
   display_name text,
   role text not null default 'student' check (role in ('student', 'teacher', 'admin')),
-  credits integer not null default 3,  -- 무료 체험 3회
+  credits integer not null default 5,  -- 가입 시 무료 5 토큰
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

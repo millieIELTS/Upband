@@ -37,7 +37,7 @@ export function AuthProvider({ children }) {
         email: authUser.email,
         display_name: displayName,
         role: 'student',
-        credits: 3,
+        credits: 5,
       })
 
       const { data: newProfile } = await supabase.rpc('get_my_profile').maybeSingle()
