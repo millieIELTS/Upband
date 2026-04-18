@@ -37,10 +37,11 @@ export default function MockTest() {
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start gap-3">
         <Clock size={18} className="text-amber-600 mt-0.5 shrink-0" />
         <div>
-          <p className="text-sm font-medium text-amber-800">모의고사 안내</p>
+          <p className="text-sm font-medium text-amber-800">모의고사 안내 (−1 토큰)</p>
           <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
             한 회차는 <b>Task 1 + Task 2</b>를 60분 안에 작성하는 Writing 모의고사예요.
             실제 시험과 동일한 형식·시간으로 응시하시고, 제출 후 선생님의 피드백을 받아보세요.
+            제출 시 <b>1 토큰</b>이 차감됩니다.
           </p>
         </div>
       </div>
