@@ -1,14 +1,25 @@
 import { Link } from 'react-router-dom'
-import { ArrowLeft, FileText, Lock, Clock, ChevronRight } from 'lucide-react'
+import { ArrowLeft, FileText, Clock, ChevronRight } from 'lucide-react'
 
-const fullMockTests = [
-  { id: '1', label: 'Writing Mock Test 1회', available: true },
+// Task 1 유형 라벨 (학생이 미리 준비할 수 있도록 표시)
+const TASK1_TYPES = [
+  'Bar chart',      // 1회
+  'Line graph',     // 2회
+  'Pie chart',      // 3회
+  'Table',          // 4회
+  'Bar chart',      // 5회
+  'Process diagram',// 6회
+  'Map',            // 7회
+  'Multiple charts',// 8회
+  'Multiple charts',// 9회
+  'Multiple charts',// 10회
 ]
 
-const lockedTests = Array.from({ length: 9 }, (_, i) => ({
-  id: i + 2,
-  label: `${i + 2}회`,
-  available: false,
+const fullMockTests = Array.from({ length: 10 }, (_, i) => ({
+  id: String(i + 1),
+  label: `Writing Mock Test ${i + 1}회`,
+  task1Type: TASK1_TYPES[i],
+  available: true,
 }))
 
 export default function MockTest() {
@@ -54,32 +65,19 @@ export default function MockTest() {
             to={`/mock-test/writing/${test.id}`}
             className="flex items-center justify-between bg-surface rounded-xl border border-border p-4 hover:border-primary hover:shadow-sm transition-all no-underline text-text"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <FileText size={18} className="text-primary" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="font-semibold text-sm">{test.label}</p>
-                <p className="text-xs text-text-secondary mt-0.5">60분 · Task 1 + Task 2</p>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  60분 · Task 1 ({test.task1Type}) + Task 2
+                </p>
               </div>
             </div>
-            <ChevronRight size={16} className="text-text-secondary" />
+            <ChevronRight size={16} className="text-text-secondary shrink-0" />
           </Link>
-        ))}
-      </div>
-
-      {/* 준비중 회차 */}
-      <h2 className="text-sm font-semibold text-text-secondary mb-3">준비중</h2>
-      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-        {lockedTests.map((test) => (
-          <div
-            key={test.id}
-            className="relative bg-surface rounded-xl border border-border p-4 text-center opacity-60 cursor-not-allowed"
-          >
-            <Lock size={14} className="text-text-secondary mx-auto mb-1" />
-            <p className="text-sm font-bold text-text">{test.label}</p>
-            <p className="text-[10px] text-text-secondary mt-0.5">준비중</p>
-          </div>
         ))}
       </div>
     </div>
