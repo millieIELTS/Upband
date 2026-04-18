@@ -9,6 +9,7 @@ const navItems = [
   { to: '/vocab', label: '단어학습', icon: BookText },
   { to: '/store', label: 'E-Book 및 자료실', icon: BookOpen },
   { to: '/mock-test', label: 'Writing Mock Test', icon: FileText },
+  { to: '/history', label: '히스토리', icon: History },
   { to: '/community', label: '커뮤니티', icon: Users },
 ]
 
