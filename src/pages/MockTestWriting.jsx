@@ -146,7 +146,7 @@ export default function MockTestWriting() {
       }
       // 모의고사는 1 크레딧만 차감 (Task 1 + Task 2 합쳐서)
       if (submissions.length > 0) {
-        await supabase.rpc('deduct_credit')
+        await supabase.rpc('deduct_credit_with_reason', { p_reason: 'mock_test' })
       }
 
       refreshProfile()

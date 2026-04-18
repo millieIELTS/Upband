@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 
 const REASON_LABELS = {
   writing_feedback: 'Writing AI 피드백',
+  mock_test: '모의고사',
   ebook_purchase: 'E-Book 구매',
   admin_grant: '관리자 지급',
   admin_adjust: '관리자 조정',
