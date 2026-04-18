@@ -143,6 +143,9 @@ export default function MockTestWriting() {
 
       for (const s of submissions) {
         await saveWritingSubmission(user.id, s)
+      }
+      // 모의고사는 1 크레딧만 차감 (Task 1 + Task 2 합쳐서)
+      if (submissions.length > 0) {
         await supabase.rpc('deduct_credit')
       }
 
@@ -297,7 +300,7 @@ export default function MockTestWriting() {
           {currentWords} / {currentTask.minWords}+ words
         </span>
         <span className="text-text-secondary">
-          크레딧 {profile?.credits ?? 0} · 제출 시 Task당 1 크레딧 차감
+          크레딧 {profile?.credits ?? 0} · 제출 시 1 크레딧 차감
         </span>
       </div>
 
