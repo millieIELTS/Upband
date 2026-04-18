@@ -4,6 +4,7 @@ import { Clock, Send, ArrowLeft, AlertTriangle, CheckCircle2 } from 'lucide-reac
 import { useAuth } from '../hooks/useAuth'
 import { saveWritingSubmission } from '../lib/submissions'
 import { supabase } from '../lib/supabase'
+import Task1Chart from '../components/writing/Task1Chart'
 
 const MOCK_TESTS = {
   '1': {
@@ -14,7 +15,8 @@ const MOCK_TESTS = {
       title: 'Task 1',
       minWords: 150,
       timeGuide: '권장 20분',
-      prompt: `The chart below shows the percentage of households in different income brackets in a country in 2010 and 2020.
+      chartIndex: 0,
+      prompt: `The bar chart below shows the number of students enrolled in three university programmes (Business, Engineering, and Art & Design) from 2015 to 2020.
 
 Summarise the information by selecting and reporting the main features, and make comparisons where relevant.
 
@@ -261,9 +263,14 @@ export default function MockTestWriting() {
       {/* 문제 */}
       <div className="bg-surface rounded-xl border border-border p-5 mb-4">
         <p className="text-xs text-text-secondary mb-2 font-medium">문제 (Question)</p>
-        <p className="text-sm text-text whitespace-pre-line leading-relaxed">
+        <p className="text-sm text-text whitespace-pre-line leading-relaxed mb-3">
           {currentTask.prompt}
         </p>
+        {currentTask.chartIndex !== undefined && (
+          <div className="mt-3">
+            <Task1Chart questionIndex={currentTask.chartIndex} />
+          </div>
+        )}
       </div>
 
       {/* 에세이 입력 */}

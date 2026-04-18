@@ -1,8 +1,12 @@
 import { Link } from 'react-router-dom'
-import { ArrowLeft, FileText, Lock, Clock, PenLine, ChevronRight } from 'lucide-react'
+import { ArrowLeft, FileText, Lock, Clock, PenLine, ChevronRight, Mic } from 'lucide-react'
 
 const writingTests = [
   { id: '1', label: 'Writing 모의고사 1회', available: true },
+]
+
+const speakingTests = [
+  { id: '1', label: 'Speaking 모의고사 1회', available: true },
 ]
 
 const lockedTests = Array.from({ length: 9 }, (_, i) => ({
@@ -33,21 +37,20 @@ export default function MockTest() {
         </div>
       </div>
 
-      {/* Writing Mock Test 안내 */}
+      {/* 안내 */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start gap-3">
         <Clock size={18} className="text-amber-600 mt-0.5 shrink-0" />
         <div>
-          <p className="text-sm font-medium text-amber-800">Writing 모의고사 안내</p>
+          <p className="text-sm font-medium text-amber-800">모의고사 안내</p>
           <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
-            60분 동안 Task 1과 Task 2를 자유롭게 작성하세요. 시간이 끝나면 자동으로 제출됩니다.
-            제출 후 선생님의 피드백이 도착해요.
+            실제 시험과 동일한 형식과 시간으로 응시하세요. 제출 후 선생님의 피드백이 도착해요.
           </p>
         </div>
       </div>
 
       {/* Writing Mock Tests */}
       <h2 className="text-sm font-semibold text-text-secondary mb-3 mt-2">Writing</h2>
-      <div className="space-y-2 mb-6">
+      <div className="space-y-2 mb-5">
         {writingTests.map((test) => (
           <Link
             key={test.id}
@@ -61,6 +64,29 @@ export default function MockTest() {
               <div>
                 <p className="font-semibold text-sm">{test.label}</p>
                 <p className="text-xs text-text-secondary mt-0.5">60분 · Task 1 + Task 2</p>
+              </div>
+            </div>
+            <ChevronRight size={16} className="text-text-secondary" />
+          </Link>
+        ))}
+      </div>
+
+      {/* Speaking Mock Tests */}
+      <h2 className="text-sm font-semibold text-text-secondary mb-3 mt-2">Speaking</h2>
+      <div className="space-y-2 mb-6">
+        {speakingTests.map((test) => (
+          <Link
+            key={test.id}
+            to={`/mock-test/speaking/${test.id}`}
+            className="flex items-center justify-between bg-surface rounded-xl border border-border p-4 hover:border-accent hover:shadow-sm transition-all no-underline text-text"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                <Mic size={18} className="text-accent" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">{test.label}</p>
+                <p className="text-xs text-text-secondary mt-0.5">Part 1 + Part 2 + Part 3</p>
               </div>
             </div>
             <ChevronRight size={16} className="text-text-secondary" />
