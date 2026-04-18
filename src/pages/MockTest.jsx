@@ -39,7 +39,7 @@ export default function MockTest() {
         <div>
           <p className="text-sm font-medium text-amber-800">모의고사 안내</p>
           <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
-            한 회차를 시작하면 <b>Writing</b>을 먼저 진행하고, 이어서 <b>Speaking</b>이 자동으로 시작됩니다.
+            한 회차는 <b>Task 1 + Task 2</b>를 60분 안에 작성하는 Writing 모의고사예요.
             실제 시험과 동일한 형식·시간으로 응시하시고, 제출 후 선생님의 피드백을 받아보세요.
           </p>
         </div>
@@ -59,7 +59,7 @@ export default function MockTest() {
               </div>
               <div>
                 <p className="font-semibold text-sm">{test.label}</p>
-                <p className="text-xs text-text-secondary mt-0.5">Writing (60분) → Speaking (Part 1·2·3)</p>
+                <p className="text-xs text-text-secondary mt-0.5">60분 · Task 1 + Task 2</p>
               </div>
             </div>
             <ChevronRight size={16} className="text-text-secondary" />

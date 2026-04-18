@@ -149,7 +149,7 @@ export default function MockTestWriting() {
       refreshProfile()
       localStorage.removeItem(STORAGE_KEY(id, user.id))
       setSubmitted(true)
-      setTimeout(() => navigate(`/mock-test/speaking/${id}`), 2000)
+      setTimeout(() => navigate('/'), 2000)
     } catch (err) {
       submittedRef.current = false
       setError(err.message || '제출에 실패했습니다. 다시 시도해주세요.')
@@ -187,9 +187,9 @@ export default function MockTestWriting() {
     return (
       <div className="max-w-xl mx-auto py-16 text-center">
         <CheckCircle2 size={56} className="text-success mx-auto mb-4" />
-        <h2 className="text-xl font-bold mb-2">Writing 제출 완료!</h2>
+        <h2 className="text-xl font-bold mb-2">제출 완료!</h2>
         <p className="text-sm text-text-secondary">
-          잠시 후 Speaking 모의고사가 자동으로 시작됩니다.
+          선생님이 곧 채점해 드릴게요. 잠시 후 홈으로 이동합니다.
         </p>
       </div>
     )

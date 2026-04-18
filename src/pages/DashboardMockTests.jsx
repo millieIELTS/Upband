@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, FileText, PenLine, Mic, ChevronDown, ChevronUp,
+  ArrowLeft, FileText, PenLine, ChevronDown, ChevronUp,
   Clock, Save, Loader2, CheckCircle, Circle,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
@@ -14,9 +14,7 @@ const MOCK_TEST_NAMES = {
 export default function DashboardMockTests() {
   const { user, profile, loading: authLoading } = useAuth()
   const navigate = useNavigate()
-  const [tab, setTab] = useState('writing')
   const [writing, setWriting] = useState([])
-  const [speaking, setSpeaking] = useState([])
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedAttempt, setExpandedAttempt] = useState(null)
@@ -37,28 +35,21 @@ export default function DashboardMockTests() {
 
   async function loadData() {
     setLoading(true)
-    const [{ data: profiles }, { data: w }, { data: s }] = await Promise.all([
+    const [{ data: profiles }, { data: w }] = await Promise.all([
       supabase.rpc('get_all_profiles'),
       supabase.rpc('get_all_writing_submissions'),
-      supabase.rpc('get_all_speaking_submissions'),
     ])
     setStudents(profiles || [])
-    // 모의고사 표식이 있는 것만 필터
     const writingMocks = (w || []).filter(x => x.feedback_json?.mock_test_id)
-    const speakingMocks = (s || []).filter(x => x.feedback_json?.mock_test_id)
     setWriting(writingMocks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)))
-    setSpeaking(speakingMocks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)))
     setLoading(false)
   }
 
-  // 같은 학생이 같은 모의고사를 본 것을 attempt 단위로 묶기
-  // attemptId = `${user_id}::${mock_test_id}::${YYYY-MM-DD HH:mm}` (1시간 이내 묶음)
   function groupAttempts(submissions) {
     const groups = {}
     for (const sub of submissions) {
       const mockId = sub.feedback_json?.mock_test_id
       const userId = sub.user_id
-      // 같은 mock + 같은 user + 1시간 이내를 한 응시로
       const ts = new Date(sub.created_at).getTime()
       const existing = Object.values(groups).find(g =>
         g.userId === userId && g.mockId === mockId && Math.abs(g.startTs - ts) < 60 * 60 * 1000
@@ -80,51 +71,33 @@ export default function DashboardMockTests() {
     return Object.values(groups).sort((a, b) => b.startTs - a.startTs)
   }
 
-  async function toggleReviewed(type, id, current) {
+  async function toggleReviewed(id, current) {
     await supabase.rpc('admin_mark_reviewed', {
-      table_name: type,
+      table_name: 'writing',
       submission_id: id,
       is_reviewed: !current,
     })
-    if (type === 'writing') {
-      setWriting(prev => prev.map(s => s.id === id ? { ...s, reviewed: !current } : s))
-    } else {
-      setSpeaking(prev => prev.map(s => s.id === id ? { ...s, reviewed: !current } : s))
-    }
+    setWriting(prev => prev.map(s => s.id === id ? { ...s, reviewed: !current } : s))
   }
 
-  async function saveFeedback(type, subId) {
+  async function saveFeedback(subId) {
     const band = parseFloat(bandInput[subId])
     const fb = feedbackInput[subId]?.trim()
     if (!fb && isNaN(band)) return
 
     setSaving(subId)
     try {
-      if (type === 'writing') {
-        await supabase.rpc('admin_save_feedback', {
-          submission_id: subId,
-          band: isNaN(band) ? null : band,
-          feedback: fb || null,
-        })
-        setWriting(prev => prev.map(s => s.id === subId ? {
-          ...s,
-          teacher_band: isNaN(band) ? s.teacher_band : band,
-          teacher_feedback: fb || s.teacher_feedback,
-          reviewed: true,
-        } : s))
-      } else {
-        // Speaking은 admin_save_feedback이 writing 전용일 수 있어 직접 update 시도
-        const updates = {}
-        if (!isNaN(band)) updates.teacher_band = band
-        if (fb) updates.teacher_feedback = fb
-        updates.reviewed = true
-        const { error } = await supabase
-          .from('speaking_submissions')
-          .update(updates)
-          .eq('id', subId)
-        if (error) throw error
-        setSpeaking(prev => prev.map(s => s.id === subId ? { ...s, ...updates } : s))
-      }
+      await supabase.rpc('admin_save_feedback', {
+        submission_id: subId,
+        band: isNaN(band) ? null : band,
+        feedback: fb || null,
+      })
+      setWriting(prev => prev.map(s => s.id === subId ? {
+        ...s,
+        teacher_band: isNaN(band) ? s.teacher_band : band,
+        teacher_feedback: fb || s.teacher_feedback,
+        reviewed: true,
+      } : s))
     } catch (err) {
       alert('저장 실패: ' + err.message)
     }
@@ -157,9 +130,7 @@ export default function DashboardMockTests() {
   }
 
   const writingAttempts = groupAttempts(writing)
-  const speakingAttempts = groupAttempts(speaking)
   const unreviewedW = writing.filter(s => !s.reviewed).length
-  const unreviewedS = speaking.filter(s => !s.reviewed).length
 
   return (
     <div>
@@ -170,50 +141,29 @@ export default function DashboardMockTests() {
         <ArrowLeft size={14} /> 대시보드로 돌아가기
       </button>
 
-      <h1 className="text-2xl font-bold mb-2">모의고사 채점</h1>
+      <h1 className="text-2xl font-bold mb-2">모의고사 채점 (Writing)</h1>
       <p className="text-sm text-text-secondary mb-6">
         모의고사 응시 내역만 모아서 채점할 수 있어요. 한 응시(같은 학생 · 같은 회차)는 묶어서 표시됩니다.
       </p>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-4">
-        <button
-          onClick={() => setTab('writing')}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            tab === 'writing' ? 'bg-primary text-white' : 'bg-surface border border-border text-text-secondary'
-          }`}
-        >
-          <PenLine size={14} /> Writing
-          {unreviewedW > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-error text-white font-bold">
-              {unreviewedW}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setTab('speaking')}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            tab === 'speaking' ? 'bg-primary text-white' : 'bg-surface border border-border text-text-secondary'
-          }`}
-        >
-          <Mic size={14} /> Speaking
-          {unreviewedS > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-error text-white font-bold">
-              {unreviewedS}
-            </span>
-          )}
-        </button>
+      <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium">
+        <PenLine size={12} /> Writing
+        {unreviewedW > 0 && (
+          <span className="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-error text-white font-bold">
+            미채점 {unreviewedW}
+          </span>
+        )}
       </div>
 
       {/* Attempts list */}
       <div className="space-y-2">
-        {(tab === 'writing' ? writingAttempts : speakingAttempts).length === 0 && (
+        {writingAttempts.length === 0 && (
           <p className="text-center text-text-secondary py-12 bg-surface rounded-xl border border-border">
             아직 모의고사 응시 내역이 없어요.
           </p>
         )}
 
-        {(tab === 'writing' ? writingAttempts : speakingAttempts).map((attempt) => {
+        {writingAttempts.map((attempt) => {
           const student = getStudent(attempt.userId)
           const isExpanded = expandedAttempt === attempt.key
           const allReviewed = attempt.items.every(i => i.reviewed)
@@ -226,11 +176,7 @@ export default function DashboardMockTests() {
                 onClick={() => setExpandedAttempt(isExpanded ? null : attempt.key)}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  {tab === 'writing' ? (
-                    <PenLine size={16} className="text-primary shrink-0" />
-                  ) : (
-                    <Mic size={16} className="text-accent shrink-0" />
-                  )}
+                  <PenLine size={16} className="text-primary shrink-0" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-semibold">
@@ -256,23 +202,17 @@ export default function DashboardMockTests() {
               {isExpanded && (
                 <div className="border-t border-border p-4 bg-bg/50 space-y-3">
                   {attempt.items
-                    .sort((a, b) => {
-                      // task1 → task2, part1 → part2 → part3
-                      const aKey = a.task_type || a.part || ''
-                      const bKey = b.task_type || b.part || ''
-                      return aKey.localeCompare(bKey)
-                    })
+                    .sort((a, b) => (a.task_type || '').localeCompare(b.task_type || ''))
                     .map((sub) => (
                       <SubmissionCard
                         key={sub.id}
                         sub={sub}
-                        type={tab}
                         bandInput={bandInput}
                         setBandInput={setBandInput}
                         feedbackInput={feedbackInput}
                         setFeedbackInput={setFeedbackInput}
-                        onSave={() => saveFeedback(tab, sub.id)}
-                        onToggleReviewed={() => toggleReviewed(tab, sub.id, sub.reviewed)}
+                        onSave={() => saveFeedback(sub.id)}
+                        onToggleReviewed={() => toggleReviewed(sub.id, sub.reviewed)}
                         saving={saving === sub.id}
                         bandColor={bandColor}
                       />
@@ -287,10 +227,8 @@ export default function DashboardMockTests() {
   )
 }
 
-function SubmissionCard({ sub, type, bandInput, setBandInput, feedbackInput, setFeedbackInput, onSave, onToggleReviewed, saving, bandColor }) {
-  const partLabel = type === 'writing'
-    ? (sub.task_type === 'task1' ? 'Task 1' : 'Task 2')
-    : `${sub.part?.replace('part', 'Part ')}${sub.feedback_json?.q_index !== undefined ? ` · Q${sub.feedback_json.q_index + 1}` : ''}`
+function SubmissionCard({ sub, bandInput, setBandInput, feedbackInput, setFeedbackInput, onSave, onToggleReviewed, saving, bandColor }) {
+  const partLabel = sub.task_type === 'task1' ? 'Task 1' : 'Task 2'
 
   return (
     <div className="bg-white rounded-lg border border-border p-3 space-y-3">
@@ -306,7 +244,7 @@ function SubmissionCard({ sub, type, bandInput, setBandInput, feedbackInput, set
             }
           </button>
           <span className="text-sm font-semibold">{partLabel}</span>
-          {type === 'writing' && sub.word_count && (
+          {sub.word_count && (
             <span className="text-xs text-text-secondary">· {sub.word_count}w</span>
           )}
           {sub.teacher_band != null && (
@@ -324,20 +262,11 @@ function SubmissionCard({ sub, type, bandInput, setBandInput, feedbackInput, set
         </div>
       )}
 
-      {type === 'writing' && sub.essay && (
+      {sub.essay && (
         <div>
           <p className="text-xs font-medium text-text-secondary mb-1">에세이</p>
           <div className="text-sm bg-bg p-3 rounded border border-border whitespace-pre-wrap leading-relaxed max-h-72 overflow-y-auto">
             {sub.essay}
-          </div>
-        </div>
-      )}
-
-      {type === 'speaking' && sub.transcript && (
-        <div>
-          <p className="text-xs font-medium text-text-secondary mb-1">답변 (음성 → 텍스트)</p>
-          <div className="text-sm bg-bg p-3 rounded border border-border whitespace-pre-wrap leading-relaxed max-h-72 overflow-y-auto">
-            {sub.transcript}
           </div>
         </div>
       )}
