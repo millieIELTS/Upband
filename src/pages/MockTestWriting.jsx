@@ -127,7 +127,7 @@ export default function MockTestWriting() {
           taskType: 'task1',
           essay: task1Essay,
           question: test.task1.prompt,
-          isHomework: true,
+          mockTestId: id,
           feedback: { overall_band: null, scores: { task_achievement: null, coherence_cohesion: null, lexical_resource: null, grammatical_range: null } },
         })
       }
@@ -136,7 +136,7 @@ export default function MockTestWriting() {
           taskType: 'task2',
           essay: task2Essay,
           question: test.task2.prompt,
-          isHomework: true,
+          mockTestId: id,
           feedback: { overall_band: null, scores: { task_achievement: null, coherence_cohesion: null, lexical_resource: null, grammatical_range: null } },
         })
       }

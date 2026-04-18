@@ -1,8 +1,13 @@
 import { supabase } from './supabase'
 
 export async function saveWritingSubmission(userId, data) {
-  const { taskType, essay, feedback, question, questionImageUrl, isHomework } = data
+  const { taskType, essay, feedback, question, questionImageUrl, isHomework, mockTestId } = data
   const wordCount = essay.split(/\s+/).filter(Boolean).length
+
+  let feedbackJson = feedback?.submitted ? null : feedback
+  if (mockTestId) {
+    feedbackJson = { ...(feedbackJson || {}), mock_test_id: mockTestId }
+  }
 
   const row = {
     user_id: userId,
@@ -15,7 +20,7 @@ export async function saveWritingSubmission(userId, data) {
     score_cc: feedback?.scores?.coherence_cohesion || null,
     score_lr: feedback?.scores?.lexical_resource || null,
     score_gra: feedback?.scores?.grammatical_range || null,
-    feedback_json: feedback?.submitted ? null : feedback,
+    feedback_json: feedbackJson,
   }
   if (question) row.question = question
   if (questionImageUrl) row.question_image_url = questionImageUrl

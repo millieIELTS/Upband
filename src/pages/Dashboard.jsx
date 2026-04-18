@@ -7,7 +7,7 @@ import {
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, FileText } from 'lucide-react'
 
 export default function Dashboard() {
   const { user, profile, loading: authLoading } = useAuth()
@@ -171,6 +171,21 @@ export default function Dashboard() {
             <span className="text-xs text-text-secondary">학생 에세이 확인 · 확인여부 체크</span>
           </div>
           <span className="text-xs text-accent font-medium">바로가기 →</span>
+        </div>
+      </Link>
+
+      {/* 모의고사 채점 바로가기 */}
+      <Link
+        to="/dashboard/mock-tests"
+        className="block mb-3 p-4 bg-amber-50 border border-amber-200 rounded-xl no-underline hover:bg-amber-100 transition-colors"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileText size={18} className="text-amber-600" />
+            <span className="text-sm font-medium text-text">모의고사 채점</span>
+            <span className="text-xs text-text-secondary">Writing · Speaking 모의고사 응시 채점</span>
+          </div>
+          <span className="text-xs text-amber-600 font-medium">바로가기 →</span>
         </div>
       </Link>
 
