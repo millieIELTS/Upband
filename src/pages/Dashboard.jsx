@@ -42,17 +42,20 @@ export default function Dashboard() {
     const { data: allWriting } = await supabase.rpc('get_all_writing_submissions')
     const { data: allSpeaking } = await supabase.rpc('get_all_speaking_submissions')
 
+    // 모의고사는 별도 페이지(/dashboard/mock-tests)에서 관리 — 일반 라이팅 목록에서는 제외
+    const regularWriting = (allWriting || []).filter(s => !s.feedback_json?.mock_test_id)
+
     setStudents(allProfiles || [])
     setSubmissions([
-      ...(allWriting || []).map(s => ({ ...s, _type: 'writing' })),
+      ...regularWriting.map(s => ({ ...s, _type: 'writing' })),
       ...(allSpeaking || []).map(s => ({ ...s, _type: 'speaking' })),
     ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)))
 
     setStats({
       totalStudents: (allProfiles || []).filter(p => p.role === 'student').length,
-      totalWriting: (allWriting || []).length,
+      totalWriting: regularWriting.length,
       totalSpeaking: (allSpeaking || []).length,
-      unreviewedWriting: (allWriting || []).filter(s => !s.reviewed).length,
+      unreviewedWriting: regularWriting.filter(s => !s.reviewed).length,
       unreviewedSpeaking: (allSpeaking || []).filter(s => !s.reviewed).length,
     })
 

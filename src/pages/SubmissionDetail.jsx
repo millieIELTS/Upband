@@ -39,7 +39,9 @@ export default function SubmissionDetail() {
       supabase.rpc('get_all_speaking_submissions'),
     ])
     setStudents(profiles || [])
-    setWriting((w || []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)))
+    // 모의고사는 별도 페이지(/dashboard/mock-tests)에서 관리 — 일반 라이팅 목록에서는 제외
+    const regularWriting = (w || []).filter(sub => !sub.feedback_json?.mock_test_id)
+    setWriting(regularWriting.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)))
     setSpeaking((s || []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)))
     setLoading(false)
   }
