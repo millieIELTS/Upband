@@ -1,9 +1,13 @@
 import { Link } from 'react-router-dom'
-import { ArrowLeft, FileText, Lock, Clock } from 'lucide-react'
+import { ArrowLeft, FileText, Lock, Clock, PenLine, ChevronRight } from 'lucide-react'
 
-const tests = Array.from({ length: 10 }, (_, i) => ({
-  id: i + 1,
-  label: `${i + 1}회`,
+const writingTests = [
+  { id: '1', label: 'Writing 모의고사 1회', available: true },
+]
+
+const lockedTests = Array.from({ length: 9 }, (_, i) => ({
+  id: i + 2,
+  label: `${i + 2}회`,
   available: false,
 }))
 
@@ -24,30 +28,57 @@ export default function MockTest() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">Mock Test</h1>
-            <p className="text-sm text-text-secondary">IELTS Writing 실전 모의고사</p>
+            <p className="text-sm text-text-secondary">IELTS 실전 모의고사</p>
           </div>
         </div>
       </div>
 
-      {/* 안내 배너 */}
+      {/* Writing Mock Test 안내 */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start gap-3">
         <Clock size={18} className="text-amber-600 mt-0.5 shrink-0" />
         <div>
-          <p className="text-sm font-medium text-amber-800">문제 업데이트 예정</p>
-          <p className="text-xs text-amber-600 mt-0.5">곧 실전과 동일한 모의고사가 추가됩니다. 조금만 기다려주세요!</p>
+          <p className="text-sm font-medium text-amber-800">Writing 모의고사 안내</p>
+          <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
+            60분 동안 Task 1과 Task 2를 자유롭게 작성하세요. 시간이 끝나면 자동으로 제출됩니다.
+            제출 후 선생님의 피드백이 도착해요.
+          </p>
         </div>
       </div>
 
-      {/* 10회 목록 */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        {tests.map((test) => (
+      {/* Writing Mock Tests */}
+      <h2 className="text-sm font-semibold text-text-secondary mb-3 mt-2">Writing</h2>
+      <div className="space-y-2 mb-6">
+        {writingTests.map((test) => (
+          <Link
+            key={test.id}
+            to={`/mock-test/writing/${test.id}`}
+            className="flex items-center justify-between bg-surface rounded-xl border border-border p-4 hover:border-primary hover:shadow-sm transition-all no-underline text-text"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <PenLine size={18} className="text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">{test.label}</p>
+                <p className="text-xs text-text-secondary mt-0.5">60분 · Task 1 + Task 2</p>
+              </div>
+            </div>
+            <ChevronRight size={16} className="text-text-secondary" />
+          </Link>
+        ))}
+      </div>
+
+      {/* 준비중 회차 */}
+      <h2 className="text-sm font-semibold text-text-secondary mb-3">준비중</h2>
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+        {lockedTests.map((test) => (
           <div
             key={test.id}
-            className="relative bg-surface rounded-xl border border-border p-5 text-center opacity-60 cursor-not-allowed"
+            className="relative bg-surface rounded-xl border border-border p-4 text-center opacity-60 cursor-not-allowed"
           >
-            <Lock size={16} className="text-text-secondary mx-auto mb-2" />
-            <p className="text-lg font-bold text-text">{test.label}</p>
-            <p className="text-[11px] text-text-secondary mt-1">준비중</p>
+            <Lock size={14} className="text-text-secondary mx-auto mb-1" />
+            <p className="text-sm font-bold text-text">{test.label}</p>
+            <p className="text-[10px] text-text-secondary mt-0.5">준비중</p>
           </div>
         ))}
       </div>

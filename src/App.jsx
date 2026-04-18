@@ -29,6 +29,7 @@ import CommunityBoard from './pages/CommunityBoard'
 import CommunityWrite from './pages/CommunityWrite'
 import CommunityPost from './pages/CommunityPost'
 import MockTest from './pages/MockTest'
+import MockTestWriting from './pages/MockTestWriting'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Refund from './pages/Refund'
@@ -66,6 +67,7 @@ function App() {
           <Route path="/community/:categoryId/edit/:postId" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
           <Route path="/community/:categoryId/:postId" element={<CommunityPost />} />
           <Route path="/mock-test" element={<MockTest />} />
+          <Route path="/mock-test/writing/:id" element={<RequireAuth><MockTestWriting /></RequireAuth>} />
           <Route path="/store" element={<Store />} />
           <Route path="/store/:id" element={<StoreDetail />} />
           <Route path="/login" element={<Login />} />
