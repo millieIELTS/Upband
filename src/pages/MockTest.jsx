@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, FileText, Lock, Clock, ChevronRight } from 'lucide-react'
 
 const fullMockTests = [
-  { id: '1', label: 'Mock Test 1회', available: true },
+  { id: '1', label: 'Writing Mock Test 1회', available: true },
 ]
 
 const lockedTests = Array.from({ length: 9 }, (_, i) => ({
@@ -27,8 +27,8 @@ export default function MockTest() {
             <FileText size={24} className="text-amber-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Mock Test</h1>
-            <p className="text-sm text-text-secondary">IELTS 실전 모의고사</p>
+            <h1 className="text-2xl font-bold">Writing Mock Test</h1>
+            <p className="text-sm text-text-secondary">IELTS Writing 실전 모의고사</p>
           </div>
         </div>
       </div>

@@ -93,9 +93,9 @@ export default function Home() {
           <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center mb-4">
             <FileText size={24} className="text-amber-600" />
           </div>
-          <h2 className="text-xl font-semibold text-text mb-2">Mock Test</h2>
+          <h2 className="text-xl font-semibold text-text mb-2">Writing Mock Test</h2>
           <p className="text-text-secondary text-sm mb-4">
-            실전과 동일한 IELTS 모의고사를 풀어보세요.
+            실전과 동일한 IELTS Writing 모의고사를 풀어보세요.
           </p>
           <span className="text-amber-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
             입장하기 <ArrowRight size={14} />
