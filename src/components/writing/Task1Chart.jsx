@@ -345,6 +345,20 @@ function DiagramQ5() {
     }
   }
 
+  // Snake layout: row 0 left→right (steps 1–4), then drop down, row 1 right→left (steps 5–8)
+  const BOX_W = 130
+  const BOX_H = 105
+  const boxX = (col) => 20 + col * 155
+  const boxY = (row) => 30 + row * 160
+  const colOf = (i) => (i < 4 ? i : 7 - i)
+  const rowOf = (i) => (i < 4 ? 0 : 1)
+
+  const arrowPairs = [
+    [0, 1], [1, 2], [2, 3], // row 0 →
+    [3, 4],                 // U-turn ↓ (same column)
+    [4, 5], [5, 6], [6, 7], // row 1 ←
+  ]
+
   return (
     <div className="overflow-x-auto">
       <svg viewBox="0 0 640 360" width="100%" height="360" style={{ fontFamily: 'sans-serif', color: '#000' }}>
@@ -354,18 +368,18 @@ function DiagramQ5() {
           </marker>
         </defs>
         {steps.map((step, i) => {
-          const col = i % 4
-          const row = Math.floor(i / 4)
-          const x = 20 + col * 155
-          const y = 30 + row * 160
-          const iconCx = x + 65
+          const col = colOf(i)
+          const row = rowOf(i)
+          const x = boxX(col)
+          const y = boxY(row)
+          const iconCx = x + BOX_W / 2
           const iconCy = y + 28
           return (
             <g key={i}>
-              <rect x={x} y={y} width="130" height="105" fill="#f3f4f6" stroke="#000" strokeWidth="1.2" />
-              <line x1={x} y1={y + 52} x2={x + 130} y2={y + 52} stroke="#000" strokeWidth="0.5" strokeDasharray="2 2" />
+              <rect x={x} y={y} width={BOX_W} height={BOX_H} fill="#f3f4f6" stroke="#000" strokeWidth="1.2" />
+              <line x1={x} y1={y + 52} x2={x + BOX_W} y2={y + 52} stroke="#000" strokeWidth="0.5" strokeDasharray="2 2" />
               {renderIcon(step.icon, iconCx, iconCy)}
-              <foreignObject x={x} y={y + 54} width="130" height="50">
+              <foreignObject x={x} y={y + 54} width={BOX_W} height="50">
                 <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 11, color: '#111', whiteSpace: 'pre-line', padding: '0 4px', lineHeight: 1.25 }}>
                   {step.label}
                 </div>
@@ -373,20 +387,23 @@ function DiagramQ5() {
             </g>
           )
         })}
-        {/* Arrows: 1→2, 2→3, 3→4, 5→6, 6→7, 7→8 */}
-        {[[0, 1], [1, 2], [2, 3], [4, 5], [5, 6], [6, 7]].map(([a, b], i) => {
-          const colA = a % 4
-          const rowA = Math.floor(a / 4)
-          const colB = b % 4
-          const rowB = Math.floor(b / 4)
-          const x1 = 20 + colA * 155 + 130
-          const y1 = 30 + rowA * 160 + 52
-          const x2 = 20 + colB * 155
-          const y2 = 30 + rowB * 160 + 52
+        {arrowPairs.map(([a, b], i) => {
+          const cA = colOf(a), rA = rowOf(a)
+          const cB = colOf(b), rB = rowOf(b)
+          let x1, y1, x2, y2
+          if (rA === rB) {
+            // Horizontal arrow across the same row, centred vertically on the box.
+            y1 = y2 = boxY(rA) + 52
+            if (cA < cB) { x1 = boxX(cA) + BOX_W; x2 = boxX(cB) }
+            else { x1 = boxX(cA); x2 = boxX(cB) + BOX_W }
+          } else {
+            // Vertical U-turn arrow down the shared column.
+            x1 = x2 = boxX(cA) + BOX_W / 2
+            y1 = boxY(rA) + BOX_H
+            y2 = boxY(rB)
+          }
           return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#000" strokeWidth="1.5" markerEnd="url(#arrowhead-bw)" />
         })}
-        {/* Arrow 4 → 5 (wrap to next row) */}
-        <path d="M 615 82 Q 632 82 632 105 L 632 225 Q 632 242 615 242 L 20 242" fill="none" stroke="#000" strokeWidth="1.5" markerEnd="url(#arrowhead-bw)" />
       </svg>
       <p className="text-xs text-center mt-1 italic">The diagram shows the stages of chocolate production from cacao pods to finished bars.</p>
     </div>
@@ -574,7 +591,7 @@ function MapQ6() {
 }
 
 // ───────────────────────────────────────────
-// Q7: Multi — Obese adults by age group (pie) + Food spending (pie)
+// Q7: Multi — Obese adults by age group (pie) + Obesity prevalence by country (table)
 // ───────────────────────────────────────────
 function MultiQ7() {
   const [ref, w] = useContainerWidth()
@@ -584,11 +601,12 @@ function MultiQ7() {
     { name: '50–64', value: 34 },
     { name: '65+', value: 21 },
   ]
-  const pieB = [
-    { name: 'Fast food', value: 38 },
-    { name: 'Processed', value: 27 },
-    { name: 'Fresh produce', value: 20 },
-    { name: 'Dairy', value: 15 },
+  const tableRows = [
+    { country: 'USA', 2000: 30, 2020: 42 },
+    { country: 'UK', 2000: 21, 2020: 28 },
+    { country: 'Brazil', 2000: 11, 2020: 22 },
+    { country: 'France', 2000: 10, 2020: 17 },
+    { country: 'Japan', 2000: 3, 2020: 5 },
   ]
   const pieSize = Math.min(260, w)
   return (
@@ -602,15 +620,25 @@ function MultiQ7() {
           </Pie>
         </PieChart>
       </div>
-      <p className="text-xs font-semibold mt-4 mb-1">B. Share of household food spending, 2020</p>
-      <div className="flex justify-center">
-        <PieChart width={pieSize} height={pieSize}>
-          <Pie data={pieB} cx={pieSize / 2} cy={pieSize / 2} outerRadius={pieSize / 2 - 40} dataKey="value"
-               label={({ name, value }) => `${name} ${value}%`} labelLine={true} fontSize={10} stroke="#000" strokeWidth={1} isAnimationActive={false}>
-            {pieB.map((_, i) => <Cell key={`pq7b-${i}`} fill={GRAY[i]} />)}
-          </Pie>
-        </PieChart>
-      </div>
+      <p className="text-xs font-semibold mt-4 mb-1">B. Prevalence of adult obesity in five countries (%), 2000 vs 2020</p>
+      <table className="w-full text-xs sm:text-sm border-collapse">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="text-left p-2 font-semibold border border-black">Country</th>
+            <th className="p-2 font-semibold border border-black text-center">2000</th>
+            <th className="p-2 font-semibold border border-black text-center">2020</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tableRows.map((row) => (
+            <tr key={row.country} className="even:bg-gray-50">
+              <td className="p-2 font-medium border border-black">{row.country}</td>
+              <td className="p-2 text-center border border-black">{row[2000]}</td>
+              <td className="p-2 text-center border border-black">{row[2020]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -682,11 +710,11 @@ function MultiQ9() {
     { name: 'Facebook', value: 8 },
   ]
   const lineData = [
-    { year: '2015', daily_hours: 2.1 },
-    { year: '2017', daily_hours: 2.8 },
-    { year: '2019', daily_hours: 3.5 },
-    { year: '2021', daily_hours: 4.6 },
-    { year: '2023', daily_hours: 5.2 },
+    { year: '2015', Teens: 2.1, '20s': 2.7, '30s+': 2.2 },
+    { year: '2017', Teens: 2.8, '20s': 3.0, '30s+': 2.4 },
+    { year: '2019', Teens: 3.5, '20s': 3.4, '30s+': 2.6 },
+    { year: '2021', Teens: 4.6, '20s': 3.9, '30s+': 3.0 },
+    { year: '2023', Teens: 5.2, '20s': 4.3, '30s+': 3.2 },
   ]
   const pieSize = Math.min(260, w)
   return (
@@ -700,12 +728,15 @@ function MultiQ9() {
           </Pie>
         </PieChart>
       </div>
-      <p className="text-xs font-semibold mt-4 mb-1">B. Average daily screen time of teenagers (hours)</p>
-      <LineChart width={w} height={180} data={lineData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+      <p className="text-xs font-semibold mt-4 mb-1">B. Average daily screen time by age group (hours), 2015–2023</p>
+      <LineChart width={w} height={200} data={lineData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
         <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#111827' }} />
         <YAxis tick={{ fontSize: 11, fill: '#111827' }} unit="h" />
-        <Line type="monotone" dataKey="daily_hours" stroke="#000" strokeWidth={2} dot={{ r: 4, fill: '#000' }} isAnimationActive={false} />
+        <Legend wrapperStyle={{ fontSize: 11 }} />
+        <Line type="monotone" dataKey="Teens" stroke="#000" strokeWidth={2} strokeDasharray={DASH[0]} dot={{ r: 3, fill: '#000' }} isAnimationActive={false} />
+        <Line type="monotone" dataKey="20s" stroke="#000" strokeWidth={2} strokeDasharray={DASH[1]} dot={{ r: 3, fill: '#000' }} isAnimationActive={false} />
+        <Line type="monotone" dataKey="30s+" stroke="#000" strokeWidth={2} strokeDasharray={DASH[2]} dot={{ r: 3, fill: '#000' }} isAnimationActive={false} />
       </LineChart>
     </div>
   )

@@ -71,8 +71,8 @@ const MOCK_TESTS = {
     t2Prompt: `Some people believe that individuals are responsible for their own health, while others think the government should take responsibility for the health of its citizens.\n\nDiscuss both views and give your own opinion.`,
   }),
   '8': makeTest(8, {
-    chartIndex: 7, // Multi (Pie + Pie)
-    t1Prompt: `The two pie charts below show the share of obese adults in the UK by age group and the share of household food spending by category, both in 2020.`,
+    chartIndex: 7, // Multi (Pie + Table)
+    t1Prompt: `The pie chart shows the share of obese adults in the UK by age group in 2020, and the table shows the prevalence of adult obesity (%) in five countries in 2000 and 2020.`,
     t2Prompt: `Obesity rates are rising rapidly in many developed countries.\n\nWhat do you think are the main causes of this problem, and what solutions could governments and individuals adopt to tackle it?`,
   }),
   '9': makeTest(9, {
@@ -82,7 +82,7 @@ const MOCK_TESTS = {
   }),
   '10': makeTest(10, {
     chartIndex: 9, // Multi (Pie + Line)
-    t1Prompt: `The pie chart shows the share of teenagers using five social media platforms in 2023, and the line graph shows the change in teenagers' average daily screen time from 2015 to 2023.`,
+    t1Prompt: `The pie chart shows the share of teenagers using five social media platforms in 2023, and the line graph shows the change in average daily screen time for three age groups — teenagers, 20s, and 30s+ — from 2015 to 2023.`,
     t2Prompt: `Social media plays an increasingly important role in young people's lives.\n\nDiscuss the advantages and disadvantages of social media for young people.`,
   }),
 }
