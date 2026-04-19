@@ -47,7 +47,7 @@ export default function Home() {
           </div>
           <h2 className="text-xl font-semibold text-text mb-2">Speaking</h2>
           <p className="text-text-secondary text-sm mb-4">
-            질문을 듣고 연습해보세요. (녹음기능 업데이트 예정)
+            질문을 듣고 연습해보세요.
           </p>
           <span className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
             시작하기 <ArrowRight size={14} />
