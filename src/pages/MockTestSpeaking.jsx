@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, Play, Mic, MicOff, Volume2, ChevronRight, Clock, CheckCircle2, RotateCcw,
+  ArrowLeft, Play, Mic, Volume2, ChevronRight, Clock, CheckCircle2, RotateCcw,
 } from 'lucide-react'
 import useRecorder from '../hooks/useRecorder'
 import { speakQuestion, stopSpeaking, pickSessionVoice } from '../lib/tts'
@@ -12,6 +12,8 @@ import { SPEAKING_MOCK_TESTS } from '../data/speakingMockTests'
 const P1_QS_PER_TOPIC = 4
 const PART2_PREP_SECONDS = 60
 const PART2_SPEAK_SECONDS = 120
+const P13_PREP_SECONDS = 3
+const P13_REC_SECONDS = 30
 
 function formatTime(sec) {
   const m = Math.floor(sec / 60)
@@ -42,12 +44,19 @@ export default function MockTestSpeaking() {
   // phase: 'intro' | 'part1' | 'part2-prep' | 'part2-speak' | 'part3' | 'done'
   const [phase, setPhase] = useState('intro')
   const [qIndex, setQIndex] = useState(0)
-  const [playing, setPlaying] = useState(false)
-  const [questionPlayed, setQuestionPlayed] = useState(false)
+
+  // Part 1/3 하위 단계: 'playing' | 'prep' | 'recording' | 'review'
+  const [p13Sub, setP13Sub] = useState('playing')
+  const [prepCountdown, setPrepCountdown] = useState(P13_PREP_SECONDS)
+  const [recCountdown, setRecCountdown] = useState(P13_REC_SECONDS)
+
+  // Part 2 타이머
   const [prepLeft, setPrepLeft] = useState(PART2_PREP_SECONDS)
   const [speakLeft, setSpeakLeft] = useState(PART2_SPEAK_SECONDS)
+
   const { recording, audioUrl, startRecording, stopRecording, clearRecording } = useRecorder()
-  const autoPlayedRef = useRef(false)
+  const recordingRef = useRef(false)
+  useEffect(() => { recordingRef.current = recording }, [recording])
 
   // 세션 음성 고정 — 모의고사 중 같은 시험관 목소리 유지
   useEffect(() => {
@@ -61,23 +70,20 @@ export default function MockTestSpeaking() {
       ? part3Questions[qIndex]
       : null
 
-  // Part 1·3 진입 또는 문제 이동 시: 녹음 리셋 + 질문 자동 재생
+  // Part 1·3 진입 또는 문제 이동 시: 녹음 리셋 + 질문 자동 재생 → TTS 종료 시 'prep'로 전환
   useEffect(() => {
     if (phase !== 'part1' && phase !== 'part3') return
     clearRecording()
-    setQuestionPlayed(false)
-    autoPlayedRef.current = false
-    // currentQ가 아직 준비되지 않은 경우를 피하기 위해 소폭 딜레이
+    setP13Sub('playing')
+    setPrepCountdown(P13_PREP_SECONDS)
+    setRecCountdown(P13_REC_SECONDS)
+
     const t = setTimeout(() => {
-      if (!autoPlayedRef.current && currentQ) {
-        autoPlayedRef.current = true
-        setPlaying(true)
-        speakQuestion(currentQ, () => {
-          setPlaying(false)
-          setQuestionPlayed(true)
-        })
+      if (currentQ) {
+        speakQuestion(currentQ, () => setP13Sub('prep'))
       }
     }, 300)
+
     return () => {
       clearTimeout(t)
       stopSpeaking()
@@ -85,17 +91,62 @@ export default function MockTestSpeaking() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, qIndex])
 
+  // Part 1·3: 'prep' — 3초 카운트다운 → 'recording'
+  useEffect(() => {
+    if (p13Sub !== 'prep') return
+    setPrepCountdown(P13_PREP_SECONDS)
+    const tick = setInterval(() => {
+      setPrepCountdown((n) => {
+        if (n <= 1) {
+          clearInterval(tick)
+          setP13Sub('recording')
+          return 0
+        }
+        return n - 1
+      })
+    }, 1000)
+    return () => clearInterval(tick)
+  }, [p13Sub])
+
+  // Part 1·3: 'recording' — 30초 자동 녹음 카운트다운 → 자동 정지 + 'review'
+  useEffect(() => {
+    if (p13Sub !== 'recording') return
+    setRecCountdown(P13_REC_SECONDS)
+
+    let cancelled = false
+    startRecording().catch(() => {
+      // 마이크 권한 거부 등 — 녹음 없이 리뷰로 넘어감
+      if (!cancelled) setP13Sub('review')
+    })
+
+    const tick = setInterval(() => {
+      setRecCountdown((n) => {
+        if (n <= 1) {
+          clearInterval(tick)
+          if (recordingRef.current) stopRecording()
+          setP13Sub('review')
+          return 0
+        }
+        return n - 1
+      })
+    }, 1000)
+
+    return () => {
+      cancelled = true
+      clearInterval(tick)
+      if (recordingRef.current) stopRecording()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p13Sub])
+
   // Part 2 prep timer
   useEffect(() => {
     if (phase !== 'part2-prep') return
     clearRecording()
     setPrepLeft(PART2_PREP_SECONDS)
-    // 큐카드 읽어주기
     if (part2Card) {
-      setPlaying(true)
       speakQuestion(
         `Now, here is your topic card. ${part2Card.title}. You have one minute to prepare. You can make notes if you wish.`,
-        () => setPlaying(false),
       )
     }
     const tick = setInterval(() => {
@@ -114,25 +165,33 @@ export default function MockTestSpeaking() {
     }
   }, [phase, part2Card])
 
-  // Part 2 speak timer
+  // Part 2 speak timer + 자동 녹음
   useEffect(() => {
     if (phase !== 'part2-speak') return
     setSpeakLeft(PART2_SPEAK_SECONDS)
-    setPlaying(true)
-    speakQuestion('Please start speaking now.', () => setPlaying(false))
+    speakQuestion('Please start speaking now.')
+    // 자동 녹음 시작
+    let cancelled = false
+    startRecording().catch(() => { /* 권한 거부 시 무시 */ })
+
     const tick = setInterval(() => {
       setSpeakLeft((n) => {
         if (n <= 1) {
           clearInterval(tick)
+          if (recordingRef.current) stopRecording()
           return 0
         }
         return n - 1
       })
     }, 1000)
+
     return () => {
+      cancelled = true
       clearInterval(tick)
       stopSpeaking()
+      if (recordingRef.current) stopRecording()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])
 
   if (!config) {
@@ -142,12 +201,6 @@ export default function MockTestSpeaking() {
         <Link to="/mock-test/speaking" className="text-primary no-underline mt-3 inline-block">목록으로 돌아가기</Link>
       </div>
     )
-  }
-
-  const replay = () => {
-    if (!currentQ) return
-    setPlaying(true)
-    speakQuestion(currentQ, () => setPlaying(false))
   }
 
   const goNextPart1 = () => {
@@ -190,7 +243,9 @@ export default function MockTestSpeaking() {
             <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
             <div>
               <p className="font-semibold text-sm">Part 1 — 자기소개 및 일반 주제</p>
-              <p className="text-xs text-text-secondary mt-0.5">두 주제에서 {P1_QS_PER_TOPIC}문제씩 총 {part1Questions.length}문제 · 약 4–5분</p>
+              <p className="text-xs text-text-secondary mt-0.5">
+                두 주제에서 {P1_QS_PER_TOPIC}문제씩 총 {part1Questions.length}문제 · 질문당 준비 3초 + 녹음 30초 자동 진행
+              </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -204,14 +259,17 @@ export default function MockTestSpeaking() {
             <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
             <div>
               <p className="font-semibold text-sm">Part 3 — 심화 토론</p>
-              <p className="text-xs text-text-secondary mt-0.5">Part 2 주제에 대한 {part3Questions.length}개 질문 · 약 4–5분</p>
+              <p className="text-xs text-text-secondary mt-0.5">
+                Part 2 주제에 대한 {part3Questions.length}개 질문 · 준비 3초 + 녹음 30초 자동
+              </p>
             </div>
           </div>
         </div>
 
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6 text-xs text-emerald-700 leading-relaxed">
-          질문은 AI 음성으로 자동 재생되고, 본인 답변은 마이크로 녹음·재생하며 연습할 수 있어요.
-          제출이나 저장 없이 <b>토큰 차감도 없습니다</b>. 중간에 나가도 괜찮아요.
+          Part 1·3 질문은 음성으로만 제시되며 텍스트는 표시되지 않아요.
+          질문이 끝나면 <b>3초 후 자동으로 녹음</b>이 시작되고 <b>30초 뒤 자동 종료</b>됩니다.
+          제출이나 저장 없이 <b>토큰 차감도 없습니다</b>.
         </div>
 
         <button
@@ -284,35 +342,19 @@ export default function MockTestSpeaking() {
           </div>
         ) : (
           <>
-            <div className="bg-surface rounded-xl border border-border p-5 mb-4">
-              <p className="text-xs font-semibold text-text-secondary mb-3">Your Answer</p>
-              {!audioUrl ? (
-                <button
-                  onClick={recording ? stopRecording : startRecording}
-                  className={`w-full flex items-center justify-center gap-2 py-4 rounded-lg font-medium transition-colors ${
-                    recording
-                      ? 'bg-red-500 text-white animate-pulse'
-                      : 'bg-primary/5 border-2 border-dashed border-primary/30 text-primary hover:bg-primary/10'
-                  }`}
-                >
-                  {recording ? <MicOff size={18} /> : <Mic size={18} />}
-                  {recording ? '녹음 중지' : '녹음 시작'}
-                </button>
-              ) : (
-                <div className="space-y-2">
-                  <audio src={audioUrl} controls className="w-full" />
-                  <button
-                    onClick={clearRecording}
-                    className="w-full py-2 rounded-lg border border-border text-sm text-text-secondary hover:border-primary hover:text-primary transition-colors"
-                  >
-                    다시 녹음
-                  </button>
-                </div>
+            <div className="bg-surface rounded-xl border border-border p-5 mb-4 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/10 mb-2 animate-pulse">
+                <Mic size={28} className="text-red-500" />
+              </div>
+              <p className="text-xs text-text-secondary mb-1">자동 녹음 중</p>
+              <p className="text-2xl font-bold text-red-500 font-mono">{formatTime(speakLeft)}</p>
+              {audioUrl && speakLeft === 0 && (
+                <audio src={audioUrl} controls className="w-full mt-3" />
               )}
             </div>
 
             <button
-              onClick={() => { if (recording) stopRecording(); setPhase('part3') }}
+              onClick={() => { if (recordingRef.current) stopRecording(); setPhase('part3') }}
               className="w-full py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
             >
               Part 3로 이동 <ChevronRight size={16} />
@@ -341,7 +383,7 @@ export default function MockTestSpeaking() {
       </div>
 
       {/* 진행 점 */}
-      <div className="flex gap-1 mb-5">
+      <div className="flex gap-1 mb-6">
         {Array.from({ length: total }).map((_, i) => (
           <div
             key={i}
@@ -352,61 +394,64 @@ export default function MockTestSpeaking() {
         ))}
       </div>
 
-      {/* 질문 영역 */}
-      <div className="bg-surface rounded-xl border border-border p-5 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-xs font-semibold text-text-secondary">Question {qIndex + 1}</p>
-          <button
-            onClick={replay}
-            disabled={playing}
-            className="flex items-center gap-1.5 text-xs text-primary hover:text-primary-dark disabled:opacity-50"
-          >
-            {playing ? <Volume2 size={14} className="animate-pulse" /> : <Play size={14} />}
-            {playing ? '재생 중' : '다시 듣기'}
-          </button>
-        </div>
-        <p className="text-base text-text leading-relaxed">{currentQ}</p>
-      </div>
+      <div className="bg-surface rounded-xl border border-border p-6 min-h-[260px] flex items-center justify-center">
+        {p13Sub === 'playing' && (
+          <div className="text-center">
+            <Volume2 size={56} className="mx-auto text-primary mb-3 animate-pulse" />
+            <p className="text-sm text-text-secondary">시험관의 질문을 듣고 있어요</p>
+            <p className="text-xs text-text-secondary/70 mt-1">질문이 끝나면 준비 시간이 시작돼요</p>
+          </div>
+        )}
 
-      {/* 녹음 영역 */}
-      <div className="bg-surface rounded-xl border border-border p-5 mb-4">
-        <p className="text-xs font-semibold text-text-secondary mb-3">Your Answer</p>
-        {!audioUrl ? (
-          <button
-            onClick={recording ? stopRecording : startRecording}
-            disabled={playing}
-            className={`w-full flex items-center justify-center gap-2 py-4 rounded-lg font-medium transition-colors ${
-              recording
-                ? 'bg-red-500 text-white animate-pulse'
-                : 'bg-primary/5 border-2 border-dashed border-primary/30 text-primary hover:bg-primary/10 disabled:opacity-50'
-            }`}
-          >
-            {recording ? <MicOff size={18} /> : <Mic size={18} />}
-            {recording ? '녹음 중지' : '녹음 시작'}
-          </button>
-        ) : (
-          <div className="space-y-2">
-            <audio src={audioUrl} controls className="w-full" />
-            <button
-              onClick={clearRecording}
-              className="w-full py-2 rounded-lg border border-border text-sm text-text-secondary hover:border-primary hover:text-primary transition-colors"
-            >
-              다시 녹음
-            </button>
+        {p13Sub === 'prep' && (
+          <div className="text-center">
+            <p className="text-sm text-text-secondary mb-4">곧 녹음이 시작됩니다</p>
+            <div className="text-7xl font-bold text-amber-500 font-mono leading-none">{prepCountdown}</div>
+            <p className="text-xs text-text-secondary mt-4">답변을 준비하세요</p>
+          </div>
+        )}
+
+        {p13Sub === 'recording' && (
+          <div className="text-center w-full">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-500/10 mb-3 animate-pulse">
+              <Mic size={40} className="text-red-500" />
+            </div>
+            <p className="text-sm text-text-secondary mb-3">녹음 중...</p>
+            <div className="relative mx-auto max-w-xs h-2 bg-red-100 rounded-full overflow-hidden">
+              <div
+                className="absolute inset-y-0 left-0 bg-red-500 transition-all duration-1000 ease-linear"
+                style={{ width: `${(recCountdown / P13_REC_SECONDS) * 100}%` }}
+              />
+            </div>
+            <p className="text-3xl font-bold text-red-500 mt-3 font-mono">{recCountdown}s</p>
+          </div>
+        )}
+
+        {p13Sub === 'review' && (
+          <div className="w-full space-y-3">
+            <div className="flex items-center justify-center gap-2 text-emerald-600 text-sm font-semibold">
+              <CheckCircle2 size={16} /> 녹음 완료
+            </div>
+            {audioUrl ? (
+              <audio src={audioUrl} controls className="w-full" />
+            ) : (
+              <p className="text-xs text-center text-text-secondary py-2">
+                녹음이 저장되지 않았어요. 마이크 권한을 확인해주세요.
+              </p>
+            )}
           </div>
         )}
       </div>
 
-      <button
-        onClick={() => {
-          if (recording) stopRecording()
-          isPart1 ? goNextPart1() : goNextPart3()
-        }}
-        className="w-full py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
-      >
-        {qIndex + 1 < total ? '다음 질문' : isPart1 ? 'Part 2로 이동' : '마치기'}
-        <ChevronRight size={16} />
-      </button>
+      {p13Sub === 'review' && (
+        <button
+          onClick={() => { isPart1 ? goNextPart1() : goNextPart3() }}
+          className="mt-4 w-full py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
+        >
+          {qIndex + 1 < total ? '다음 질문' : isPart1 ? 'Part 2로 이동' : '마치기'}
+          <ChevronRight size={16} />
+        </button>
+      )}
     </div>
   )
 }
