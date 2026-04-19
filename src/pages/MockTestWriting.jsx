@@ -409,8 +409,45 @@ export default function MockTestWriting() {
   const setCurrentEssay = activeTask === 'task1' ? setTask1Essay : setTask2Essay
   const currentWords = activeTask === 'task1' ? t1Words : t2Words
 
+  const hasChart = currentTask.chartIndex !== undefined
+  const isTask1WithChart = activeTask === 'task1' && hasChart
+
+  // 입력창 — Task 1 (좌우 분할) vs Task 2 (단일 열) 양쪽에서 공용
+  const essayTextarea = (
+    <textarea
+      value={currentEssay}
+      onChange={(e) => setCurrentEssay(e.target.value)}
+      onPaste={(e) => {
+        e.preventDefault()
+        setError('모의고사에서는 붙여넣기가 허용되지 않아요. 직접 입력해 주세요.')
+        setTimeout(() => setError(''), 3000)
+      }}
+      onDrop={(e) => e.preventDefault()}
+      placeholder={`${currentTask.title} 에세이를 입력하세요... (붙여넣기 불가)`}
+      autoComplete="off"
+      autoCorrect="off"
+      autoCapitalize="off"
+      spellCheck={false}
+      disabled={submitting || isOvertime}
+      className={`w-full p-4 rounded-xl border border-border bg-surface resize-y text-sm leading-relaxed focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-60 ${
+        isTask1WithChart ? 'h-[28rem] lg:h-[calc(100vh-18rem)] lg:min-h-[32rem]' : 'h-96'
+      }`}
+    />
+  )
+
+  const wordCountRow = (
+    <div className="flex items-center justify-between mt-2 text-xs">
+      <span className={currentWords >= currentTask.minWords ? 'text-success' : 'text-text-secondary'}>
+        {currentWords} / {currentTask.minWords}+ words
+      </span>
+      <span className="text-text-secondary">
+        크레딧 {profile?.credits ?? 0} · 제출 시 1 크레딧 차감
+      </span>
+    </div>
+  )
+
   return (
-    <div className="max-w-3xl mx-auto pb-32">
+    <div className={`${isTask1WithChart ? 'max-w-6xl' : 'max-w-3xl'} mx-auto pb-32 px-4`}>
       <Link
         to="/mock-test"
         className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-primary mb-4 no-underline"
@@ -469,46 +506,38 @@ export default function MockTestWriting() {
         })}
       </div>
 
-      {/* 문제 */}
-      <div className="bg-surface rounded-xl border border-border p-5 mb-4">
-        <p className="text-xs text-text-secondary mb-2 font-medium">문제 (Question)</p>
-        <p className="text-sm text-text whitespace-pre-line leading-relaxed mb-3">
-          {currentTask.prompt}
-        </p>
-        {currentTask.chartIndex !== undefined && (
-          <div className="mt-3">
-            <Task1Chart questionIndex={currentTask.chartIndex} />
+      {isTask1WithChart ? (
+        // ─────────── Task 1: 왼쪽 차트/문제 + 오른쪽 에세이 ───────────
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="lg:sticky lg:top-40 lg:self-start lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto">
+            <div className="bg-surface rounded-xl border border-border p-5">
+              <p className="text-xs text-text-secondary mb-2 font-medium">문제 (Question)</p>
+              <p className="text-sm text-text whitespace-pre-line leading-relaxed mb-3">
+                {currentTask.prompt}
+              </p>
+              <div className="mt-3">
+                <Task1Chart questionIndex={currentTask.chartIndex} />
+              </div>
+            </div>
           </div>
-        )}
-      </div>
-
-      {/* 에세이 입력 */}
-      <textarea
-        value={currentEssay}
-        onChange={(e) => setCurrentEssay(e.target.value)}
-        onPaste={(e) => {
-          e.preventDefault()
-          setError('모의고사에서는 붙여넣기가 허용되지 않아요. 직접 입력해 주세요.')
-          setTimeout(() => setError(''), 3000)
-        }}
-        onDrop={(e) => e.preventDefault()}
-        placeholder={`${currentTask.title} 에세이를 입력하세요... (붙여넣기 불가)`}
-        autoComplete="off"
-        autoCorrect="off"
-        autoCapitalize="off"
-        spellCheck={false}
-        disabled={submitting || isOvertime}
-        className="w-full h-96 p-4 rounded-xl border border-border bg-surface resize-y text-sm leading-relaxed focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-60"
-      />
-
-      <div className="flex items-center justify-between mt-2 text-xs">
-        <span className={currentWords >= currentTask.minWords ? 'text-success' : 'text-text-secondary'}>
-          {currentWords} / {currentTask.minWords}+ words
-        </span>
-        <span className="text-text-secondary">
-          크레딧 {profile?.credits ?? 0} · 제출 시 1 크레딧 차감
-        </span>
-      </div>
+          <div>
+            {essayTextarea}
+            {wordCountRow}
+          </div>
+        </div>
+      ) : (
+        // ─────────── Task 2 (또는 차트 없는 Task): 기존 세로 레이아웃 ───────────
+        <>
+          <div className="bg-surface rounded-xl border border-border p-5 mb-4">
+            <p className="text-xs text-text-secondary mb-2 font-medium">문제 (Question)</p>
+            <p className="text-sm text-text whitespace-pre-line leading-relaxed">
+              {currentTask.prompt}
+            </p>
+          </div>
+          {essayTextarea}
+          {wordCountRow}
+        </>
+      )}
 
       {error && (
         <div className="mt-4 p-3 rounded-lg bg-error/10 text-error text-sm">{error}</div>
@@ -516,7 +545,7 @@ export default function MockTestWriting() {
 
       {/* 하단 sticky 제출 버튼 */}
       <div className="fixed bottom-4 left-0 right-0 px-4 z-40">
-        <div className="max-w-3xl mx-auto bg-surface border border-border rounded-2xl shadow-lg p-3 flex items-center justify-between gap-3">
+        <div className={`${isTask1WithChart ? 'max-w-6xl' : 'max-w-3xl'} mx-auto bg-surface border border-border rounded-2xl shadow-lg p-3 flex items-center justify-between gap-3`}>
           <div className="text-xs text-text-secondary">
             <p>Task 1: {t1Words}w · Task 2: {t2Words}w</p>
             {isWarning && (
