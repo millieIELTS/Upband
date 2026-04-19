@@ -50,8 +50,8 @@ export default function MockTestSpeakingList() {
               </div>
               <div className="min-w-0">
                 <p className="font-semibold text-sm">Speaking Mock Test {test.id}회</p>
-                <p className="text-xs text-text-secondary mt-0.5 truncate">
-                  {test.summary}
+                <p className="text-xs text-text-secondary mt-0.5">
+                  시작하면 주제가 공개돼요
                 </p>
               </div>
             </div>
