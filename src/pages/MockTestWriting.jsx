@@ -46,8 +46,8 @@ const MOCK_TESTS = {
     t2Prompt: `Some people think that technology such as tablets and laptops should replace traditional teaching in schools.\n\nTo what extent do you agree or disagree?`,
   }),
   '3': makeTest(3, {
-    chartIndex: 2, // Pie
-    t1Prompt: `The two pie charts below show the sources of energy production in a country in 1985 and 2010.`,
+    chartIndex: 2, // Pie (3 charts)
+    t1Prompt: `The three pie charts below show the sources of energy production in a country in 1985, 2000, and 2020.`,
     t2Prompt: `Air pollution has become a serious problem in many major cities around the world.\n\nWhat are the main causes of this problem, and what measures could be taken to solve it?`,
   }),
   '4': makeTest(4, {
@@ -71,8 +71,8 @@ const MOCK_TESTS = {
     t2Prompt: `Some people believe that individuals are responsible for their own health, while others think the government should take responsibility for the health of its citizens.\n\nDiscuss both views and give your own opinion.`,
   }),
   '8': makeTest(8, {
-    chartIndex: 7, // Multi (Bar + Pie)
-    t1Prompt: `The bar chart shows changes in obesity rates in the UK among men, women, and children between 2000 and 2020, and the pie chart shows the share of household food spending by category in 2020.`,
+    chartIndex: 7, // Multi (Pie + Pie)
+    t1Prompt: `The two pie charts below show the share of obese adults in the UK by age group and the share of household food spending by category, both in 2020.`,
     t2Prompt: `Obesity rates are rising rapidly in many developed countries.\n\nWhat do you think are the main causes of this problem, and what solutions could governments and individuals adopt to tackle it?`,
   }),
   '9': makeTest(9, {
@@ -81,8 +81,8 @@ const MOCK_TESTS = {
     t2Prompt: `Many people feel that traditional values and customs are gradually being lost in modern society.\n\nWhy is this happening? Do you think this is a positive or negative development?`,
   }),
   '10': makeTest(10, {
-    chartIndex: 9, // Multi (Bar + Line)
-    t1Prompt: `The bar chart shows the share of users of five social media platforms across three age groups, and the line graph shows the change in teenagers' average daily screen time from 2015 to 2023.`,
+    chartIndex: 9, // Multi (Pie + Line)
+    t1Prompt: `The pie chart shows the share of teenagers using five social media platforms in 2023, and the line graph shows the change in teenagers' average daily screen time from 2015 to 2023.`,
     t2Prompt: `Social media plays an increasingly important role in young people's lives.\n\nDiscuss the advantages and disadvantages of social media for young people.`,
   }),
 }

@@ -1,24 +1,9 @@
 import { Link } from 'react-router-dom'
 import { ArrowLeft, FileText, Clock, ChevronRight } from 'lucide-react'
 
-// Task 1 유형 라벨 (학생이 미리 준비할 수 있도록 표시)
-const TASK1_TYPES = [
-  'Bar chart',      // 1회
-  'Line graph',     // 2회
-  'Pie chart',      // 3회
-  'Table',          // 4회
-  'Bar chart',      // 5회
-  'Process diagram',// 6회
-  'Map',            // 7회
-  'Multiple charts',// 8회
-  'Multiple charts',// 9회
-  'Multiple charts',// 10회
-]
-
 const fullMockTests = Array.from({ length: 10 }, (_, i) => ({
   id: String(i + 1),
   label: `Writing Mock Test ${i + 1}회`,
-  task1Type: TASK1_TYPES[i],
   available: true,
 }))
 
@@ -71,9 +56,7 @@ export default function MockTest() {
               </div>
               <div className="min-w-0">
                 <p className="font-semibold text-sm">{test.label}</p>
-                <p className="text-xs text-text-secondary mt-0.5">
-                  60분 · Task 1 ({test.task1Type}) + Task 2
-                </p>
+                <p className="text-xs text-text-secondary mt-0.5">60분</p>
               </div>
             </div>
             <ChevronRight size={16} className="text-text-secondary shrink-0" />

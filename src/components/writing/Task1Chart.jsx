@@ -26,13 +26,15 @@ function useContainerWidth() {
 // ───────────────────────────────────────────
 function BarChartQ0() {
   const [ref, w] = useContainerWidth()
+  // Dramatic swings: Business peaks mid-series then crashes, Engineering climbs steeply
+  // after an initial dip, Art & Design drops sharply then rebounds and dips again.
   const data = [
     { year: '2015', Business: 450, Engineering: 380, 'Art & Design': 210 },
-    { year: '2016', Business: 480, Engineering: 400, 'Art & Design': 195 },
-    { year: '2017', Business: 520, Engineering: 430, 'Art & Design': 220 },
-    { year: '2018', Business: 550, Engineering: 470, 'Art & Design': 250 },
-    { year: '2019', Business: 530, Engineering: 510, 'Art & Design': 280 },
-    { year: '2020', Business: 490, Engineering: 540, 'Art & Design': 310 },
+    { year: '2016', Business: 560, Engineering: 350, 'Art & Design': 140 },
+    { year: '2017', Business: 620, Engineering: 320, 'Art & Design': 110 },
+    { year: '2018', Business: 440, Engineering: 480, 'Art & Design': 260 },
+    { year: '2019', Business: 330, Engineering: 560, 'Art & Design': 370 },
+    { year: '2020', Business: 380, Engineering: 640, 'Art & Design': 290 },
   ]
   return (
     <div ref={ref}>
@@ -84,25 +86,43 @@ function LineChartQ1() {
 }
 
 // ───────────────────────────────────────────
-// Q2: Pie charts — Energy sources 1985 vs 2010
+// Q2: Pie charts — Energy sources 1985 / 2000 / 2020
 // ───────────────────────────────────────────
 function PieChartQ2() {
   const [ref, w] = useContainerWidth()
-  const pieW = Math.max(Math.floor(w / 2) - 10, 150)
-  const r = Math.min(pieW / 2 - 30, 80)
-  const data1985 = [
-    { name: 'Coal', value: 42 },
-    { name: 'Oil', value: 35 },
-    { name: 'Natural Gas', value: 15 },
-    { name: 'Nuclear', value: 5 },
-    { name: 'Renewables', value: 3 },
-  ]
-  const data2010 = [
-    { name: 'Coal', value: 28 },
-    { name: 'Oil', value: 25 },
-    { name: 'Natural Gas', value: 22 },
-    { name: 'Nuclear', value: 12 },
-    { name: 'Renewables', value: 13 },
+  const pieW = Math.max(Math.floor(w / 3) - 8, 110)
+  const r = Math.min(pieW / 2 - 22, 70)
+  const years = [
+    {
+      year: '1985',
+      data: [
+        { name: 'Coal', value: 42 },
+        { name: 'Oil', value: 35 },
+        { name: 'Natural Gas', value: 15 },
+        { name: 'Nuclear', value: 5 },
+        { name: 'Renewables', value: 3 },
+      ],
+    },
+    {
+      year: '2000',
+      data: [
+        { name: 'Coal', value: 35 },
+        { name: 'Oil', value: 30 },
+        { name: 'Natural Gas', value: 20 },
+        { name: 'Nuclear', value: 10 },
+        { name: 'Renewables', value: 5 },
+      ],
+    },
+    {
+      year: '2020',
+      data: [
+        { name: 'Coal', value: 22 },
+        { name: 'Oil', value: 22 },
+        { name: 'Natural Gas', value: 26 },
+        { name: 'Nuclear', value: 10 },
+        { name: 'Renewables', value: 20 },
+      ],
+    },
   ]
   const h = pieW
   const cx = Math.floor(pieW / 2)
@@ -111,23 +131,17 @@ function PieChartQ2() {
   const shades = [GRAY[0], GRAY[1], GRAY[2], GRAY[3], GRAY[4]]
   return (
     <div ref={ref}>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
-        <div style={{ textAlign: 'center' }}>
-          <p className="text-sm font-semibold mb-1">1985</p>
-          <PieChart width={pieW} height={h}>
-            <Pie data={data1985} cx={cx} cy={cy} outerRadius={r} innerRadius={0} dataKey="value" label={renderLabel} labelLine={false} fontSize={11} stroke="#000" strokeWidth={1} isAnimationActive={false}>
-              {data1985.map((_, i) => <Cell key={`c1-${i}`} fill={shades[i]} />)}
-            </Pie>
-          </PieChart>
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <p className="text-sm font-semibold mb-1">2010</p>
-          <PieChart width={pieW} height={h}>
-            <Pie data={data2010} cx={cx} cy={cy} outerRadius={r} innerRadius={0} dataKey="value" label={renderLabel} labelLine={false} fontSize={11} stroke="#000" strokeWidth={1} isAnimationActive={false}>
-              {data2010.map((_, i) => <Cell key={`c2-${i}`} fill={shades[i]} />)}
-            </Pie>
-          </PieChart>
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 4, flexWrap: 'wrap' }}>
+        {years.map(({ year, data }, idx) => (
+          <div key={year} style={{ textAlign: 'center' }}>
+            <p className="text-sm font-semibold mb-1">{year}</p>
+            <PieChart width={pieW} height={h}>
+              <Pie data={data} cx={cx} cy={cy} outerRadius={r} innerRadius={0} dataKey="value" label={renderLabel} labelLine={false} fontSize={10} stroke="#000" strokeWidth={1} isAnimationActive={false}>
+                {data.map((_, i) => <Cell key={`c${idx}-${i}`} fill={shades[i]} />)}
+              </Pie>
+            </PieChart>
+          </div>
+        ))}
       </div>
       <div className="flex justify-center gap-4 mt-2 text-xs flex-wrap">
         {['Coal', 'Oil', 'Natural Gas', 'Nuclear', 'Renewables'].map((name, i) => (
@@ -211,51 +225,168 @@ function BarChartQ4() {
 // ───────────────────────────────────────────
 function DiagramQ5() {
   const steps = [
-    '1. Cacao pods\nharvested',
-    '2. Beans fermented\n(5–7 days)',
-    '3. Beans\nsun-dried',
-    '4. Roasted\nat 150°C',
-    '5. Cracked &\nwinnowed',
-    '6. Ground into\ncocoa mass',
-    '7. Mixed with\nsugar & milk',
-    '8. Tempered &\nmoulded',
+    { label: '1. Cacao pods\nharvested', icon: 'pod' },
+    { label: '2. Beans\nfermented', icon: 'basket' },
+    { label: '3. Beans\nsun-dried', icon: 'sun' },
+    { label: '4. Roasted\nat 150°C', icon: 'oven' },
+    { label: '5. Cracked &\nwinnowed', icon: 'hammer' },
+    { label: '6. Ground into\ncocoa mass', icon: 'grinder' },
+    { label: '7. Mixed with\nsugar & milk', icon: 'bowl' },
+    { label: '8. Tempered &\nmoulded', icon: 'bar' },
   ]
+
+  const renderIcon = (type, cx, cy) => {
+    switch (type) {
+      case 'pod':
+        // Cacao pod — oval with stem and ridges
+        return (
+          <g>
+            <ellipse cx={cx} cy={cy} rx="12" ry="9" fill="#9ca3af" stroke="#000" strokeWidth="1" />
+            <line x1={cx} y1={cy - 9} x2={cx + 2} y2={cy - 13} stroke="#000" strokeWidth="1.5" />
+            <path d={`M ${cx - 10} ${cy - 2} Q ${cx} ${cy} ${cx + 10} ${cy - 2}`} fill="none" stroke="#4b5563" strokeWidth="0.7" />
+            <path d={`M ${cx - 10} ${cy + 2} Q ${cx} ${cy + 4} ${cx + 10} ${cy + 2}`} fill="none" stroke="#4b5563" strokeWidth="0.7" />
+          </g>
+        )
+      case 'basket':
+        // Basket with beans on top
+        return (
+          <g>
+            <circle cx={cx - 5} cy={cy - 6} r="1.8" fill="#111827" />
+            <circle cx={cx} cy={cy - 7} r="1.8" fill="#111827" />
+            <circle cx={cx + 5} cy={cy - 6} r="1.8" fill="#111827" />
+            <circle cx={cx - 2} cy={cy - 4} r="1.8" fill="#111827" />
+            <circle cx={cx + 3} cy={cy - 4} r="1.8" fill="#111827" />
+            <path d={`M ${cx - 14} ${cy - 2} L ${cx + 14} ${cy - 2} L ${cx + 11} ${cy + 10} L ${cx - 11} ${cy + 10} Z`} fill="#e5e7eb" stroke="#000" strokeWidth="1" />
+            <line x1={cx - 12} y1={cy + 2} x2={cx + 12} y2={cy + 2} stroke="#000" strokeWidth="0.5" />
+            <line x1={cx - 12} y1={cy + 6} x2={cx + 12} y2={cy + 6} stroke="#000" strokeWidth="0.5" />
+          </g>
+        )
+      case 'sun':
+        // Sun with rays
+        return (
+          <g>
+            <circle cx={cx} cy={cy} r="6" fill="#fff" stroke="#000" strokeWidth="1.2" />
+            {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
+              const rad = (a * Math.PI) / 180
+              return (
+                <line
+                  key={a}
+                  x1={cx + Math.cos(rad) * 8}
+                  y1={cy + Math.sin(rad) * 8}
+                  x2={cx + Math.cos(rad) * 12}
+                  y2={cy + Math.sin(rad) * 12}
+                  stroke="#000"
+                  strokeWidth="1.2"
+                />
+              )
+            })}
+            <circle cx={cx - 2} cy={cy - 1} r="0.8" fill="#000" />
+            <circle cx={cx + 2} cy={cy - 1} r="0.8" fill="#000" />
+          </g>
+        )
+      case 'oven':
+        // Oven with flame
+        return (
+          <g>
+            <rect x={cx - 13} y={cy - 9} width="26" height="18" fill="#e5e7eb" stroke="#000" strokeWidth="1" />
+            <line x1={cx - 13} y1={cy - 2} x2={cx + 13} y2={cy - 2} stroke="#000" strokeWidth="0.8" />
+            <circle cx={cx - 9} cy={cy - 6} r="1" fill="#4b5563" />
+            <circle cx={cx + 9} cy={cy - 6} r="1" fill="#4b5563" />
+            <path d={`M ${cx - 3} ${cy + 6} Q ${cx - 3} ${cy} ${cx} ${cy - 2} Q ${cx + 3} ${cy} ${cx + 3} ${cy + 6} Q ${cx + 1} ${cy + 4} ${cx} ${cy + 7} Q ${cx - 1} ${cy + 4} ${cx - 3} ${cy + 6} Z`} fill="#6b7280" stroke="#000" strokeWidth="0.6" />
+          </g>
+        )
+      case 'hammer':
+        // Hammer cracking a bean
+        return (
+          <g>
+            <rect x={cx - 3} y={cy - 10} width="14" height="5" fill="#4b5563" stroke="#000" strokeWidth="1" />
+            <line x1={cx - 10} y1={cy} x2={cx + 2} y2={cy - 8} stroke="#000" strokeWidth="2.5" strokeLinecap="round" />
+            <ellipse cx={cx - 8} cy={cy + 6} rx="5" ry="3" fill="#9ca3af" stroke="#000" strokeWidth="0.8" />
+            <line x1={cx - 12} y1={cy + 4} x2={cx - 4} y2={cy + 8} stroke="#000" strokeWidth="0.6" />
+            <line x1={cx - 11} y1={cy + 9} x2={cx - 5} y2={cy + 3} stroke="#000" strokeWidth="0.6" />
+          </g>
+        )
+      case 'grinder':
+        // Mortar / grinder bowl with paste
+        return (
+          <g>
+            <path d={`M ${cx - 13} ${cy - 3} Q ${cx - 13} ${cy + 9} ${cx} ${cy + 9} Q ${cx + 13} ${cy + 9} ${cx + 13} ${cy - 3} Z`} fill="#e5e7eb" stroke="#000" strokeWidth="1" />
+            <ellipse cx={cx} cy={cy - 3} rx="13" ry="3" fill="#6b7280" stroke="#000" strokeWidth="0.8" />
+            <line x1={cx + 5} y1={cy - 12} x2={cx + 2} y2={cy - 3} stroke="#000" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx={cx + 2} cy={cy - 3} r="2" fill="#4b5563" stroke="#000" strokeWidth="0.6" />
+          </g>
+        )
+      case 'bowl':
+        // Mixing bowl with spoon & droplets (sugar/milk)
+        return (
+          <g>
+            <circle cx={cx - 9} cy={cy - 10} r="1.5" fill="#000" />
+            <circle cx={cx + 9} cy={cy - 10} r="1.5" fill="#000" />
+            <path d={`M ${cx - 13} ${cy - 2} Q ${cx - 13} ${cy + 9} ${cx} ${cy + 9} Q ${cx + 13} ${cy + 9} ${cx + 13} ${cy - 2} Z`} fill="#e5e7eb" stroke="#000" strokeWidth="1" />
+            <line x1={cx - 13} y1={cy - 2} x2={cx + 13} y2={cy - 2} stroke="#000" strokeWidth="1" />
+            <path d={`M ${cx + 5} ${cy - 11} L ${cx + 8} ${cy + 4}`} stroke="#000" strokeWidth="1.2" />
+            <ellipse cx={cx + 5} cy={cy - 11} rx="2" ry="1.5" fill="#9ca3af" stroke="#000" strokeWidth="0.6" />
+          </g>
+        )
+      case 'bar':
+        // Chocolate bar — 4 segments
+        return (
+          <g>
+            <rect x={cx - 14} y={cy - 6} width="28" height="12" fill="#6b7280" stroke="#000" strokeWidth="1" />
+            <line x1={cx - 7} y1={cy - 6} x2={cx - 7} y2={cy + 6} stroke="#000" strokeWidth="0.7" />
+            <line x1={cx} y1={cy - 6} x2={cx} y2={cy + 6} stroke="#000" strokeWidth="0.7" />
+            <line x1={cx + 7} y1={cy - 6} x2={cx + 7} y2={cy + 6} stroke="#000" strokeWidth="0.7" />
+            <line x1={cx - 14} y1={cy} x2={cx + 14} y2={cy} stroke="#000" strokeWidth="0.7" />
+            <rect x={cx - 13} y={cy - 5} width="2" height="1" fill="#d1d5db" />
+          </g>
+        )
+      default:
+        return null
+    }
+  }
+
   return (
     <div className="overflow-x-auto">
-      <svg viewBox="0 0 640 340" width="100%" height="340" style={{ fontFamily: 'sans-serif', color: '#000' }}>
+      <svg viewBox="0 0 640 360" width="100%" height="360" style={{ fontFamily: 'sans-serif', color: '#000' }}>
         <defs>
           <marker id="arrowhead-bw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
             <path d="M 0 0 L 10 5 L 0 10 z" fill="#000" />
           </marker>
         </defs>
-        {steps.map((label, i) => {
+        {steps.map((step, i) => {
           const col = i % 4
           const row = Math.floor(i / 4)
           const x = 20 + col * 155
-          const y = 40 + row * 150
+          const y = 30 + row * 160
+          const iconCx = x + 65
+          const iconCy = y + 28
           return (
             <g key={i}>
-              <rect x={x} y={y} width="130" height="90" fill="#f3f4f6" stroke="#000" strokeWidth="1.2" />
-              <foreignObject x={x} y={y} width="130" height="90">
-                <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 12, color: '#111', whiteSpace: 'pre-line', padding: 4 }}>
-                  {label}
+              <rect x={x} y={y} width="130" height="105" fill="#f3f4f6" stroke="#000" strokeWidth="1.2" />
+              <line x1={x} y1={y + 52} x2={x + 130} y2={y + 52} stroke="#000" strokeWidth="0.5" strokeDasharray="2 2" />
+              {renderIcon(step.icon, iconCx, iconCy)}
+              <foreignObject x={x} y={y + 54} width="130" height="50">
+                <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 11, color: '#111', whiteSpace: 'pre-line', padding: '0 4px', lineHeight: 1.25 }}>
+                  {step.label}
                 </div>
               </foreignObject>
             </g>
           )
         })}
-        {/* Arrows: 1→2, 2→3, 3→4, 4→5 (down-around), 5→6, 6→7, 7→8 */}
-        {[[0,1],[1,2],[2,3],[4,5],[5,6],[6,7]].map(([a,b],i) => {
-          const colA = a % 4, rowA = Math.floor(a / 4)
-          const colB = b % 4, rowB = Math.floor(b / 4)
+        {/* Arrows: 1→2, 2→3, 3→4, 5→6, 6→7, 7→8 */}
+        {[[0, 1], [1, 2], [2, 3], [4, 5], [5, 6], [6, 7]].map(([a, b], i) => {
+          const colA = a % 4
+          const rowA = Math.floor(a / 4)
+          const colB = b % 4
+          const rowB = Math.floor(b / 4)
           const x1 = 20 + colA * 155 + 130
-          const y1 = 40 + rowA * 150 + 45
+          const y1 = 30 + rowA * 160 + 52
           const x2 = 20 + colB * 155
-          const y2 = 40 + rowB * 150 + 45
+          const y2 = 30 + rowB * 160 + 52
           return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#000" strokeWidth="1.5" markerEnd="url(#arrowhead-bw)" />
         })}
         {/* Arrow 4 → 5 (wrap to next row) */}
-        <path d="M 610 85 Q 628 85 628 115 Q 628 160 610 190 L 155 190" fill="none" stroke="#000" strokeWidth="1.5" markerEnd="url(#arrowhead-bw)" />
+        <path d="M 615 82 Q 632 82 632 105 L 632 225 Q 632 242 615 242 L 20 242" fill="none" stroke="#000" strokeWidth="1.5" markerEnd="url(#arrowhead-bw)" />
       </svg>
       <p className="text-xs text-center mt-1 italic">The diagram shows the stages of chocolate production from cacao pods to finished bars.</p>
     </div>
@@ -266,63 +397,174 @@ function DiagramQ5() {
 // Q6: Map — Brookfield town, 1990 vs 2020
 // ───────────────────────────────────────────
 function MapQ6() {
-  const Label = ({ x, y, children, size = 10 }) => (
+  const Label = ({ x, y, children, size = 9 }) => (
     <text x={x} y={y} fontSize={size} textAnchor="middle" fill="#000" fontFamily="sans-serif">{children}</text>
+  )
+  const Compass = ({ x, y }) => (
+    <g transform={`translate(${x}, ${y})`}>
+      <circle cx="0" cy="0" r="11" fill="#fff" stroke="#000" strokeWidth="0.8" />
+      <polygon points="0,-9 3,0 0,9 -3,0" fill="#000" />
+      <text x="0" y="-13" fontSize="8" textAnchor="middle" fill="#000">N</text>
+    </g>
   )
   return (
     <div>
-      <div className="grid grid-cols-2 gap-3">
-        {/* 1990 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* ========== 1990 ========== */}
         <div>
           <p className="text-xs font-semibold text-center mb-1">Brookfield — 1990</p>
-          <svg viewBox="0 0 280 220" width="100%" height="200">
-            <rect x="1" y="1" width="278" height="218" fill="#fff" stroke="#000" />
-            {/* Road */}
-            <line x1="0" y1="110" x2="280" y2="110" stroke="#000" strokeWidth="4" />
-            <line x1="0" y1="110" x2="280" y2="110" stroke="#fff" strokeWidth="1" strokeDasharray="6 6" />
-            <Label x={140} y={104}>Main Road</Label>
-            {/* Church */}
-            <rect x="40" y="40" width="50" height="40" fill="#e5e7eb" stroke="#000" />
-            <polygon points="40,40 65,20 90,40" fill="#9ca3af" stroke="#000" />
-            <Label x={65} y={62}>Church</Label>
-            {/* Farmland */}
-            <rect x="160" y="30" width="100" height="60" fill="#fff" stroke="#000" strokeDasharray="3 3" />
-            <Label x={210} y={62}>Farmland</Label>
-            {/* Houses */}
-            <rect x="30" y="150" width="30" height="30" fill="#fff" stroke="#000" />
-            <rect x="70" y="150" width="30" height="30" fill="#fff" stroke="#000" />
-            <rect x="110" y="150" width="30" height="30" fill="#fff" stroke="#000" />
-            <Label x={85} y={195}>Houses</Label>
-            {/* Pond */}
-            <ellipse cx="220" cy="165" rx="32" ry="18" fill="#e5e7eb" stroke="#000" />
-            <Label x={220} y={168}>Pond</Label>
+          <svg viewBox="0 0 320 270" width="100%" style={{ maxHeight: 280 }}>
+            <rect x="1" y="1" width="318" height="268" fill="#fff" stroke="#000" />
+            <Compass x={298} y={22} />
+
+            {/* Main road (horizontal) */}
+            <rect x="0" y="128" width="320" height="14" fill="#e5e7eb" stroke="#000" strokeWidth="0.7" />
+            <line x1="0" y1="135" x2="320" y2="135" stroke="#000" strokeDasharray="5 4" strokeWidth="0.5" />
+            <Label x={40} y={124} size={9}>Main Road</Label>
+
+            {/* Side road (vertical) */}
+            <rect x="148" y="0" width="10" height="128" fill="#e5e7eb" stroke="#000" strokeWidth="0.7" />
+            <rect x="148" y="142" width="10" height="128" fill="#e5e7eb" stroke="#000" strokeWidth="0.7" />
+
+            {/* River with bridge */}
+            <path d="M 245 0 Q 238 40 250 75 Q 260 105 248 128" fill="none" stroke="#000" strokeWidth="1.8" />
+            <path d="M 248 142 Q 260 175 248 205 Q 238 235 252 270" fill="none" stroke="#000" strokeWidth="1.8" />
+            <Label x={267} y={48} size={9}>River</Label>
+            <rect x="242" y="126" width="14" height="18" fill="#fff" stroke="#000" strokeWidth="0.8" />
+            <line x1="242" y1="130" x2="256" y2="130" stroke="#000" strokeWidth="0.5" />
+            <line x1="242" y1="140" x2="256" y2="140" stroke="#000" strokeWidth="0.5" />
+
+            {/* Church (top-left) */}
+            <rect x="22" y="38" width="46" height="34" fill="#e5e7eb" stroke="#000" />
+            <polygon points="22,38 45,18 68,38" fill="#9ca3af" stroke="#000" />
+            <line x1="45" y1="18" x2="45" y2="10" stroke="#000" strokeWidth="0.8" />
+            <line x1="42" y1="13" x2="48" y2="13" stroke="#000" strokeWidth="0.8" />
+            <Label x={45} y={58}>Church</Label>
+
+            {/* Woods (top-middle) */}
+            <circle cx="85" cy="38" r="7" fill="#d1d5db" stroke="#000" strokeWidth="0.7" />
+            <circle cx="98" cy="46" r="7" fill="#d1d5db" stroke="#000" strokeWidth="0.7" />
+            <circle cx="111" cy="38" r="7" fill="#d1d5db" stroke="#000" strokeWidth="0.7" />
+            <circle cx="124" cy="46" r="7" fill="#d1d5db" stroke="#000" strokeWidth="0.7" />
+            <Label x={105} y={65}>Woods</Label>
+
+            {/* Farmland (top-right) */}
+            <rect x="170" y="22" width="68" height="90" fill="#fff" stroke="#000" strokeDasharray="3 3" />
+            <line x1="170" y1="45" x2="238" y2="45" stroke="#9ca3af" strokeDasharray="2 3" />
+            <line x1="170" y1="68" x2="238" y2="68" stroke="#9ca3af" strokeDasharray="2 3" />
+            <line x1="170" y1="90" x2="238" y2="90" stroke="#9ca3af" strokeDasharray="2 3" />
+            <Label x={204} y={62}>Farmland</Label>
+
+            {/* School (bottom-left) */}
+            <rect x="18" y="160" width="60" height="36" fill="#e5e7eb" stroke="#000" />
+            <rect x="25" y="170" width="8" height="9" fill="#fff" stroke="#000" strokeWidth="0.5" />
+            <rect x="40" y="170" width="8" height="9" fill="#fff" stroke="#000" strokeWidth="0.5" />
+            <rect x="55" y="170" width="8" height="9" fill="#fff" stroke="#000" strokeWidth="0.5" />
+            <rect x="40" y="184" width="10" height="12" fill="#9ca3af" stroke="#000" strokeWidth="0.5" />
+            <Label x={48} y={212}>School</Label>
+
+            {/* Houses (bottom-middle row) */}
+            {[85, 108, 165].map((hx, i) => (
+              <g key={i} transform={`translate(${hx}, 165)`}>
+                <polygon points="0,10 10,0 20,10" fill="#9ca3af" stroke="#000" />
+                <rect x="2" y="10" width="16" height="14" fill="#fff" stroke="#000" />
+                <rect x="8" y="16" width="4" height="8" fill="#9ca3af" stroke="#000" strokeWidth="0.4" />
+              </g>
+            ))}
+            <Label x={130} y={202}>Houses</Label>
+
+            {/* Post Office (bottom-middle below houses) */}
+            <rect x="88" y="220" width="50" height="30" fill="#f3f4f6" stroke="#000" />
+            <rect x="108" y="232" width="10" height="18" fill="#9ca3af" stroke="#000" strokeWidth="0.5" />
+            <Label x={113} y={245} size={8}>Post Office</Label>
+
+            {/* Pond (bottom-right) */}
+            <ellipse cx="195" cy="230" rx="28" ry="15" fill="#e5e7eb" stroke="#000" />
+            <Label x={195} y={233}>Pond</Label>
           </svg>
         </div>
-        {/* 2020 */}
+
+        {/* ========== 2020 ========== */}
         <div>
           <p className="text-xs font-semibold text-center mb-1">Brookfield — 2020</p>
-          <svg viewBox="0 0 280 220" width="100%" height="200">
-            <rect x="1" y="1" width="278" height="218" fill="#fff" stroke="#000" />
+          <svg viewBox="0 0 320 270" width="100%" style={{ maxHeight: 280 }}>
+            <rect x="1" y="1" width="318" height="268" fill="#fff" stroke="#000" />
+            <Compass x={298} y={22} />
+
             {/* Highway (widened) */}
-            <line x1="0" y1="110" x2="280" y2="110" stroke="#000" strokeWidth="8" />
-            <line x1="0" y1="110" x2="280" y2="110" stroke="#fff" strokeWidth="1" strokeDasharray="6 6" />
-            <Label x={140} y={102}>Highway</Label>
+            <rect x="0" y="122" width="320" height="24" fill="#d1d5db" stroke="#000" strokeWidth="0.7" />
+            <line x1="0" y1="134" x2="320" y2="134" stroke="#fff" strokeDasharray="6 4" strokeWidth="1" />
+            <Label x={40} y={118} size={9}>Highway</Label>
+
+            {/* Roundabout at intersection */}
+            <circle cx="153" cy="134" r="15" fill="#fff" stroke="#000" strokeWidth="1" />
+            <circle cx="153" cy="134" r="6" fill="#d1d5db" stroke="#000" strokeWidth="0.5" />
+
+            {/* Side road (still vertical) */}
+            <rect x="148" y="0" width="10" height="119" fill="#e5e7eb" stroke="#000" strokeWidth="0.7" />
+            <rect x="148" y="149" width="10" height="121" fill="#e5e7eb" stroke="#000" strokeWidth="0.7" />
+
+            {/* River with widened bridge */}
+            <path d="M 245 0 Q 238 40 250 75 Q 260 105 248 122" fill="none" stroke="#000" strokeWidth="1.8" />
+            <path d="M 248 146 Q 260 175 248 205 Q 238 235 252 270" fill="none" stroke="#000" strokeWidth="1.8" />
+            <Label x={267} y={48} size={9}>River</Label>
+            <rect x="240" y="120" width="18" height="28" fill="#fff" stroke="#000" strokeWidth="0.8" />
+            <line x1="240" y1="128" x2="258" y2="128" stroke="#000" strokeWidth="0.5" />
+            <line x1="240" y1="140" x2="258" y2="140" stroke="#000" strokeWidth="0.5" />
+
             {/* Church (unchanged) */}
-            <rect x="40" y="40" width="50" height="40" fill="#e5e7eb" stroke="#000" />
-            <polygon points="40,40 65,20 90,40" fill="#9ca3af" stroke="#000" />
-            <Label x={65} y={62}>Church</Label>
-            {/* Supermarket (replaces farmland) */}
-            <rect x="160" y="25" width="100" height="65" fill="#d1d5db" stroke="#000" />
-            <Label x={210} y={62}>Supermarket</Label>
-            {/* Apartments (replaces houses) */}
-            <rect x="25" y="130" width="120" height="55" fill="#9ca3af" stroke="#000" />
-            <Label x={85} y={163} size={11}>Apartments</Label>
-            {/* Park (replaces pond+area) */}
-            <rect x="170" y="125" width="95" height="70" fill="#f3f4f6" stroke="#000" />
-            <circle cx="190" cy="150" r="6" fill="#6b7280" stroke="#000" />
-            <circle cx="210" cy="175" r="6" fill="#6b7280" stroke="#000" />
-            <circle cx="240" cy="155" r="6" fill="#6b7280" stroke="#000" />
-            <Label x={217} y={193}>Park</Label>
+            <rect x="22" y="38" width="46" height="34" fill="#e5e7eb" stroke="#000" />
+            <polygon points="22,38 45,18 68,38" fill="#9ca3af" stroke="#000" />
+            <line x1="45" y1="18" x2="45" y2="10" stroke="#000" strokeWidth="0.8" />
+            <line x1="42" y1="13" x2="48" y2="13" stroke="#000" strokeWidth="0.8" />
+            <Label x={45} y={58}>Church</Label>
+
+            {/* Car Park (replaces woods) */}
+            <rect x="78" y="28" width="60" height="40" fill="#f3f4f6" stroke="#000" />
+            {[0, 1, 2].map((i) => (
+              <line key={i} x1={78 + 15 * (i + 1)} y1="28" x2={78 + 15 * (i + 1)} y2="68" stroke="#6b7280" strokeWidth="0.5" strokeDasharray="2 2" />
+            ))}
+            <line x1="78" y1="48" x2="138" y2="48" stroke="#6b7280" strokeWidth="0.4" strokeDasharray="1 2" />
+            <Label x={108} y={54} size={8}>Car Park</Label>
+
+            {/* Supermarket (replaces farmland top) */}
+            <rect x="170" y="22" width="68" height="48" fill="#d1d5db" stroke="#000" />
+            <rect x="180" y="55" width="20" height="15" fill="#fff" stroke="#000" strokeWidth="0.6" />
+            <Label x={204} y={42} size={9}>Supermarket</Label>
+
+            {/* Sports Centre (replaces lower farmland) */}
+            <rect x="170" y="75" width="68" height="37" fill="#e5e7eb" stroke="#000" />
+            <circle cx="190" cy="95" r="4" fill="none" stroke="#000" strokeWidth="0.8" />
+            <rect x="210" y="88" width="20" height="14" fill="none" stroke="#000" strokeWidth="0.6" />
+            <Label x={204} y={110} size={8}>Sports Centre</Label>
+
+            {/* Apartments (replaces school) */}
+            <rect x="18" y="160" width="60" height="55" fill="#9ca3af" stroke="#000" />
+            {[0, 1, 2, 3].map((r) => [0, 1, 2].map((c) => (
+              <rect key={`a-${r}-${c}`} x={23 + c * 18} y={165 + r * 12} width="13" height="8" fill="#fff" stroke="#000" strokeWidth="0.3" />
+            )))}
+            <Label x={48} y={228} size={9}>Apartments</Label>
+
+            {/* Bus Station (new, replaces houses) */}
+            <rect x="85" y="160" width="55" height="32" fill="#f3f4f6" stroke="#000" />
+            <rect x="90" y="178" width="45" height="10" fill="#d1d5db" stroke="#000" strokeWidth="0.5" />
+            <circle cx="95" cy="191" r="2.5" fill="#000" />
+            <circle cx="130" cy="191" r="2.5" fill="#000" />
+            <Label x={112} y={172} size={7}>Bus Station</Label>
+
+            {/* Café (replaces post office) */}
+            <rect x="88" y="200" width="50" height="30" fill="#e5e7eb" stroke="#000" />
+            <path d="M 95 208 L 125 208 L 125 216 L 95 216 Z" fill="#fff" stroke="#000" strokeWidth="0.5" />
+            <Label x={113} y={244} size={8}>Café</Label>
+
+            {/* Park (replaces pond) */}
+            <rect x="163" y="158" width="75" height="85" fill="#f3f4f6" stroke="#000" />
+            <circle cx="175" cy="175" r="5" fill="#6b7280" stroke="#000" strokeWidth="0.5" />
+            <circle cx="200" cy="200" r="5" fill="#6b7280" stroke="#000" strokeWidth="0.5" />
+            <circle cx="220" cy="175" r="5" fill="#6b7280" stroke="#000" strokeWidth="0.5" />
+            <circle cx="225" cy="220" r="5" fill="#6b7280" stroke="#000" strokeWidth="0.5" />
+            <path d="M 168 225 Q 185 220 200 227 Q 220 232 234 225" fill="none" stroke="#9ca3af" strokeWidth="0.7" />
+            <Label x={200} y={238}>Park</Label>
           </svg>
         </div>
       </div>
@@ -332,43 +574,40 @@ function MapQ6() {
 }
 
 // ───────────────────────────────────────────
-// Q7: Multi — Obesity rates (bar) + Food spending (pie)
+// Q7: Multi — Obese adults by age group (pie) + Food spending (pie)
 // ───────────────────────────────────────────
 function MultiQ7() {
   const [ref, w] = useContainerWidth()
-  const barData = [
-    { year: '2000', Men: 18, Women: 20, Children: 8 },
-    { year: '2005', Men: 22, Women: 23, Children: 11 },
-    { year: '2010', Men: 26, Women: 26, Children: 14 },
-    { year: '2015', Men: 30, Women: 29, Children: 17 },
-    { year: '2020', Men: 35, Women: 33, Children: 20 },
+  const pieA = [
+    { name: '20–34', value: 18 },
+    { name: '35–49', value: 27 },
+    { name: '50–64', value: 34 },
+    { name: '65+', value: 21 },
   ]
-  const pieData = [
+  const pieB = [
     { name: 'Fast food', value: 38 },
     { name: 'Processed', value: 27 },
     { name: 'Fresh produce', value: 20 },
     { name: 'Dairy', value: 15 },
   ]
-  const barW = w
   const pieSize = Math.min(260, w)
   return (
     <div ref={ref}>
-      <p className="text-xs font-semibold mb-1">A. Obesity rates in the UK (%), 2000–2020</p>
-      <BarChart width={barW} height={220} data={barData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
-        <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#111827' }} />
-        <YAxis tick={{ fontSize: 11, fill: '#111827' }} unit="%" />
-        <Legend wrapperStyle={{ fontSize: 11 }} />
-        <Bar dataKey="Men" fill={GRAY[0]} stroke="#000" strokeWidth={0.5} isAnimationActive={false} />
-        <Bar dataKey="Women" fill={GRAY[1]} stroke="#000" strokeWidth={0.5} isAnimationActive={false} />
-        <Bar dataKey="Children" fill={GRAY[2]} stroke="#000" strokeWidth={0.5} isAnimationActive={false} />
-      </BarChart>
+      <p className="text-xs font-semibold mb-1">A. Share of obese adults in the UK by age group, 2020</p>
+      <div className="flex justify-center">
+        <PieChart width={pieSize} height={pieSize}>
+          <Pie data={pieA} cx={pieSize / 2} cy={pieSize / 2} outerRadius={pieSize / 2 - 40} dataKey="value"
+               label={({ name, value }) => `${name} ${value}%`} labelLine={true} fontSize={10} stroke="#000" strokeWidth={1} isAnimationActive={false}>
+            {pieA.map((_, i) => <Cell key={`pq7a-${i}`} fill={GRAY[i]} />)}
+          </Pie>
+        </PieChart>
+      </div>
       <p className="text-xs font-semibold mt-4 mb-1">B. Share of household food spending, 2020</p>
       <div className="flex justify-center">
         <PieChart width={pieSize} height={pieSize}>
-          <Pie data={pieData} cx={pieSize/2} cy={pieSize/2} outerRadius={pieSize/2 - 40} dataKey="value"
+          <Pie data={pieB} cx={pieSize / 2} cy={pieSize / 2} outerRadius={pieSize / 2 - 40} dataKey="value"
                label={({ name, value }) => `${name} ${value}%`} labelLine={true} fontSize={10} stroke="#000" strokeWidth={1} isAnimationActive={false}>
-            {pieData.map((_, i) => <Cell key={`pq7-${i}`} fill={GRAY[i]} />)}
+            {pieB.map((_, i) => <Cell key={`pq7b-${i}`} fill={GRAY[i]} />)}
           </Pie>
         </PieChart>
       </div>
@@ -431,16 +670,16 @@ function MultiQ8() {
 }
 
 // ───────────────────────────────────────────
-// Q9: Multi — Social media usage (bar) + Screen time (line)
+// Q9: Multi — Social media platform shares (pie) + Screen time (line)
 // ───────────────────────────────────────────
 function MultiQ9() {
   const [ref, w] = useContainerWidth()
-  const barData = [
-    { platform: 'YouTube', Teens: 95, '20s': 88, '30s+': 70 },
-    { platform: 'Instagram', Teens: 78, '20s': 82, '30s+': 45 },
-    { platform: 'TikTok', Teens: 80, '20s': 60, '30s+': 20 },
-    { platform: 'Twitter/X', Teens: 42, '20s': 55, '30s+': 35 },
-    { platform: 'Facebook', Teens: 30, '20s': 50, '30s+': 70 },
+  const pieData = [
+    { name: 'YouTube', value: 34 },
+    { name: 'TikTok', value: 26 },
+    { name: 'Instagram', value: 22 },
+    { name: 'Twitter/X', value: 10 },
+    { name: 'Facebook', value: 8 },
   ]
   const lineData = [
     { year: '2015', daily_hours: 2.1 },
@@ -449,18 +688,18 @@ function MultiQ9() {
     { year: '2021', daily_hours: 4.6 },
     { year: '2023', daily_hours: 5.2 },
   ]
+  const pieSize = Math.min(260, w)
   return (
     <div ref={ref}>
-      <p className="text-xs font-semibold mb-1">A. Share of users by platform and age group (%)</p>
-      <BarChart width={w} height={220} data={barData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
-        <XAxis dataKey="platform" tick={{ fontSize: 11, fill: '#111827' }} />
-        <YAxis tick={{ fontSize: 11, fill: '#111827' }} unit="%" />
-        <Legend wrapperStyle={{ fontSize: 11 }} />
-        <Bar dataKey="Teens" fill={GRAY[0]} stroke="#000" strokeWidth={0.5} isAnimationActive={false} />
-        <Bar dataKey="20s" fill={GRAY[1]} stroke="#000" strokeWidth={0.5} isAnimationActive={false} />
-        <Bar dataKey="30s+" fill={GRAY[2]} stroke="#000" strokeWidth={0.5} isAnimationActive={false} />
-      </BarChart>
+      <p className="text-xs font-semibold mb-1">A. Share of teenagers using five social media platforms, 2023</p>
+      <div className="flex justify-center">
+        <PieChart width={pieSize} height={pieSize}>
+          <Pie data={pieData} cx={pieSize / 2} cy={pieSize / 2} outerRadius={pieSize / 2 - 40} dataKey="value"
+               label={({ name, value }) => `${name} ${value}%`} labelLine={true} fontSize={10} stroke="#000" strokeWidth={1} isAnimationActive={false}>
+            {pieData.map((_, i) => <Cell key={`pq9-${i}`} fill={GRAY[i % GRAY.length]} />)}
+          </Pie>
+        </PieChart>
+      </div>
       <p className="text-xs font-semibold mt-4 mb-1">B. Average daily screen time of teenagers (hours)</p>
       <LineChart width={w} height={180} data={lineData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
