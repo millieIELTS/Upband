@@ -30,7 +30,10 @@ import CommunityBoard from './pages/CommunityBoard'
 import CommunityWrite from './pages/CommunityWrite'
 import CommunityPost from './pages/CommunityPost'
 import MockTest from './pages/MockTest'
+import MockTestWritingList from './pages/MockTestWritingList'
 import MockTestWriting from './pages/MockTestWriting'
+import MockTestSpeakingList from './pages/MockTestSpeakingList'
+import MockTestSpeaking from './pages/MockTestSpeaking'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Refund from './pages/Refund'
@@ -69,7 +72,10 @@ function App() {
           <Route path="/community/:categoryId/edit/:postId" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
           <Route path="/community/:categoryId/:postId" element={<CommunityPost />} />
           <Route path="/mock-test" element={<MockTest />} />
+          <Route path="/mock-test/writing" element={<MockTestWritingList />} />
           <Route path="/mock-test/writing/:id" element={<RequireAuth><MockTestWriting /></RequireAuth>} />
+          <Route path="/mock-test/speaking" element={<MockTestSpeakingList />} />
+          <Route path="/mock-test/speaking/:id" element={<RequireAuth><MockTestSpeaking /></RequireAuth>} />
           <Route path="/store" element={<Store />} />
           <Route path="/store/:id" element={<StoreDetail />} />
           <Route path="/login" element={<Login />} />
