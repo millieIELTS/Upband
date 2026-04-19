@@ -77,10 +77,28 @@ export async function getWritingHistory(userId, limit = 50) {
 export async function getSpeakingHistory(userId, limit = 50) {
   const { data, error } = await supabase
     .from('speaking_submissions')
-    .select('id, part, question, overall_band, score_fluency, score_lexical, score_grammar, created_at')
+    .select('id, part, question, overall_band, score_fluency, score_lexical, score_grammar, feedback_json, created_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(limit)
+
+  return { data, error }
+}
+
+// Speaking Mock Test 완료 기록 — 녹음/전사 없이 완료 여부만 저장 (토큰 차감 없음)
+// part 컬럼이 'part1/part2/part3' 중 하나만 허용하므로 'part2'로 저장하고
+// feedback_json.speaking_mock_id 로 모의고사임을 구분한다.
+export async function saveSpeakingMockCompletion(userId, mockTestId, summary) {
+  const { data, error } = await supabase
+    .from('speaking_submissions')
+    .insert({
+      user_id: userId,
+      part: 'part2',
+      question: `Speaking Mock Test ${mockTestId}회${summary ? ` — ${summary}` : ''}`,
+      feedback_json: { speaking_mock_id: mockTestId, summary: summary || null },
+    })
+    .select()
+    .single()
 
   return { data, error }
 }

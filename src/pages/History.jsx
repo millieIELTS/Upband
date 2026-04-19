@@ -60,7 +60,9 @@ export default function History() {
     return map
   }, [allActivities])
 
-  const isMockTest = (item) => item._type === 'writing' && !item.is_homework
+  const isWritingMock = (item) => item._type === 'writing' && !item.is_homework
+  const isSpeakingMock = (item) => item._type === 'speaking' && item.feedback_json?.speaking_mock_id
+  const isMockTest = (item) => isWritingMock(item) || isSpeakingMock(item)
 
   // 연속 학습일 계산
   const streak = useMemo(() => {
@@ -316,13 +318,18 @@ export default function History() {
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-sm font-medium">
-                                {item._type === 'writing'
-                                  ? `Writing ${item.task_type === 'task1' ? 'Task 1' : 'Task 2'}`
-                                  : `Speaking ${item.part?.replace('part', 'Part ')}`
+                                {isSpeakingMock(item)
+                                  ? `Speaking Mock Test ${item.feedback_json.speaking_mock_id}회`
+                                  : item._type === 'writing'
+                                    ? `Writing ${item.task_type === 'task1' ? 'Task 1' : 'Task 2'}`
+                                    : `Speaking ${item.part?.replace('part', 'Part ')}`
                                 }
                               </span>
-                              {isMockTest(item) && (
-                                <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[10px] font-medium">모의고사</span>
+                              {isWritingMock(item) && (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[10px] font-medium">라이팅 모의고사</span>
+                              )}
+                              {isSpeakingMock(item) && (
+                                <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 text-[10px] font-medium">스피킹 모의고사</span>
                               )}
                               {item.is_homework && (
                                 <span className="px-1.5 py-0.5 rounded bg-accent/10 text-accent text-[10px] font-medium">숙제</span>
@@ -336,13 +343,19 @@ export default function History() {
                             <div className="text-[11px] text-text-secondary mt-0.5">
                               {formatTimeKr(item.created_at)}
                               {item._type === 'writing' && item.word_count ? ` · ${item.word_count}w` : ''}
-                              {item._type === 'speaking' && item.question ? ` · ${item.question.slice(0, 30)}...` : ''}
+                              {isSpeakingMock(item) && item.feedback_json?.summary
+                                ? ` · ${item.feedback_json.summary}`
+                                : item._type === 'speaking' && item.question
+                                  ? ` · ${item.question.slice(0, 30)}...`
+                                  : ''}
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           {displayBand != null ? (
                             <span className={`text-lg font-bold ${bandColor(displayBand)}`}>{displayBand}</span>
+                          ) : isSpeakingMock(item) ? (
+                            <span className="text-xs text-emerald-600 font-medium">완료</span>
                           ) : (
                             <span className="text-xs text-text-secondary">미채점</span>
                           )}

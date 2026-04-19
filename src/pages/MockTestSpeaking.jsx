@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Play, Volume2, ChevronRight, Clock, CheckCircle2, RotateCcw,
@@ -6,6 +6,8 @@ import {
 import { speakQuestion, stopSpeaking, pickSessionVoice } from '../lib/tts'
 import { part1Topics, part2Part3Topics } from '../data/speakingQuestions'
 import { SPEAKING_MOCK_TESTS } from '../data/speakingMockTests'
+import { useAuth } from '../hooks/useAuth'
+import { saveSpeakingMockCompletion } from '../lib/submissions'
 
 // Part 1: 각 토픽 6문제 중 앞 4문제씩 사용 → 총 8문제
 const P1_QS_PER_TOPIC = 4
@@ -23,7 +25,9 @@ function formatTime(sec) {
 export default function MockTestSpeaking() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const config = SPEAKING_MOCK_TESTS.find((t) => t.id === id)
+  const savedRef = useRef(false)
 
   const { part1Questions, part2Card, part3Questions } = useMemo(() => {
     if (!config) return { part1Questions: [], part2Card: null, part3Questions: [] }
@@ -57,6 +61,18 @@ export default function MockTestSpeaking() {
     pickSessionVoice()
     return () => stopSpeaking()
   }, [])
+
+  // 모의고사 완료 시 히스토리에 저장 (토큰 차감 없음)
+  useEffect(() => {
+    if (phase !== 'done') return
+    if (!user || !config || savedRef.current) return
+    savedRef.current = true
+    saveSpeakingMockCompletion(user.id, id, config.summary).catch((err) => {
+      // 저장 실패해도 UX 흐름은 유지 — 콘솔 경고만
+      // eslint-disable-next-line no-console
+      console.warn('Speaking mock completion 저장 실패:', err)
+    })
+  }, [phase, user, id, config])
 
   const currentQ = phase === 'part1'
     ? part1Questions[qIndex]
@@ -271,7 +287,7 @@ export default function MockTestSpeaking() {
         <p className="text-text-secondary mb-8">Speaking Mock Test {id}회를 완료했어요.</p>
         <div className="flex flex-col sm:flex-row gap-2 justify-center">
           <button
-            onClick={() => { setQIndex(0); setPhase('intro') }}
+            onClick={() => { savedRef.current = false; setQIndex(0); setPhase('intro') }}
             className="px-5 py-2.5 rounded-lg border border-border text-sm hover:border-primary hover:text-primary transition-colors flex items-center gap-1.5 justify-center"
           >
             <RotateCcw size={14} /> 다시 풀기

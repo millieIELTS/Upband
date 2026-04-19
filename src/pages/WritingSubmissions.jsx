@@ -57,7 +57,7 @@ export default function WritingSubmissions() {
         {[
           { key: 'all', label: '전체' },
           { key: 'homework', label: 'Writing' },
-          { key: 'mock', label: 'Mock Test' },
+          { key: 'mock', label: '라이팅 모의고사' },
         ].map(f => (
           <button
             key={f.key}
@@ -105,7 +105,7 @@ export default function WritingSubmissions() {
                         {item.is_homework ? (
                           <span className="px-1.5 py-0.5 rounded bg-accent/10 text-accent text-[10px] font-medium">Writing</span>
                         ) : (
-                          <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">Mock Test</span>
+                          <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[10px] font-medium">라이팅 모의고사</span>
                         )}
                         {hasTeacherFeedback && (
                           <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-green-50 text-green-600 text-[10px] font-medium">
