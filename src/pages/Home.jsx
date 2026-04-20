@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink, BookText, Users, FileText, Pin, MessageSquare } from 'lucide-react'
+import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink, BookText, Users, FileText, Pin, MessageSquare, Headphones } from 'lucide-react'
 import { useMemo, useState, useRef, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
@@ -50,6 +50,22 @@ export default function Home() {
             질문을 듣고 연습해보세요.
           </p>
           <span className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
+            시작하기 <ArrowRight size={14} />
+          </span>
+        </Link>
+
+        <Link
+          to="/listening"
+          className="group bg-surface rounded-2xl border border-border p-8 no-underline text-left hover:border-cyan-400 hover:shadow-lg transition-all flex flex-col"
+        >
+          <div className="w-12 h-12 rounded-xl bg-cyan-50 flex items-center justify-center mb-4">
+            <Headphones size={24} className="text-cyan-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-text mb-2">Listening 연습</h2>
+          <p className="text-text-secondary text-sm mb-4">
+            IELTS 받아쓰기로 듣기 실력 up (무료 · 토큰 차감 없음)
+          </p>
+          <span className="text-cyan-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
             시작하기 <ArrowRight size={14} />
           </span>
         </Link>

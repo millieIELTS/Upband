@@ -25,6 +25,8 @@ import DashboardMockTests from './pages/DashboardMockTests'
 import WritingSubmissions from './pages/WritingSubmissions'
 import VocabSelect from './pages/VocabSelect'
 import VocabStudy from './pages/VocabStudy'
+import ListeningSelect from './pages/ListeningSelect'
+import ListeningPractice from './pages/ListeningPractice'
 import Community from './pages/Community'
 import CommunityBoard from './pages/CommunityBoard'
 import CommunityWrite from './pages/CommunityWrite'
@@ -66,6 +68,8 @@ function App() {
           <Route path="/vocab" element={<RequireAuth><VocabSelect /></RequireAuth>} />
           <Route path="/vocab/:bandId" element={<RequireAuth><VocabSelect /></RequireAuth>} />
           <Route path="/vocab/:bandId/:topicId" element={<RequireAuth><VocabStudy /></RequireAuth>} />
+          <Route path="/listening" element={<RequireAuth><ListeningSelect /></RequireAuth>} />
+          <Route path="/listening/:bandId" element={<RequireAuth><ListeningPractice /></RequireAuth>} />
           <Route path="/community" element={<RequireAuth><Community /></RequireAuth>} />
           <Route path="/community/:categoryId" element={<RequireAuth><CommunityBoard /></RequireAuth>} />
           <Route path="/community/:categoryId/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
