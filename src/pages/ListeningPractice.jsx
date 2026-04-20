@@ -5,11 +5,88 @@ import {
 } from 'lucide-react'
 import { speakQuestion, stopSpeaking, pickSessionVoice } from '../lib/tts'
 import { LISTENING_BANDS, LISTENING_SENTENCES } from '../data/listeningSentences'
+import { useListeningProgress } from '../hooks/useListeningProgress'
+
+// ── 영국식 ↔ 미국식 철자 동일 처리 ──────────────────────────────────────
+// 받아쓰기에서 favourite/favorite 둘 다 맞는 것으로 인정
+// 비교 시에는 한쪽(미국식) 형태로 정규화해서 맞춤
+const SPELLING_VARIANTS = {
+  // -our → -or
+  favourite: 'favorite', favourites: 'favorites',
+  favour: 'favor', favours: 'favors', favoured: 'favored', favouring: 'favoring', favourable: 'favorable', favourably: 'favorably',
+  colour: 'color', colours: 'colors', coloured: 'colored', colouring: 'coloring', colourful: 'colorful',
+  honour: 'honor', honours: 'honors', honoured: 'honored', honouring: 'honoring', honourable: 'honorable',
+  labour: 'labor', labours: 'labors', laboured: 'labored', labouring: 'laboring',
+  neighbour: 'neighbor', neighbours: 'neighbors', neighbourhood: 'neighborhood', neighbouring: 'neighboring',
+  behaviour: 'behavior', behaviours: 'behaviors', behavioural: 'behavioral',
+  flavour: 'flavor', flavours: 'flavors', flavoured: 'flavored',
+  harbour: 'harbor', harbours: 'harbors',
+  humour: 'humor', humours: 'humors',
+  rumour: 'rumor', rumours: 'rumors',
+  vapour: 'vapor', vapours: 'vapors',
+  odour: 'odor', odours: 'odors',
+  tumour: 'tumor', tumours: 'tumors',
+  armour: 'armor',
+  saviour: 'savior', saviours: 'saviors',
+  endeavour: 'endeavor', endeavours: 'endeavors',
+  savour: 'savor', savours: 'savors',
+  parlour: 'parlor',
+  // -re → -er
+  centre: 'center', centres: 'centers', centred: 'centered',
+  metre: 'meter', metres: 'meters',
+  theatre: 'theater', theatres: 'theaters',
+  litre: 'liter', litres: 'liters',
+  fibre: 'fiber', fibres: 'fibers',
+  // -ise/-isation → -ize/-ization
+  organise: 'organize', organises: 'organizes', organised: 'organized', organising: 'organizing', organisation: 'organization', organisations: 'organizations',
+  realise: 'realize', realises: 'realizes', realised: 'realized', realising: 'realizing', realisation: 'realization',
+  recognise: 'recognize', recognises: 'recognizes', recognised: 'recognized', recognising: 'recognizing',
+  emphasise: 'emphasize', emphasises: 'emphasizes', emphasised: 'emphasized', emphasising: 'emphasizing',
+  analyse: 'analyze', analyses: 'analyzes', analysed: 'analyzed', analysing: 'analyzing',
+  criticise: 'criticize', criticises: 'criticizes', criticised: 'criticized', criticising: 'criticizing',
+  specialise: 'specialize', specialises: 'specializes', specialised: 'specialized', specialising: 'specializing',
+  summarise: 'summarize', summarises: 'summarizes', summarised: 'summarized', summarising: 'summarizing',
+  prioritise: 'prioritize', prioritises: 'prioritizes', prioritised: 'prioritized', prioritising: 'prioritizing',
+  categorise: 'categorize', categorises: 'categorizes', categorised: 'categorized', categorising: 'categorizing',
+  globalise: 'globalize', globalisation: 'globalization',
+  commercialise: 'commercialize', commercialisation: 'commercialization',
+  homogenise: 'homogenize', homogenisation: 'homogenization',
+  standardise: 'standardize', standardisation: 'standardization',
+  modernise: 'modernize', modernisation: 'modernization',
+  memorise: 'memorize', memorised: 'memorized', memorising: 'memorizing',
+  optimise: 'optimize', optimised: 'optimized', optimising: 'optimizing', optimisation: 'optimization',
+  minimise: 'minimize', minimised: 'minimized', minimising: 'minimizing',
+  maximise: 'maximize', maximised: 'maximized', maximising: 'maximizing',
+  utilise: 'utilize', utilised: 'utilized', utilising: 'utilizing',
+  visualise: 'visualize', visualised: 'visualized', visualising: 'visualizing',
+  industrialise: 'industrialize', industrialised: 'industrialized',
+  // -ll → -l
+  travelling: 'traveling', travelled: 'traveled', traveller: 'traveler', travellers: 'travelers',
+  modelling: 'modeling', modelled: 'modeled',
+  cancelling: 'canceling', cancelled: 'canceled',
+  labelling: 'labeling', labelled: 'labeled',
+  signalling: 'signaling', signalled: 'signaled',
+  // 기타
+  practise: 'practice', practises: 'practices', practising: 'practicing',
+  defence: 'defense', defences: 'defenses',
+  offence: 'offense', offences: 'offenses',
+  licence: 'license', licences: 'licenses',
+  pretence: 'pretense',
+  grey: 'gray', greys: 'grays',
+  aluminium: 'aluminum',
+  programme: 'program', programmes: 'programs',
+  cheque: 'check', cheques: 'checks',
+  enrol: 'enroll',
+  fulfil: 'fulfill',
+  skilful: 'skillful',
+  wilful: 'willful',
+}
 
 // ── Word-level diff (LCS 기반) ───────────────────────────────────────────
-// 구두점/대소문자 무시, 원문 단어 기준으로 맞춘 단어만 matched = true
+// 구두점/대소문자 무시, 영국식/미국식 철자 둘 다 인정
 function normalize(w) {
-  return w.toLowerCase().replace(/[.,!?;:"'()\-—–]/g, '').trim()
+  const s = w.toLowerCase().replace(/[.,!?;:"'()\-—–]/g, '').trim()
+  return SPELLING_VARIANTS[s] || s
 }
 
 function computeDiff(original, userInput) {
@@ -55,6 +132,7 @@ function computeDiff(original, userInput) {
 export default function ListeningPractice() {
   const { bandId } = useParams()
   const navigate = useNavigate()
+  const { getProgress, saveProgress, resetProgress, loaded } = useListeningProgress()
 
   const band = LISTENING_BANDS.find((b) => b.id === bandId)
   const sentences = LISTENING_SENTENCES[bandId] || []
@@ -64,6 +142,7 @@ export default function ListeningPractice() {
   const [stage, setStage] = useState('dictating') // 'dictating' | 'reviewing'
   const [playing, setPlaying] = useState(false)
   const [scores, setScores] = useState([]) // 각 문장 accuracy 저장
+  const [resumed, setResumed] = useState(false) // 진행도 복원 완료 여부
   const textareaRef = useRef(null)
 
   const currentSentence = sentences[qIndex]
@@ -73,6 +152,17 @@ export default function ListeningPractice() {
     pickSessionVoice()
     return () => stopSpeaking()
   }, [])
+
+  // 저장된 진행도 복원 (마운트 직후 한 번만)
+  useEffect(() => {
+    if (!loaded || resumed) return
+    const saved = getProgress(bandId)
+    if (saved > 0 && saved < sentences.length) {
+      setQIndex(saved)
+    }
+    setResumed(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded])
 
   // 문장 이동 시 자동 재생 + 텍스트영역 초기화
   useEffect(() => {
@@ -115,8 +205,11 @@ export default function ListeningPractice() {
 
   const handleNext = () => {
     if (qIndex + 1 < sentences.length) {
-      setQIndex(qIndex + 1)
+      const next = qIndex + 1
+      setQIndex(next)
+      saveProgress(bandId, next) // 다음 문장 위치 저장
     } else {
+      saveProgress(bandId, sentences.length) // 완료 표시
       setStage('done')
     }
   }
@@ -144,7 +237,7 @@ export default function ListeningPractice() {
 
         <div className="flex flex-col sm:flex-row gap-2 justify-center">
           <button
-            onClick={() => { setQIndex(0); setScores([]); setStage('dictating') }}
+            onClick={() => { resetProgress(bandId); setQIndex(0); setScores([]); setStage('dictating') }}
             className="px-5 py-2.5 rounded-lg border border-border text-sm hover:border-primary hover:text-primary transition-colors flex items-center gap-1.5 justify-center"
           >
             <RotateCcw size={14} /> 다시 풀기
