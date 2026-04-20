@@ -63,7 +63,7 @@ export default function Home() {
           </div>
           <h2 className="text-xl font-semibold text-text mb-2">Listening 연습</h2>
           <p className="text-text-secondary text-sm mb-4">
-            IELTS 받아쓰기로 듣기 실력 up (무료 · 토큰 차감 없음)
+            IELTS 받아쓰기로 듣기 실력 up
           </p>
           <span className="text-cyan-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
             시작하기 <ArrowRight size={14} />

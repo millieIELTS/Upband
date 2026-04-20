@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { PenLine, Mic, LayoutDashboard, History, LogIn, LogOut, User, Coins, Menu, X, BookText, BookOpen, Users, FileText } from 'lucide-react'
+import { PenLine, Mic, LayoutDashboard, History, LogIn, LogOut, User, Coins, Menu, X, BookText, BookOpen, Users, FileText, Headphones } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
+// ⚠️ 새 섹션 추가 시 여기에 항목만 넣으면 데스크탑/모바일 네비바에 자동 반영됩니다.
 const navItems = [
   { to: '/writing/homework', label: 'Writing', icon: PenLine },
   { to: '/speaking', label: 'Speaking', icon: Mic },
+  { to: '/listening', label: 'Listening', icon: Headphones },
   { to: '/vocab', label: '단어학습', icon: BookText },
   { to: '/store', label: 'E-Book 및 자료실', icon: BookOpen },
   { to: '/mock-test', label: 'Mock Test', icon: FileText },
