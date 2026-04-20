@@ -109,7 +109,7 @@ export default function WritingTask() {
       // AI 피드백 성공 시 크레딧 1 차감
       await supabase.rpc('deduct_credit')
       refreshProfile()
-      recordActivity() // 🔥 스트릭 기록
+      recordActivity('writing') // 🔥 스트릭 + 활동 로그
     } catch (err) {
       setError(err.message)
     } finally {

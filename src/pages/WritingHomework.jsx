@@ -123,7 +123,7 @@ export default function WritingHomework() {
       })
       await supabase.rpc('deduct_credit')
       refreshProfile()
-      recordActivity() // 🔥 스트릭 기록
+      recordActivity('writing') // 🔥 스트릭 + 활동 로그
       setFeedback({ submitted: true })
       // 제출 성공 시 메인페이지로 이동
       setTimeout(() => navigate('/'), 1500)

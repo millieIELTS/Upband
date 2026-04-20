@@ -9,7 +9,7 @@ export default function Footer() {
         {/* 브랜드 */}
         <div className="mb-6">
           <p className="text-base font-bold text-primary mb-1">UpBand</p>
-          <p className="text-xs text-text-secondary">IELTS Writing & Speaking AI 피드백 플랫폼</p>
+          <p className="text-xs text-text-secondary">IELTS Writing AI 피드백 · 아이엘츠 올인원 학습 사이트</p>
         </div>
 
         {/* 사업자 정보 */}

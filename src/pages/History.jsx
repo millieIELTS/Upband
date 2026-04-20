@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { History as HistoryIcon, PenLine, Mic, LogIn, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare, Flame, Calendar } from 'lucide-react'
+import { History as HistoryIcon, PenLine, Mic, LogIn, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare, Flame, Calendar, BookText, Headphones } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { useStreak } from '../hooks/useStreak'
 import { getWritingHistory, getSpeakingHistory } from '../lib/submissions'
 
 // 날짜를 'YYYY-MM-DD' 형식으로
@@ -20,6 +21,7 @@ function formatTimeKr(d) {
 
 export default function History() {
   const { user, loading: authLoading } = useAuth()
+  const { countInCurrentMonth } = useStreak()
   const [writingData, setWritingData] = useState([])
   const [speakingData, setSpeakingData] = useState([])
   const [loading, setLoading] = useState(false)
@@ -190,14 +192,17 @@ export default function History() {
             </div>
             <div className="bg-surface rounded-xl border border-border p-4 text-center">
               <div className="flex items-center justify-center gap-2 mb-1">
-                <span className="flex items-center gap-0.5 text-sm font-bold text-primary">
+                <span className="flex items-center gap-0.5 text-sm font-bold text-primary" title="Writing">
                   <PenLine size={12} />{monthStats.writing}
                 </span>
-                <span className="flex items-center gap-0.5 text-sm font-bold text-primary">
-                  <Mic size={12} />{monthStats.speaking}
+                <span className="flex items-center gap-0.5 text-sm font-bold text-primary" title="단어">
+                  <BookText size={12} />{countInCurrentMonth('vocab')}
+                </span>
+                <span className="flex items-center gap-0.5 text-sm font-bold text-primary" title="듣기">
+                  <Headphones size={12} />{countInCurrentMonth('listening')}
                 </span>
               </div>
-              <p className="text-xs text-text-secondary">W / S</p>
+              <p className="text-xs text-text-secondary">Writing / 단어 / 듣기</p>
             </div>
           </div>
 

@@ -203,7 +203,7 @@ export default function VocabStudy() {
                   setTimeout(() => {
                     if (quizIndex === quizQuestions.length - 1) {
                       saveProgress(bandId, topicId, words.length)
-                      recordActivity() // 🔥 스트릭 기록
+                      recordActivity('vocab') // 🔥 스트릭 + 활동 로그
                       setMode('results')
                     } else {
                       setQuizIndex(qi => qi + 1)

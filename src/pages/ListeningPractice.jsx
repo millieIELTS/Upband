@@ -209,8 +209,9 @@ export default function ListeningPractice() {
       ...prev,
       [currentIdx]: { accuracy: diff.accuracy, userInput },
     }))
-    // 🔥 스트릭 기록 (하루 한 번만 반영되도록 훅 내부에서 처리)
-    recordActivity()
+    // 🔥 스트릭 + 활동 로그 (복습 모드 재채점은 로그 중복 방지)
+    if (!reviewMode) recordActivity('listening')
+    else recordActivity()
     setStage('reviewing')
     stopSpeaking()
   }

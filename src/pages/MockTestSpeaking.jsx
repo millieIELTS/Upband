@@ -74,7 +74,7 @@ export default function MockTestSpeaking() {
       // eslint-disable-next-line no-console
       console.warn('Speaking mock completion 저장 실패:', err)
     })
-    recordActivity() // 🔥 스트릭 기록
+    recordActivity('speaking') // 🔥 스트릭 + 활동 로그
   }, [phase, user, id, config])
 
   const currentQ = phase === 'part1'

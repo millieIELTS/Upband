@@ -16,7 +16,7 @@ export default function Home() {
         <span className="text-primary">UpBand</span>
       </h1>
       <p className="text-lg sm:text-xl text-text mb-2">
-        Writing & Speaking 피드백 플랫폼
+        AI Writing 피드백 · 아이엘츠 올인원 학습 사이트
       </p>
       <p className="text-text-secondary mb-10 max-w-lg mx-auto">
         AI의 꼼꼼함 + 10년차 아이엘츠 전문강사가 주는 방향성과 공부 흐름 피드백

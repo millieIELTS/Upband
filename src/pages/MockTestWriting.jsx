@@ -254,7 +254,7 @@ export default function MockTestWriting() {
       }
 
       refreshProfile()
-      recordActivity() // 🔥 스트릭 기록
+      recordActivity('writing') // 🔥 스트릭 + 활동 로그
       localStorage.removeItem(STORAGE_KEY(id, user.id))
       setSubmitted(true)
       setTimeout(() => navigate('/'), 2000)
