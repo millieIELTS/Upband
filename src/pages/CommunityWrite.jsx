@@ -4,7 +4,7 @@ import { ArrowLeft, Send, Loader2, ImagePlus, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 
-const categoryNames = { qna: 'Q&A', reviews: '후기' }
+const categoryNames = { qna: 'Q&A', reviews: '후기', tips: '공부팁' }
 
 // image_url 파싱 헬퍼 (JSON 배열 또는 단일 URL)
 export function parseImageUrls(imageUrl) {
@@ -21,7 +21,8 @@ export default function CommunityWrite() {
   const { user, profile } = useAuth()
   const isEdit = Boolean(postId)
   const fileInputRef = useRef(null)
-  const isMultiImage = categoryId === 'qna'
+  // 공부팁도 예시/스크린샷을 여러 장 첨부할 수 있도록 허용
+  const isMultiImage = categoryId === 'qna' || categoryId === 'tips'
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')

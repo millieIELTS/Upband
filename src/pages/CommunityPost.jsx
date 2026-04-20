@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { parseImageUrls } from './CommunityWrite'
 
-const categoryNames = { qna: 'Q&A', reviews: '후기' }
+const categoryNames = { qna: 'Q&A', reviews: '후기', tips: '공부팁' }
 
 export default function CommunityPost() {
   const { categoryId, postId } = useParams()

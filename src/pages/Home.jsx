@@ -111,7 +111,7 @@ export default function Home() {
           </div>
           <h2 className="text-xl font-semibold text-text mb-2">커뮤니티</h2>
           <p className="text-text-secondary text-sm mb-4">
-            Q&A, 후기를 나누고 함께 준비해요.
+            후기와 공부팁을 나누고 함께 준비해요.
           </p>
           <span className="text-blue-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
             입장하기 <ArrowRight size={14} />

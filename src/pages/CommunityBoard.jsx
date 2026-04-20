@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Plus, Pin, Pencil, Trash2, MessageCircleQuestion, Star, Heart, MessageSquare } from 'lucide-react'
+import { ArrowLeft, Plus, Pin, Pencil, Trash2, MessageCircleQuestion, Star, Lightbulb, Heart, MessageSquare } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { parseImageUrls } from './CommunityWrite'
@@ -8,6 +8,7 @@ import { parseImageUrls } from './CommunityWrite'
 const categoryInfo = {
   qna: { name: 'Q&A', icon: MessageCircleQuestion, color: 'text-primary', bg: 'bg-primary/10' },
   reviews: { name: '후기', icon: Star, color: 'text-amber-500', bg: 'bg-amber-50' },
+  tips: { name: '공부팁', icon: Lightbulb, color: 'text-emerald-500', bg: 'bg-emerald-50' },
 }
 
 export default function CommunityBoard() {

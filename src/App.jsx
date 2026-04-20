@@ -66,20 +66,20 @@ function App() {
           <Route path="/vocab" element={<RequireAuth><VocabSelect /></RequireAuth>} />
           <Route path="/vocab/:bandId" element={<RequireAuth><VocabSelect /></RequireAuth>} />
           <Route path="/vocab/:bandId/:topicId" element={<RequireAuth><VocabStudy /></RequireAuth>} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/community/:categoryId" element={<CommunityBoard />} />
+          <Route path="/community" element={<RequireAuth><Community /></RequireAuth>} />
+          <Route path="/community/:categoryId" element={<RequireAuth><CommunityBoard /></RequireAuth>} />
           <Route path="/community/:categoryId/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
           <Route path="/community/:categoryId/edit/:postId" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
-          <Route path="/community/:categoryId/:postId" element={<CommunityPost />} />
-          <Route path="/mock-test" element={<MockTest />} />
-          <Route path="/mock-test/writing" element={<MockTestWritingList />} />
+          <Route path="/community/:categoryId/:postId" element={<RequireAuth><CommunityPost /></RequireAuth>} />
+          <Route path="/mock-test" element={<RequireAuth><MockTest /></RequireAuth>} />
+          <Route path="/mock-test/writing" element={<RequireAuth><MockTestWritingList /></RequireAuth>} />
           <Route path="/mock-test/writing/:id" element={<RequireAuth><MockTestWriting /></RequireAuth>} />
-          <Route path="/mock-test/speaking" element={<MockTestSpeakingList />} />
+          <Route path="/mock-test/speaking" element={<RequireAuth><MockTestSpeakingList /></RequireAuth>} />
           <Route path="/mock-test/speaking/:id" element={<RequireAuth><MockTestSpeaking /></RequireAuth>} />
           <Route path="/store" element={<Store />} />
           <Route path="/store/:id" element={<StoreDetail />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/mypage" element={<MyPage />} />
+          <Route path="/mypage" element={<RequireAuth><MyPage /></RequireAuth>} />
           <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
           <Route path="/mypage/credits" element={<RequireAuth><CreditHistory /></RequireAuth>} />
           <Route path="/terms" element={<Terms />} />
