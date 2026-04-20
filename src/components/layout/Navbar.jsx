@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { PenLine, Mic, LayoutDashboard, History, LogIn, LogOut, User, Coins, Menu, X, BookText, BookOpen, Users, FileText, Headphones } from 'lucide-react'
+import { PenLine, Mic, LayoutDashboard, History, LogIn, LogOut, User, Coins, Menu, X, BookText, BookOpen, Users, FileText, Headphones, Flame } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useStreak } from '../../hooks/useStreak'
 
 // ⚠️ 새 섹션 추가 시 여기에 항목만 넣으면 데스크탑/모바일 네비바에 자동 반영됩니다.
 const navItems = [
@@ -20,6 +21,7 @@ export default function Navbar() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { user, profile, signOut, isTeacher } = useAuth()
+  const { streak, isActiveToday } = useStreak()
 
   // 페이지 이동 시 모바일 메뉴 자동 닫기
   useEffect(() => {
@@ -83,6 +85,19 @@ export default function Navbar() {
 
           {user ? (
             <div className="flex items-center gap-2 ml-2">
+              {streak > 0 && (
+                <span
+                  title={isActiveToday ? `연속 ${streak}일 학습 중!` : `어제까지 ${streak}일 연속 — 오늘도 이어가요!`}
+                  className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold ${
+                    isActiveToday
+                      ? 'bg-orange-50 text-orange-600'
+                      : 'bg-gray-100 text-text-secondary'
+                  }`}
+                >
+                  <Flame size={12} className={isActiveToday ? 'text-orange-500' : 'text-text-secondary'} />
+                  {streak}
+                </span>
+              )}
               <span className="flex items-center gap-1 text-xs text-text-secondary bg-bg px-2.5 py-1 rounded-full">
                 <Coins size={12} className="text-accent" />
                 {profile?.credits ?? 0}
@@ -146,6 +161,17 @@ export default function Navbar() {
 
           {user ? (
             <>
+              {streak > 0 && (
+                <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-orange-50">
+                  <div className="flex items-center gap-2 text-sm text-orange-700">
+                    <Flame size={16} className={isActiveToday ? 'text-orange-500' : 'text-text-secondary'} />
+                    연속 학습
+                  </div>
+                  <span className="text-sm font-bold text-orange-600">
+                    {streak}일 {isActiveToday ? '🔥' : ''}
+                  </span>
+                </div>
+              )}
               <Link
                 to="/mypage"
                 onClick={() => setMobileOpen(false)}

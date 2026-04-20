@@ -3,6 +3,7 @@ import { ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Check, X, Trophy } fro
 import { useState, useMemo, useEffect } from 'react'
 import { bandLevels, topics, synonymData } from '../data/synonyms'
 import { useVocabProgress } from '../hooks/useVocabProgress'
+import { useStreak } from '../hooks/useStreak'
 
 export default function VocabStudy() {
   const { bandId, topicId } = useParams()
@@ -10,6 +11,7 @@ export default function VocabStudy() {
   const topic = topics.find(t => t.id === topicId)
   const words = synonymData[bandId]?.[topicId] || []
   const { getProgress, saveProgress, loaded } = useVocabProgress()
+  const { recordActivity } = useStreak()
 
   const [mode, setMode] = useState('cards') // cards | quiz | results
   const [cardIndex, setCardIndex] = useState(0)
@@ -201,6 +203,7 @@ export default function VocabStudy() {
                   setTimeout(() => {
                     if (quizIndex === quizQuestions.length - 1) {
                       saveProgress(bandId, topicId, words.length)
+                      recordActivity() // 🔥 스트릭 기록
                       setMode('results')
                     } else {
                       setQuizIndex(qi => qi + 1)

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Send, Loader2, ArrowLeft, Lock, Upload, ImagePlus, X } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { useStreak } from '../hooks/useStreak'
 import { getWritingFeedback } from '../lib/claude'
 import { saveWritingSubmission } from '../lib/submissions'
 import { supabase } from '../lib/supabase'
@@ -39,6 +40,7 @@ export default function WritingHomework() {
   const [dragging, setDragging] = useState(false)
   const fileInputRef = useRef(null)
   const { user, hasCredits, refreshProfile } = useAuth()
+  const { recordActivity } = useStreak()
   const navigate = useNavigate()
 
   const handleImageFile = (file) => {
@@ -121,6 +123,7 @@ export default function WritingHomework() {
       })
       await supabase.rpc('deduct_credit')
       refreshProfile()
+      recordActivity() // 🔥 스트릭 기록
       setFeedback({ submitted: true })
       // 제출 성공 시 메인페이지로 이동
       setTimeout(() => navigate('/'), 1500)

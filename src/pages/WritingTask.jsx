@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Send, Loader2, ArrowLeft, Lock, RotateCcw } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { useStreak } from '../hooks/useStreak'
 import { getWritingFeedback } from '../lib/claude'
 import { supabase } from '../lib/supabase'
 import FeedbackDisplay from '../components/writing/FeedbackDisplay'
@@ -71,6 +72,7 @@ export default function WritingTask() {
   const [feedback, setFeedback] = useState(null)
   const [error, setError] = useState('')
   const { user, hasCredits, refreshProfile } = useAuth()
+  const { recordActivity } = useStreak()
   const navigate = useNavigate()
 
   const question = info.questions[questionIndex]
@@ -107,6 +109,7 @@ export default function WritingTask() {
       // AI 피드백 성공 시 크레딧 1 차감
       await supabase.rpc('deduct_credit')
       refreshProfile()
+      recordActivity() // 🔥 스트릭 기록
     } catch (err) {
       setError(err.message)
     } finally {

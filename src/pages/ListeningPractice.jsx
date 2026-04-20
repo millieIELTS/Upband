@@ -6,6 +6,7 @@ import {
 import { speakQuestion, stopSpeaking, pickSessionVoice } from '../lib/tts'
 import { LISTENING_BANDS, LISTENING_SENTENCES } from '../data/listeningSentences'
 import { useListeningProgress } from '../hooks/useListeningProgress'
+import { useStreak } from '../hooks/useStreak'
 
 // ── 영국식 ↔ 미국식 철자 동일 처리 ──────────────────────────────────────
 // 받아쓰기에서 favourite/favorite 둘 다 맞는 것으로 인정
@@ -133,19 +134,29 @@ export default function ListeningPractice() {
   const { bandId } = useParams()
   const navigate = useNavigate()
   const { getProgress, saveProgress, resetProgress, loaded } = useListeningProgress()
+  const { recordActivity } = useStreak()
 
   const band = LISTENING_BANDS.find((b) => b.id === bandId)
   const sentences = LISTENING_SENTENCES[bandId] || []
 
   const [qIndex, setQIndex] = useState(0)
   const [userInput, setUserInput] = useState('')
-  const [stage, setStage] = useState('dictating') // 'dictating' | 'reviewing'
+  const [stage, setStage] = useState('dictating') // 'dictating' | 'reviewing' | 'done'
   const [playing, setPlaying] = useState(false)
-  const [scores, setScores] = useState([]) // 각 문장 accuracy 저장
+  const [results, setResults] = useState({}) // { [origIdx]: { accuracy, userInput } }
   const [resumed, setResumed] = useState(false) // 진행도 복원 완료 여부
+  // 오답 복습 모드
+  const [reviewMode, setReviewMode] = useState(false)
+  const [reviewList, setReviewList] = useState([]) // 복습할 원본 문장 index 배열
+  const [reviewPos, setReviewPos] = useState(0)
   const textareaRef = useRef(null)
 
-  const currentSentence = sentences[qIndex]
+  // 현재 보여줄 문장 index (리뷰 모드면 reviewList에서 뽑음)
+  const currentIdx = reviewMode ? (reviewList[reviewPos] ?? 0) : qIndex
+  const currentSentence = sentences[currentIdx]
+  // 세션 진행도 표시용
+  const sessionTotal = reviewMode ? reviewList.length : sentences.length
+  const sessionPos = reviewMode ? reviewPos : qIndex
 
   // 세션 음성 고정
   useEffect(() => {
@@ -177,7 +188,7 @@ export default function ListeningPractice() {
       stopSpeaking()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qIndex, bandId])
+  }, [currentIdx, bandId, reviewMode])
 
   // 채점 단계에서도 dictating 끝나면 자동 포커스
   useEffect(() => {
@@ -194,16 +205,25 @@ export default function ListeningPractice() {
 
   const handleGrade = () => {
     const diff = computeDiff(currentSentence, userInput)
-    setScores((prev) => {
-      const next = [...prev]
-      next[qIndex] = diff.accuracy
-      return next
-    })
+    setResults((prev) => ({
+      ...prev,
+      [currentIdx]: { accuracy: diff.accuracy, userInput },
+    }))
+    // 🔥 스트릭 기록 (하루 한 번만 반영되도록 훅 내부에서 처리)
+    recordActivity()
     setStage('reviewing')
     stopSpeaking()
   }
 
   const handleNext = () => {
+    if (reviewMode) {
+      if (reviewPos + 1 < reviewList.length) {
+        setReviewPos(reviewPos + 1)
+      } else {
+        setStage('done')
+      }
+      return
+    }
     if (qIndex + 1 < sentences.length) {
       const next = qIndex + 1
       setQIndex(next)
@@ -225,22 +245,101 @@ export default function ListeningPractice() {
 
   // ─────────────── 완료 화면 ───────────────
   if (stage === 'done') {
-    const total = scores.length
-    const avg = total > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / total) : 0
+    const origIndices = Object.keys(results).map(Number).sort((a, b) => a - b)
+    const scoreArr = origIndices.map((i) => results[i].accuracy)
+    const total = scoreArr.length
+    const avg = total > 0 ? Math.round(scoreArr.reduce((a, b) => a + b, 0) / total) : 0
+    const wrongIndices = origIndices.filter((i) => results[i].accuracy < 100)
+
+    const startReview = () => {
+      setReviewMode(true)
+      setReviewList(wrongIndices)
+      setReviewPos(0)
+      setStage('dictating')
+    }
+
+    const restartAll = () => {
+      resetProgress(bandId)
+      setQIndex(0)
+      setResults({})
+      setReviewMode(false)
+      setReviewList([])
+      setReviewPos(0)
+      setStage('dictating')
+    }
+
     return (
-      <div className="max-w-2xl mx-auto py-16 px-4 text-center">
+      <div className="max-w-2xl mx-auto py-12 px-4 text-center">
         <Trophy size={56} className="mx-auto text-amber-500 mb-4" />
-        <h1 className="text-2xl font-bold mb-2">수고하셨어요!</h1>
-        <p className="text-text-secondary mb-2">{band.label} · 전체 {total}문장 완료</p>
+        <h1 className="text-2xl font-bold mb-2">
+          {reviewMode ? '오답 복습 완료!' : '수고하셨어요!'}
+        </h1>
+        <p className="text-text-secondary mb-2">
+          {band.label} · {reviewMode ? `복습 ${reviewList.length}문장` : `전체 ${total}문장`}
+        </p>
         <div className="text-5xl font-bold text-primary my-6 font-mono">{avg}%</div>
-        <p className="text-sm text-text-secondary mb-8">평균 정확도</p>
+        <p className="text-sm text-text-secondary mb-6">평균 정확도 (전체 문장 기준)</p>
+
+        {/* 📝 오답노트 */}
+        {wrongIndices.length > 0 && (
+          <div className="bg-surface rounded-2xl border border-border p-5 mb-6 text-left max-h-[420px] overflow-y-auto">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg">📝</span>
+              <p className="text-sm font-bold text-red-500">오답노트 ({wrongIndices.length}문장)</p>
+            </div>
+            <div className="space-y-3">
+              {wrongIndices.map((i) => {
+                const r = results[i]
+                const d = computeDiff(sentences[i], r.userInput)
+                return (
+                  <div key={i} className="pb-3 border-b border-border last:border-0 last:pb-0">
+                    <p className="text-[11px] text-text-secondary mb-1">
+                      {i + 1}번 · {d.matchedCount}/{d.totalCount} ({r.accuracy}%)
+                    </p>
+                    <p className="text-sm leading-relaxed mb-1">
+                      {d.tokens.map((t, k) => (
+                        <span
+                          key={k}
+                          className={
+                            t.matched
+                              ? 'text-emerald-700'
+                              : 'text-red-600 font-semibold bg-red-50 rounded px-0.5 mx-0.5'
+                          }
+                        >
+                          {t.word}{k < d.tokens.length - 1 ? ' ' : ''}
+                        </span>
+                      ))}
+                    </p>
+                    {r.userInput && (
+                      <p className="text-xs text-text-secondary italic">→ "{r.userInput}"</p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {wrongIndices.length === 0 && total > 0 && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6">
+            <p className="text-sm font-medium text-emerald-700">🎉 모두 정답! 완벽해요.</p>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-2 justify-center">
+          {wrongIndices.length > 0 && (
+            <button
+              onClick={startReview}
+              className="px-5 py-2.5 rounded-lg bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors flex items-center gap-1.5 justify-center"
+            >
+              📝 오답만 다시 풀기 ({wrongIndices.length})
+            </button>
+          )}
           <button
-            onClick={() => { resetProgress(bandId); setQIndex(0); setScores([]); setStage('dictating') }}
+            onClick={restartAll}
             className="px-5 py-2.5 rounded-lg border border-border text-sm hover:border-primary hover:text-primary transition-colors flex items-center gap-1.5 justify-center"
           >
-            <RotateCcw size={14} /> 다시 풀기
+            <RotateCcw size={14} /> 처음부터
           </button>
           <button
             onClick={() => navigate('/listening')}
@@ -262,18 +361,22 @@ export default function ListeningPractice() {
         <Link to="/listening" className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-primary no-underline">
           <ArrowLeft size={14} /> 난이도 선택
         </Link>
-        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${band.bg} ${band.color}`}>
-          {band.label} · {qIndex + 1} / {sentences.length}
+        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${reviewMode ? 'bg-red-50 text-red-600' : `${band.bg} ${band.color}`}`}>
+          {band.label}{reviewMode && ' · 📝 오답복습'} · {sessionPos + 1} / {sessionTotal}
         </span>
       </div>
 
       {/* 진행 바 */}
       <div className="flex gap-1 mb-6">
-        {sentences.map((_, i) => (
+        {Array.from({ length: sessionTotal }).map((_, i) => (
           <div
             key={i}
             className={`h-1 flex-1 rounded-full ${
-              i < qIndex ? 'bg-cyan-500' : i === qIndex ? 'bg-cyan-500/60' : 'bg-border'
+              i < sessionPos
+                ? reviewMode ? 'bg-red-400' : 'bg-cyan-500'
+                : i === sessionPos
+                ? reviewMode ? 'bg-red-400/60' : 'bg-cyan-500/60'
+                : 'bg-border'
             }`}
           />
         ))}
@@ -369,7 +472,7 @@ export default function ListeningPractice() {
             onClick={handleNext}
             className="w-full py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
           >
-            {qIndex + 1 < sentences.length ? '다음 문장' : '완료하기'}
+            {sessionPos + 1 < sessionTotal ? '다음 문장' : (reviewMode ? '오답 복습 완료' : '완료하기')}
             <ChevronRight size={16} />
           </button>
         </>

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Clock, Send, ArrowLeft, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { useStreak } from '../hooks/useStreak'
 import { saveWritingSubmission } from '../lib/submissions'
 import { supabase } from '../lib/supabase'
 import Task1Chart from '../components/writing/Task1Chart'
@@ -93,6 +94,7 @@ export default function MockTestWriting() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user, profile, hasCredits, refreshProfile } = useAuth()
+  const { recordActivity } = useStreak()
   const test = MOCK_TESTS[id]
 
   const [activeTask, setActiveTask] = useState('task1')
@@ -252,6 +254,7 @@ export default function MockTestWriting() {
       }
 
       refreshProfile()
+      recordActivity() // 🔥 스트릭 기록
       localStorage.removeItem(STORAGE_KEY(id, user.id))
       setSubmitted(true)
       setTimeout(() => navigate('/'), 2000)

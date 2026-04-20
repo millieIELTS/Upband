@@ -7,6 +7,7 @@ import { speakQuestion, stopSpeaking, pickSessionVoice } from '../lib/tts'
 import { part1Topics, part2Part3Topics } from '../data/speakingQuestions'
 import { SPEAKING_MOCK_TESTS } from '../data/speakingMockTests'
 import { useAuth } from '../hooks/useAuth'
+import { useStreak } from '../hooks/useStreak'
 import { saveSpeakingMockCompletion } from '../lib/submissions'
 
 // Part 1: 각 토픽 6문제 중 앞 4문제씩 사용 → 총 8문제
@@ -26,6 +27,7 @@ export default function MockTestSpeaking() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { recordActivity } = useStreak()
   const config = SPEAKING_MOCK_TESTS.find((t) => t.id === id)
   const savedRef = useRef(false)
 
@@ -72,6 +74,7 @@ export default function MockTestSpeaking() {
       // eslint-disable-next-line no-console
       console.warn('Speaking mock completion 저장 실패:', err)
     })
+    recordActivity() // 🔥 스트릭 기록
   }, [phase, user, id, config])
 
   const currentQ = phase === 'part1'

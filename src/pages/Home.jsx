@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink, BookText, Users, FileText, Pin, MessageSquare, Headphones } from 'lucide-react'
 import { useMemo, useState, useRef, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useStreak } from '../hooks/useStreak'
 import { supabase } from '../lib/supabase'
 
 export default function Home() {
@@ -354,6 +355,7 @@ function ReviewCarousel() {
 
 function StudyMapPreview() {
   const { user } = useAuth()
+  const { streak, isActiveToday } = useStreak()
   // 샘플 데이터: 최근 12주 활동량
   const weeks = useMemo(() => {
     const data = []
@@ -397,10 +399,13 @@ function StudyMapPreview() {
       </div>
 
       <div className="bg-surface rounded-2xl border border-border p-6 sm:p-8">
-        {/* 샘플 통계 */}
+        {/* 통계 (로그인 시 연속학습은 실제 스트릭) */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="text-center">
-            <p className="text-2xl font-bold text-orange-500">12일</p>
+            <p className="text-2xl font-bold text-orange-500">
+              {user ? `${streak}일` : '12일'}
+              {user && isActiveToday && ' 🔥'}
+            </p>
             <p className="text-xs text-text-secondary">연속 학습</p>
           </div>
           <div className="text-center">
