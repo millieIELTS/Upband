@@ -88,15 +88,21 @@ export default function History() {
     return count
   }, [activitiesByDate, allActivities])
 
-  // 이번 달 통계
+  // 이번 달 통계 (Writing은 "학습일 수" 기준 — 하루에 여러 번 내도 1일)
   const monthStats = useMemo(() => {
     const now = new Date()
     const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
     const monthActivities = allActivities.filter(a => toDateKey(a.created_at).startsWith(thisMonth))
+    const writingDays = new Set(
+      monthActivities.filter(a => a._type === 'writing').map(a => toDateKey(a.created_at))
+    )
+    const speakingDays = new Set(
+      monthActivities.filter(a => a._type === 'speaking').map(a => toDateKey(a.created_at))
+    )
     return {
       total: monthActivities.length,
-      writing: monthActivities.filter(a => a._type === 'writing').length,
-      speaking: monthActivities.filter(a => a._type === 'speaking').length,
+      writing: writingDays.size,
+      speaking: speakingDays.size,
     }
   }, [allActivities])
 
@@ -192,17 +198,17 @@ export default function History() {
             </div>
             <div className="bg-surface rounded-xl border border-border p-4 text-center">
               <div className="flex items-center justify-center gap-2 mb-1">
-                <span className="flex items-center gap-0.5 text-sm font-bold text-primary" title="Writing">
-                  <PenLine size={12} />{monthStats.writing}
+                <span className="flex items-center gap-0.5 text-sm font-bold text-primary" title="Writing 학습일">
+                  <PenLine size={12} />{monthStats.writing}일
                 </span>
-                <span className="flex items-center gap-0.5 text-sm font-bold text-primary" title="단어">
-                  <BookText size={12} />{countInCurrentMonth('vocab')}
+                <span className="flex items-center gap-0.5 text-sm font-bold text-primary" title="단어 학습일">
+                  <BookText size={12} />{countInCurrentMonth('vocab')}일
                 </span>
-                <span className="flex items-center gap-0.5 text-sm font-bold text-primary" title="리스닝">
-                  <Headphones size={12} />{countInCurrentMonth('listening')}
+                <span className="flex items-center gap-0.5 text-sm font-bold text-primary" title="리스닝 학습일">
+                  <Headphones size={12} />{countInCurrentMonth('listening')}일
                 </span>
               </div>
-              <p className="text-xs text-text-secondary">Writing / 단어 / 리스닝</p>
+              <p className="text-xs text-text-secondary">이번 달 학습일</p>
             </div>
           </div>
 

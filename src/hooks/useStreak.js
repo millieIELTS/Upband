@@ -106,12 +106,17 @@ export function useStreak() {
     }
   }, [])
 
-  // 이번 달 해당 type의 활동 횟수
+  // 이번 달 해당 type의 "학습일 수" (하루에 여러 번 해도 1일로 카운트)
   const countInCurrentMonth = useCallback(
     (type) => {
       const now = new Date()
       const prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-      return log.filter((e) => e?.date?.startsWith(prefix) && (!type || e.type === type)).length
+      const days = new Set(
+        log
+          .filter((e) => e?.date?.startsWith(prefix) && (!type || e.type === type))
+          .map((e) => e.date)
+      )
+      return days.size
     },
     [log]
   )
