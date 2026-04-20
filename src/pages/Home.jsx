@@ -441,11 +441,10 @@ function MustReadSection() {
   const [reviewPost, setReviewPost] = useState(null)
 
   useEffect(() => {
-    // Q&A에서 "어플처럼" 포함 글 찾기
+    // '어플처럼' 포함 사용법 가이드 (원래 Q&A → 후기로 이동됨)
     supabase
       .from('community_posts')
-      .select('id, title')
-      .eq('category', 'qna')
+      .select('id, title, category')
       .ilike('title', '%어플처럼%')
       .limit(1)
       .maybeSingle()
@@ -454,7 +453,7 @@ function MustReadSection() {
     // 후기에서 "자료 및 피드백" 포함 글 찾기
     supabase
       .from('community_posts')
-      .select('id, title')
+      .select('id, title, category')
       .eq('category', 'reviews')
       .ilike('title', '%자료 및 피드백%')
       .limit(1)
@@ -474,11 +473,11 @@ function MustReadSection() {
       <div className="grid sm:grid-cols-2 gap-4">
         {guidePost && (
           <Link
-            to={`/community/qna/${guidePost.id}`}
+            to={`/community/${guidePost.category || 'reviews'}/${guidePost.id}`}
             className="group bg-surface rounded-2xl border border-border p-6 no-underline text-center hover:border-primary hover:shadow-lg transition-all"
           >
             <span className="text-3xl block mb-3">📱</span>
-            <span className="inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-medium mb-2">Q&A</span>
+            <span className="inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-medium mb-2">사용법</span>
             <h3 className="font-semibold text-text text-sm mb-2">{guidePost.title}</h3>
             <span className="text-primary text-xs font-medium inline-flex items-center gap-1 group-hover:gap-2 transition-all">
               읽으러 가기 <ArrowRight size={12} />
