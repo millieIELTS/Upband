@@ -198,11 +198,11 @@ export default function History() {
                 <span className="flex items-center gap-0.5 text-sm font-bold text-primary" title="단어">
                   <BookText size={12} />{countInCurrentMonth('vocab')}
                 </span>
-                <span className="flex items-center gap-0.5 text-sm font-bold text-primary" title="듣기">
+                <span className="flex items-center gap-0.5 text-sm font-bold text-primary" title="리스닝">
                   <Headphones size={12} />{countInCurrentMonth('listening')}
                 </span>
               </div>
-              <p className="text-xs text-text-secondary">Writing / 단어 / 듣기</p>
+              <p className="text-xs text-text-secondary">Writing / 단어 / 리스닝</p>
             </div>
           </div>
 
