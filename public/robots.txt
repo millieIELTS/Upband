@@ -1,0 +1,25 @@
+# UpBand robots.txt
+User-agent: *
+Allow: /
+
+# 로그인 필요한 개인 페이지는 크롤링 제외
+Disallow: /mypage
+Disallow: /settings
+Disallow: /dashboard
+Disallow: /history
+Disallow: /writing
+Disallow: /speaking
+Disallow: /vocab
+Disallow: /listening
+Disallow: /community
+Disallow: /mock-test
+
+# 검색엔진이 보면 좋은 페이지
+Allow: /$
+Allow: /store
+Allow: /login
+Allow: /terms
+Allow: /privacy
+Allow: /refund
+
+Sitemap: https://upbandielts.com/sitemap.xml
