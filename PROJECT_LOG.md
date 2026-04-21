@@ -1,8 +1,9 @@
 # UpBand 프로젝트 개발 기록
 
-> IELTS Writing & Speaking AI 피드백 플랫폼
-> 배포 URL: https://upband.vercel.app
-> 최종 업데이트: 2026-04-10
+> IELTS Writing AI 피드백 · 아이엘츠 올인원 학습 사이트
+> 공식 URL: https://upbandielts.com
+> 배포(백업): https://upband.vercel.app
+> 최종 업데이트: 2026-04-21
 
 ---
 
