@@ -1,12 +1,13 @@
 -- ═══════════════════════════════════════════════════════════════════
--- 🔧 consume_credits + ensure_daily_credits RPC 강제 재생성
+-- 🔧 consume_credits + ensure_daily_credits RPC 재생성
 -- ═══════════════════════════════════════════════════════════════════
--- CREATE OR REPLACE가 시그니처 불일치로 실패할 수 있어 DROP 후 CREATE
+-- 버그 수정: "column reference daily_credits is ambiguous"
+-- RETURNS TABLE의 daily_credits 컬럼명 vs profiles.daily_credits 충돌
+-- → UPDATE 문에서 profiles. prefix 명시로 해결
 
 DROP FUNCTION IF EXISTS consume_credits(INTEGER);
 DROP FUNCTION IF EXISTS ensure_daily_credits();
 
--- ensure_daily_credits — 오늘 아직 리필 안 됐으면 2로 리셋
 CREATE FUNCTION ensure_daily_credits()
 RETURNS TABLE(daily_credits INTEGER, refilled BOOLEAN)
 LANGUAGE plpgsql
@@ -29,7 +30,7 @@ BEGIN
     UPDATE profiles
       SET daily_credits = 2,
           daily_credits_refilled_on = v_today
-      WHERE id = v_user_id;
+      WHERE profiles.id = v_user_id;
     v_refilled := TRUE;
   END IF;
 
@@ -41,7 +42,6 @@ $$;
 
 GRANT EXECUTE ON FUNCTION ensure_daily_credits() TO authenticated;
 
--- consume_credits — daily 먼저 소진, 부족하면 paid
 CREATE FUNCTION consume_credits(p_amount INTEGER)
 RETURNS TABLE(success BOOLEAN, daily_credits INTEGER, credits INTEGER, error TEXT)
 LANGUAGE plpgsql
@@ -73,9 +73,9 @@ BEGIN
   v_use_paid  := p_amount - v_use_daily;
 
   UPDATE profiles
-    SET daily_credits = daily_credits - v_use_daily,
-        credits = credits - v_use_paid
-    WHERE id = v_user_id;
+    SET daily_credits = profiles.daily_credits - v_use_daily,
+        credits = profiles.credits - v_use_paid
+    WHERE profiles.id = v_user_id;
 
   RETURN QUERY
     SELECT TRUE, (v_daily - v_use_daily), (v_paid - v_use_paid), NULL::TEXT;
@@ -83,6 +83,3 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION consume_credits(INTEGER) TO authenticated;
-
--- 테스트: 본인 크레딧 확인
--- SELECT id, email, credits, daily_credits FROM profiles WHERE id = auth.uid();
