@@ -108,10 +108,7 @@ export default function WritingTask() {
       setFeedback(result)
       // AI 피드백 성공 시 크레딧 1 차감 (daily_credits 우선 차감)
       const { data: consumeData, error: consumeError } = await supabase.rpc('consume_credits', { p_amount: 1 })
-      console.log('[consume_credits] 결과:', consumeData, '에러:', consumeError)
-      if (consumeError) {
-        alert('크레딧 차감 실패: ' + consumeError.message)
-      }
+      alert('[DEBUG] consume_credits 결과:\n' + JSON.stringify(consumeData, null, 2) + '\n\n에러: ' + (consumeError ? consumeError.message : '없음'))
       await refreshProfile()
       recordActivity('writing') // 🔥 스트릭 + 활동 로그
     } catch (err) {

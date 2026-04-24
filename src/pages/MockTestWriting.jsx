@@ -251,8 +251,7 @@ export default function MockTestWriting() {
       // 재응시 시작 시 이미 차감했다면 중복 차감하지 않음
       if (submissions.length > 0 && !retryPaidRef.current) {
         const { data: consumeData, error: consumeError } = await supabase.rpc('consume_credits', { p_amount: 1 })
-        console.log('[consume_credits] 결과:', consumeData, '에러:', consumeError)
-        if (consumeError) alert('크레딧 차감 실패: ' + consumeError.message)
+        alert('[DEBUG] consume_credits 결과:\n' + JSON.stringify(consumeData, null, 2) + '\n\n에러: ' + (consumeError ? consumeError.message : '없음'))
       }
 
       await refreshProfile()
