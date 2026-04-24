@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, Users, PenLine, Mic, Coins, Search,
+  LayoutDashboard, Users, PenLine, Coins, Search,
   ChevronDown, ChevronUp, Plus, Minus, Shield, Eye,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
@@ -15,7 +15,7 @@ export default function Dashboard() {
   const [tab, setTab] = useState('students')
   const [students, setStudents] = useState([])
   const [submissions, setSubmissions] = useState([])
-  const [stats, setStats] = useState({ totalStudents: 0, totalWriting: 0, totalSpeaking: 0 })
+  const [stats, setStats] = useState({ totalStudents: 0, totalWriting: 0 })
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [expandedUser, setExpandedUser] = useState(null)
@@ -40,25 +40,23 @@ export default function Dashboard() {
     // RPC 함수로 조회 (RLS 우회)
     const { data: allProfiles } = await supabase.rpc('get_all_profiles')
     const { data: allWriting } = await supabase.rpc('get_all_writing_submissions')
-    const { data: allSpeaking } = await supabase.rpc('get_all_speaking_submissions')
 
     // 모의고사는 별도 페이지(/dashboard/mock-tests)에서 관리 — 일반 라이팅 목록에서는 제외
     const regularWriting = (allWriting || []).filter(s => !s.feedback_json?.mock_test_id)
     const mockWriting = (allWriting || []).filter(s => s.feedback_json?.mock_test_id)
 
     setStudents(allProfiles || [])
-    setSubmissions([
-      ...regularWriting.map(s => ({ ...s, _type: 'writing' })),
-      ...(allSpeaking || []).map(s => ({ ...s, _type: 'speaking' })),
-    ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)))
+    setSubmissions(
+      regularWriting
+        .map(s => ({ ...s, _type: 'writing' }))
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    )
 
     setStats({
       totalStudents: (allProfiles || []).filter(p => p.role === 'student').length,
       totalWriting: regularWriting.length,
-      totalSpeaking: (allSpeaking || []).length,
       totalMock: mockWriting.length,
       unreviewedWriting: regularWriting.filter(s => !s.reviewed).length,
-      unreviewedSpeaking: (allSpeaking || []).filter(s => !s.reviewed).length,
       unreviewedMock: mockWriting.filter(s => !s.reviewed).length,
     })
 
@@ -133,7 +131,7 @@ export default function Dashboard() {
       <h1 className="text-2xl font-bold mb-6">관리자 대시보드</h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="bg-surface rounded-xl border border-border p-4 text-center">
           <Users size={20} className="text-primary mx-auto mb-2" />
           <p className="text-2xl font-bold">{stats.totalStudents}</p>
@@ -151,21 +149,9 @@ export default function Dashboard() {
           </p>
           <p className="text-xs text-text-secondary">Writing 미확인</p>
         </div>
-        <div className="bg-surface rounded-xl border border-border p-4 text-center">
-          <Mic size={20} className="text-primary mx-auto mb-2" />
-          <p className="text-2xl font-bold">
-            {stats.unreviewedSpeaking > 0 ? (
-              <span className="text-error">{stats.unreviewedSpeaking}</span>
-            ) : (
-              <span className="text-success">0</span>
-            )}
-            <span className="text-text-secondary text-sm font-normal"> / {stats.totalSpeaking}</span>
-          </p>
-          <p className="text-xs text-text-secondary">Speaking 미확인</p>
-        </div>
       </div>
 
-      {/* 제출 내역 관리 바로가기 (일반 Writing · Speaking) */}
+      {/* 제출 내역 관리 바로가기 (일반 Writing) */}
       <Link
         to="/dashboard/submissions"
         className="block mb-3 p-4 bg-accent/5 border border-accent/20 rounded-xl no-underline hover:bg-accent/10 transition-colors"
@@ -174,12 +160,12 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 min-w-0">
             <Eye size={18} className="text-accent shrink-0" />
             <span className="text-sm font-medium text-text">제출 내역 관리</span>
-            <span className="text-xs text-text-secondary truncate">일반 Writing · Speaking · 확인여부 체크</span>
+            <span className="text-xs text-text-secondary truncate">일반 Writing · 확인여부 체크</span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {(stats.unreviewedWriting > 0 || stats.unreviewedSpeaking > 0) && (
+            {stats.unreviewedWriting > 0 && (
               <span className="px-2 py-0.5 rounded-full bg-error text-white text-[10px] font-bold">
-                미채점 {stats.unreviewedWriting + stats.unreviewedSpeaking}
+                미채점 {stats.unreviewedWriting}
               </span>
             )}
             <span className="text-xs text-accent font-medium">바로가기 →</span>
@@ -290,10 +276,7 @@ export default function Dashboard() {
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <span className="flex items-center gap-1 text-xs text-text-secondary">
-                      <PenLine size={12} /> {userSubmissions.filter(sub => sub._type === 'writing').length}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-text-secondary">
-                      <Mic size={12} /> {userSubmissions.filter(sub => sub._type === 'speaking').length}
+                      <PenLine size={12} /> {userSubmissions.length}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-accent font-medium">
                       <Coins size={12} /> {s.credits}
@@ -356,16 +339,9 @@ export default function Dashboard() {
                               }`}
                             >
                               <div className="flex items-center gap-2">
-                                {sub._type === 'writing' ? (
-                                  <PenLine size={13} className="text-primary shrink-0" />
-                                ) : (
-                                  <Mic size={13} className="text-primary shrink-0" />
-                                )}
+                                <PenLine size={13} className="text-primary shrink-0" />
                                 <span className="text-xs font-medium">
-                                  {sub._type === 'writing'
-                                    ? `${sub.task_type === 'task1' ? 'Task 1' : 'Task 2'} · ${sub.word_count}w`
-                                    : `${sub.part?.replace('part', 'Part ')} · ${sub.question?.slice(0, 30)}...`
-                                  }
+                                  {sub.task_type === 'task1' ? 'Task 1' : 'Task 2'} · {sub.word_count}w
                                 </span>
                               </div>
                               <div className="flex items-center gap-3">
@@ -387,9 +363,7 @@ export default function Dashboard() {
                         {selectedSubmission && selectedSubmission.user_id === s.id && (
                           <div className="mt-3 bg-white rounded-xl border border-primary/20 p-4 space-y-3">
                             <div className="flex items-center justify-between">
-                              <h4 className="text-sm font-semibold text-primary">
-                                {selectedSubmission._type === 'writing' ? 'Writing' : 'Speaking'} 상세
-                              </h4>
+                              <h4 className="text-sm font-semibold text-primary">Writing 상세</h4>
                               <button
                                 onClick={() => setSelectedSubmission(null)}
                                 className="text-xs text-text-secondary hover:text-primary"
@@ -406,32 +380,12 @@ export default function Dashboard() {
                               </div>
                             )}
 
-                            {/* Writing: 에세이 */}
-                            {selectedSubmission._type === 'writing' && selectedSubmission.essay && (
+                            {/* 에세이 */}
+                            {selectedSubmission.essay && (
                               <div>
                                 <p className="text-xs font-medium text-text-secondary mb-1">에세이</p>
                                 <div className="text-sm bg-bg p-3 rounded-lg border border-border whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
                                   {selectedSubmission.essay}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Speaking: 답변 텍스트 */}
-                            {selectedSubmission._type === 'speaking' && selectedSubmission.transcript && (
-                              <div>
-                                <p className="text-xs font-medium text-text-secondary mb-1">답변 (음성 텍스트)</p>
-                                <div className="text-sm bg-bg p-3 rounded-lg border border-border whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
-                                  {selectedSubmission.transcript}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Speaking: 모범 답안 */}
-                            {selectedSubmission._type === 'speaking' && selectedSubmission.model_answer && (
-                              <div>
-                                <p className="text-xs font-medium text-text-secondary mb-1">모범 답안 (Band 7+)</p>
-                                <div className="text-sm bg-bg p-3 rounded-lg border border-border whitespace-pre-wrap leading-relaxed text-primary/80">
-                                  {selectedSubmission.model_answer}
                                 </div>
                               </div>
                             )}
@@ -500,19 +454,12 @@ export default function Dashboard() {
               return (
                 <div key={sub.id} className="bg-surface rounded-xl border border-border p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3 min-w-0">
-                    {sub._type === 'writing' ? (
-                      <PenLine size={16} className="text-primary shrink-0" />
-                    ) : (
-                      <Mic size={16} className="text-primary shrink-0" />
-                    )}
+                    <PenLine size={16} className="text-primary shrink-0" />
                     <div className="min-w-0">
                       <div className="text-sm font-medium truncate">
                         {student?.display_name || '알 수 없음'}
                         <span className="text-text-secondary font-normal ml-2">
-                          {sub._type === 'writing'
-                            ? `${sub.task_type === 'task1' ? 'Task 1' : 'Task 2'} · ${sub.word_count}w`
-                            : `${sub.part?.replace('part', 'Part ')}`
-                          }
+                          {sub.task_type === 'task1' ? 'Task 1' : 'Task 2'} · {sub.word_count}w
                         </span>
                       </div>
                       <p className="text-xs text-text-secondary">{formatDate(sub.created_at)}</p>
