@@ -1,6 +1,7 @@
 {
   "type": "module",
   "dependencies": {
-    "msedge-tts": "^2.0.4"
+    "msedge-tts": "^2.0.4",
+    "@supabase/supabase-js": "^2.100.1"
   }
 }

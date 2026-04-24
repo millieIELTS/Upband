@@ -1,5 +1,8 @@
-import { Link } from 'react-router-dom'
-import { Check, Coins, Sparkles, Zap, Crown, ArrowRight, Star } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Check, Coins, Sparkles, Zap, Crown, ArrowRight, Star, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
+import { purchaseCreditPack } from '../lib/payment'
 
 // 💳 크레딧 팩 정의
 const PLANS = [
@@ -107,6 +110,35 @@ const FAQ = [
 ]
 
 export default function Pricing() {
+  const navigate = useNavigate()
+  const { user, refreshProfile } = useAuth()
+  const [loadingPack, setLoadingPack] = useState(null)
+
+  const handlePurchase = async (packId) => {
+    if (!user) {
+      navigate('/login')
+      return
+    }
+    setLoadingPack(packId)
+    try {
+      const result = await purchaseCreditPack(packId)
+      if (result.success) {
+        await refreshProfile()
+        alert(`🎉 결제 완료! ${result.credits}크레딧이 충전되었어요.`)
+        navigate('/mypage')
+      } else {
+        // 유저가 취소한 경우 조용히 처리
+        if (!/취소/.test(result.error || '')) {
+          alert('결제 실패: ' + result.error)
+        }
+      }
+    } catch (err) {
+      alert('결제 중 오류: ' + err.message)
+    } finally {
+      setLoadingPack(null)
+    }
+  }
+
   return (
     <div className="max-w-5xl mx-auto">
       {/* Hero */}
@@ -180,13 +212,16 @@ export default function Pricing() {
 
               {/* CTA */}
               <button
-                className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                onClick={() => handlePurchase(plan.id)}
+                disabled={loadingPack !== null}
+                className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 disabled:opacity-60 ${
                   plan.highlight
                     ? 'bg-primary text-white hover:bg-primary-dark'
                     : 'bg-bg text-text hover:bg-primary/10 hover:text-primary'
                 }`}
               >
-                구매하기
+                {loadingPack === plan.id && <Loader2 size={14} className="animate-spin" />}
+                {loadingPack === plan.id ? '결제 진행 중...' : '구매하기'}
               </button>
             </div>
           )

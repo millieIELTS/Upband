@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
+    "@portone/browser-sdk": "^0.1.5",
     "@supabase/supabase-js": "^2.100.1",
     "lucide-react": "^1.7.0",
     "msedge-tts": "^2.0.4",
