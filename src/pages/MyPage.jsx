@@ -74,11 +74,16 @@ export default function MyPage() {
             </div>
           </div>
           <div className="text-center">
-            <div className="flex items-center gap-1 text-accent">
+            <div className="flex items-center gap-1 text-accent justify-center">
               <Coins size={18} />
-              <span className="text-2xl font-bold">{profile?.credits ?? 0}</span>
+              <span className="text-2xl font-bold">
+                {(profile?.daily_credits ?? 0) + (profile?.credits ?? 0)}
+              </span>
             </div>
-            <p className="text-xs text-text-secondary mt-0.5">크레딧</p>
+            <p className="text-xs text-text-secondary mt-0.5">
+              오늘 무료 <b className="text-accent">{profile?.daily_credits ?? 0}</b>
+              {' + '}보유 {profile?.credits ?? 0}
+            </p>
           </div>
         </div>
       </div>

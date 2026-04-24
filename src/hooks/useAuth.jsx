@@ -17,6 +17,12 @@ export function AuthProvider({ children }) {
     }
 
     try {
+      // 🔄 매일 2 크레딧 자동 리필 (오늘 처음 로그인 시 실행됨, fire-and-forget)
+      // 실패해도 프로필 로딩은 계속 진행
+      supabase.rpc('ensure_daily_credits').then(({ error }) => {
+        if (error) console.warn('Daily credit refill check failed:', error.message)
+      })
+
       const { data } = await supabase.rpc('get_my_profile').maybeSingle()
 
       if (data) {
@@ -25,7 +31,8 @@ export function AuthProvider({ children }) {
         return
       }
 
-      // 프로필이 없으면 새로 생성
+      // 프로필이 없으면 새로 생성 (가입 시점)
+      // daily_credits는 DB 기본값(2)로 자동 세팅됨
       const displayName =
         authUser.user_metadata?.full_name ||
         authUser.user_metadata?.name ||
@@ -37,8 +44,11 @@ export function AuthProvider({ children }) {
         email: authUser.email,
         display_name: displayName,
         role: 'student',
-        credits: 5,
+        credits: 0, // 유료 크레딧 0 (daily_credits 2개가 DB에서 자동 지급됨)
       })
+
+      // 신규 유저도 오늘 리필 기록 남기기
+      await supabase.rpc('ensure_daily_credits')
 
       const { data: newProfile } = await supabase.rpc('get_my_profile').maybeSingle()
       setProfile(newProfile)
@@ -147,7 +157,9 @@ export function AuthProvider({ children }) {
     signInWithGoogle,
     signOut,
     refreshProfile,
-    hasCredits: (profile?.credits ?? 0) > 0,
+    // 유료 + 무료 데일리 크레딧 합산 기준 (Writing 제출 등에 사용)
+    hasCredits: ((profile?.credits ?? 0) + (profile?.daily_credits ?? 0)) > 0,
+    totalCredits: (profile?.credits ?? 0) + (profile?.daily_credits ?? 0),
     isTeacher: profile?.role === 'teacher' || profile?.role === 'admin',
   }
 

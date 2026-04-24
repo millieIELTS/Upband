@@ -102,3 +102,18 @@ UPDATE profiles
   SET daily_credits = 2,
       daily_credits_refilled_on = (now() AT TIME ZONE 'Asia/Seoul')::DATE
   WHERE daily_credits_refilled_on IS NULL;
+
+-- ═══════════════════════════════════════════════════════════════════
+-- 5️⃣ get_my_profile에 daily_credits / daily_credits_refilled_on 포함
+-- ═══════════════════════════════════════════════════════════════════
+-- 기존 함수 시그니처를 모르므로 SELECT * 기반으로 재작성
+-- (profiles 테이블의 모든 컬럼을 반환하도록)
+CREATE OR REPLACE FUNCTION get_my_profile()
+RETURNS SETOF profiles
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  SELECT * FROM profiles WHERE id = auth.uid();
+$$;
+
+GRANT EXECUTE ON FUNCTION get_my_profile() TO authenticated;

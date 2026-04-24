@@ -121,7 +121,7 @@ export default function WritingHomework() {
         isHomework: true,
         feedback: { overall_band: null, scores: { task_achievement: null, coherence_cohesion: null, lexical_resource: null, grammatical_range: null } },
       })
-      await supabase.rpc('deduct_credit')
+      await supabase.rpc('consume_credits', { p_amount: 1 })
       refreshProfile()
       recordActivity('writing') // 🔥 스트릭 + 활동 로그
       setFeedback({ submitted: true })

@@ -250,7 +250,7 @@ export default function MockTestWriting() {
       // 모의고사는 1 크레딧만 차감 (Task 1 + Task 2 합쳐서)
       // 재응시 시작 시 이미 차감했다면 중복 차감하지 않음
       if (submissions.length > 0 && !retryPaidRef.current) {
-        await supabase.rpc('deduct_credit_with_reason', { p_reason: 'mock_test' })
+        await supabase.rpc('consume_credits', { p_amount: 1 })
       }
 
       refreshProfile()
@@ -268,14 +268,14 @@ export default function MockTestWriting() {
   // 이미 응시한 모의고사를 재응시 — 확인 시 크레딧 1 차감하고 새 세션 시작
   const handleRetry = async () => {
     if (retryDeducting || !user) return
-    if ((profile?.credits ?? 0) < 1) {
+    if (((profile?.credits ?? 0) + (profile?.daily_credits ?? 0)) < 1) {
       setRetryError('크레딧이 부족해요. 관리자에게 문의해 주세요.')
       return
     }
     setRetryDeducting(true)
     setRetryError('')
     try {
-      await supabase.rpc('deduct_credit_with_reason', { p_reason: 'mock_test' })
+      await supabase.rpc('consume_credits', { p_amount: 1 })
       await refreshProfile()
       retryPaidRef.current = true
       // 새 세션 시작
@@ -338,7 +338,7 @@ export default function MockTestWriting() {
   }
 
   if (preflightState === 'already_submitted') {
-    const notEnoughCredits = (profile?.credits ?? 0) < 1
+    const notEnoughCredits = ((profile?.credits ?? 0) + (profile?.daily_credits ?? 0)) < 1
     return (
       <div className="max-w-xl mx-auto py-16 text-center">
         <AlertTriangle size={48} className="text-amber-500 mx-auto mb-4" />
@@ -350,7 +350,7 @@ export default function MockTestWriting() {
           다시 응시하시겠어요?
         </p>
         <p className="text-xs text-text-secondary mb-6">
-          다시 응시하면 <b className="text-accent">1 크레딧이 차감</b>되고 새 세션이 시작돼요. (현재 잔액: {profile?.credits ?? 0})
+          다시 응시하면 <b className="text-accent">1 크레딧이 차감</b>되고 새 세션이 시작돼요. (오늘 무료 {profile?.daily_credits ?? 0} + 보유 {profile?.credits ?? 0})
         </p>
         {retryError && (
           <p className="text-sm text-error mb-4">{retryError}</p>
@@ -444,7 +444,7 @@ export default function MockTestWriting() {
         {currentWords} / {currentTask.minWords}+ words
       </span>
       <span className="text-text-secondary">
-        크레딧 {profile?.credits ?? 0} · 제출 시 1 크레딧 차감
+        오늘 무료 {profile?.daily_credits ?? 0} · 보유 {profile?.credits ?? 0} · 제출 시 1 차감
       </span>
     </div>
   )

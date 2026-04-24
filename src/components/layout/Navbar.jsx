@@ -98,9 +98,13 @@ export default function Navbar() {
                   {streak}
                 </span>
               )}
-              <span className="flex items-center gap-1 text-xs text-text-secondary bg-bg px-2.5 py-1 rounded-full">
+              <span
+                title={`오늘 무료 ${profile?.daily_credits ?? 0} + 보유 ${profile?.credits ?? 0} 크레딧 (매일 2 크레딧 무료 충전)`}
+                className="flex items-center gap-1 text-xs text-text-secondary bg-bg px-2.5 py-1 rounded-full"
+              >
                 <Coins size={12} className="text-accent" />
-                {profile?.credits ?? 0}
+                <span className="text-accent font-semibold">{profile?.daily_credits ?? 0}</span>
+                <span>+{profile?.credits ?? 0}</span>
               </span>
               <Link
                 to="/mypage"
@@ -183,7 +187,8 @@ export default function Navbar() {
                 </div>
                 <span className="flex items-center gap-1 text-xs text-text-secondary bg-bg px-2.5 py-1 rounded-full">
                   <Coins size={12} className="text-accent" />
-                  {profile?.credits ?? 0} 크레딧
+                  <span className="text-accent font-semibold">{profile?.daily_credits ?? 0}</span>
+                  <span>+{profile?.credits ?? 0}</span>
                 </span>
               </Link>
               <button
