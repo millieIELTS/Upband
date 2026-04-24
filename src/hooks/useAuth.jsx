@@ -39,15 +39,22 @@ export function AuthProvider({ children }) {
         authUser.email?.split('@')[0] ||
         '사용자'
 
+      // 오늘 날짜 (KST) — "2026-04-24" 형식
+      const kstToday = new Date(Date.now() + 9 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0]
+
       await supabase.from('profiles').insert({
         id: authUser.id,
         email: authUser.email,
         display_name: displayName,
         role: 'student',
-        credits: 0, // 유료 크레딧 0 (daily_credits 2개가 DB에서 자동 지급됨)
+        credits: 0, // 유료 크레딧 0
+        daily_credits: 2, // 🎁 가입 즉시 2 크레딧 지급
+        daily_credits_refilled_on: kstToday, // 오늘 리필 기록
       })
 
-      // 신규 유저도 오늘 리필 기록 남기기
+      // 추가 안전장치 — RPC로도 한 번 더 확정
       await supabase.rpc('ensure_daily_credits')
 
       const { data: newProfile } = await supabase.rpc('get_my_profile').maybeSingle()
