@@ -250,10 +250,12 @@ export default function MockTestWriting() {
       // 모의고사는 1 크레딧만 차감 (Task 1 + Task 2 합쳐서)
       // 재응시 시작 시 이미 차감했다면 중복 차감하지 않음
       if (submissions.length > 0 && !retryPaidRef.current) {
-        await supabase.rpc('consume_credits', { p_amount: 1 })
+        const { data: consumeData, error: consumeError } = await supabase.rpc('consume_credits', { p_amount: 1 })
+        console.log('[consume_credits] 결과:', consumeData, '에러:', consumeError)
+        if (consumeError) alert('크레딧 차감 실패: ' + consumeError.message)
       }
 
-      refreshProfile()
+      await refreshProfile()
       recordActivity('writing') // 🔥 스트릭 + 활동 로그
       localStorage.removeItem(STORAGE_KEY(id, user.id))
       setSubmitted(true)
@@ -275,7 +277,9 @@ export default function MockTestWriting() {
     setRetryDeducting(true)
     setRetryError('')
     try {
-      await supabase.rpc('consume_credits', { p_amount: 1 })
+      const { data: consumeData, error: consumeError } = await supabase.rpc('consume_credits', { p_amount: 1 })
+      console.log('[consume_credits retry] 결과:', consumeData, '에러:', consumeError)
+      if (consumeError) alert('크레딧 차감 실패: ' + consumeError.message)
       await refreshProfile()
       retryPaidRef.current = true
       // 새 세션 시작

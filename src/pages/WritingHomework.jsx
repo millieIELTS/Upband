@@ -121,8 +121,12 @@ export default function WritingHomework() {
         isHomework: true,
         feedback: { overall_band: null, scores: { task_achievement: null, coherence_cohesion: null, lexical_resource: null, grammatical_range: null } },
       })
-      await supabase.rpc('consume_credits', { p_amount: 1 })
-      refreshProfile()
+      const { data: consumeData, error: consumeError } = await supabase.rpc('consume_credits', { p_amount: 1 })
+      console.log('[consume_credits] 결과:', consumeData, '에러:', consumeError)
+      if (consumeError) {
+        alert('크레딧 차감 실패: ' + consumeError.message)
+      }
+      await refreshProfile()
       recordActivity('writing') // 🔥 스트릭 + 활동 로그
       setFeedback({ submitted: true })
       // 제출 성공 시 메인페이지로 이동
