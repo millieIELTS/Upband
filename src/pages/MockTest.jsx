@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowLeft, FileText, Mic, ChevronRight } from 'lucide-react'
+import { ArrowLeft, FileText, Mic, ChevronRight, MessageSquareHeart } from 'lucide-react'
 
 export default function MockTest() {
   return (
@@ -24,6 +24,22 @@ export default function MockTest() {
         <p className="text-sm text-text-secondary mt-4 leading-relaxed">
           Writing과 Speaking 두 가지 모의고사가 준비되어 있어요. 원하는 영역을 선택해주세요.
         </p>
+      </div>
+
+      {/* 강사 피드백 안내 배너 */}
+      <div className="flex items-start gap-3 bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20 rounded-xl p-4 mb-6">
+        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <MessageSquareHeart size={18} className="text-primary" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-text mb-1">
+            밀리쌤이 직접 꼼꼼히 보고 피드백 드려요
+          </p>
+          <p className="text-xs text-text-secondary leading-relaxed">
+            제출하신 Writing 모의고사는 강사가 한 문장 한 문장 직접 검토 후,
+            개별 피드백을 제공합니다. 시간이 조금 걸리더라도 정확하고 실질적인 조언을 받아보세요.
+          </p>
+        </div>
       </div>
 
       <div className="space-y-3">

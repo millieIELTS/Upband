@@ -39,6 +39,7 @@ import MockTestSpeaking from './pages/MockTestSpeaking'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Refund from './pages/Refund'
+import Pricing from './pages/Pricing'
 import CreditHistory from './pages/CreditHistory'
 import RequireAuth from './components/RequireAuth'
 
@@ -89,6 +90,7 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/refund" element={<Refund />} />
+          <Route path="/pricing" element={<Pricing />} />
         </Route>
       </Routes>
     </BrowserRouter>

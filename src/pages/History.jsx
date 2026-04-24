@@ -21,7 +21,7 @@ function formatTimeKr(d) {
 
 export default function History() {
   const { user, loading: authLoading } = useAuth()
-  const { countInCurrentMonth } = useStreak()
+  const { countInCurrentMonth, streak: navStreak } = useStreak()
   const [writingData, setWritingData] = useState([])
   const [speakingData, setSpeakingData] = useState([])
   const [loading, setLoading] = useState(false)
@@ -66,42 +66,24 @@ export default function History() {
   const isSpeakingMock = (item) => item._type === 'speaking' && item.feedback_json?.speaking_mock_id
   const isMockTest = (item) => isWritingMock(item) || isSpeakingMock(item)
 
-  // 연속 학습일 계산
-  const streak = useMemo(() => {
-    if (allActivities.length === 0) return 0
-    let count = 0
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+  // 연속 학습일 — 네비바와 완전히 동일한 값 사용 (useStreak hook)
+  // (단어/리스닝 학습도 포함되므로 DB의 writing/speaking만으로 계산하지 않음)
+  const streak = navStreak
 
-    for (let i = 0; i < 365; i++) {
-      const d = new Date(today)
-      d.setDate(d.getDate() - i)
-      const key = toDateKey(d)
-      if (activitiesByDate[key]) {
-        count++
-      } else {
-        // 오늘 아직 안 했으면 어제부터 세기
-        if (i === 0) continue
-        break
-      }
-    }
-    return count
-  }, [activitiesByDate, allActivities])
-
-  // 이번 달 통계 (Writing은 "학습일 수" 기준 — 하루에 여러 번 내도 1일)
+  // 이번 달 통계
   const monthStats = useMemo(() => {
     const now = new Date()
     const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
     const monthActivities = allActivities.filter(a => toDateKey(a.created_at).startsWith(thisMonth))
-    const writingDays = new Set(
-      monthActivities.filter(a => a._type === 'writing').map(a => toDateKey(a.created_at))
-    )
+    const writingActivities = monthActivities.filter(a => a._type === 'writing')
+    const writingDays = new Set(writingActivities.map(a => toDateKey(a.created_at)))
     const speakingDays = new Set(
       monthActivities.filter(a => a._type === 'speaking').map(a => toDateKey(a.created_at))
     )
     return {
       total: monthActivities.length,
-      writing: writingDays.size,
+      writingCount: writingActivities.length, // 이번 달 Writing 제출 총 횟수
+      writing: writingDays.size,              // Writing 학습일 (하루에 여러 번 내도 1일)
       speaking: speakingDays.size,
     }
   }, [allActivities])
@@ -193,8 +175,11 @@ export default function History() {
               <p className="text-xs text-text-secondary">연속 학습일</p>
             </div>
             <div className="bg-surface rounded-xl border border-border p-4 text-center">
-              <div className="text-2xl font-bold text-primary mb-1">{monthStats.total}</div>
-              <p className="text-xs text-text-secondary">이번 달 학습</p>
+              <div className="flex items-center justify-center gap-1 text-primary mb-1">
+                <PenLine size={18} />
+                <span className="text-2xl font-bold">{monthStats.writingCount}</span>
+              </div>
+              <p className="text-xs text-text-secondary">이번 달 Writing 횟수</p>
             </div>
             <div className="bg-surface rounded-xl border border-border p-4 text-center">
               <div className="flex items-center justify-center gap-2 mb-1">

@@ -158,10 +158,25 @@ export default function ListeningPractice() {
   const sessionTotal = reviewMode ? reviewList.length : sentences.length
   const sessionPos = reviewMode ? reviewPos : qIndex
 
-  // 세션 음성 고정
+  // 세션 음성 고정 + 페이지 이탈/탭 숨김 시 재생 중단
   useEffect(() => {
     pickSessionVoice()
-    return () => stopSpeaking()
+
+    // 탭 전환/최소화 시 재생 멈춤
+    const handleVisibility = () => {
+      if (document.hidden) stopSpeaking()
+    }
+    // 브라우저 창 닫기/뒤로가기 시
+    const handlePageHide = () => stopSpeaking()
+
+    document.addEventListener('visibilitychange', handleVisibility)
+    window.addEventListener('pagehide', handlePageHide)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
+      window.removeEventListener('pagehide', handlePageHide)
+      stopSpeaking()
+    }
   }, [])
 
   // 저장된 진행도 복원 (마운트 직후 한 번만)

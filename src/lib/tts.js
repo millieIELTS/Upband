@@ -13,6 +13,10 @@ const VOICES = [
 const audioCache = new Map()
 let currentAudio = null
 
+// 재생 세션 ID — stopPlaying() 호출 시 증가해서 pending 비동기 재생을 무효화
+// (페이지 이탈 시 fetch가 끝난 뒤 오디오가 뒤늦게 재생되는 문제 방지)
+let playbackId = 0
+
 // 세션 음성 — 토픽 진입 시 한 번 정해지면 그 토픽 내에서 유지
 let sessionVoice = null
 
@@ -34,6 +38,9 @@ export async function speakQuestion(text, onEnd) {
     currentAudio = null
   }
 
+  // 이번 재생의 고유 ID — fetch 진행 중에 stopPlaying() 호출되면 중단
+  const myId = ++playbackId
+
   try {
     let audioUrl = audioCache.get(text)
 
@@ -44,28 +51,39 @@ export async function speakQuestion(text, onEnd) {
         body: JSON.stringify({ text, voice: getVoice() }),
       })
 
+      // fetch 중에 stop 되었으면 (페이지 이탈 등) 재생하지 않음
+      if (myId !== playbackId) return
+
       if (!res.ok) throw new Error('TTS 요청 실패')
 
       const blob = await res.blob()
+
+      if (myId !== playbackId) return
+
       audioUrl = URL.createObjectURL(blob)
       audioCache.set(text, audioUrl)
     }
+
+    // 캐시 조회 후에도 한 번 더 체크 (비동기 중에 stop 됐을 수 있음)
+    if (myId !== playbackId) return
 
     const audio = new Audio(audioUrl)
     currentAudio = audio
 
     audio.onended = () => {
-      currentAudio = null
+      if (currentAudio === audio) currentAudio = null
       if (onEnd) onEnd()
     }
 
     audio.onerror = () => {
-      currentAudio = null
+      if (currentAudio === audio) currentAudio = null
+      if (myId !== playbackId) return
       speakFallback(text, onEnd)
     }
 
     await audio.play()
   } catch (err) {
+    if (myId !== playbackId) return
     console.error('Edge TTS error, falling back:', err)
     speakFallback(text, onEnd)
   }
@@ -82,7 +100,9 @@ function speakFallback(text, onEnd) {
 }
 
 // 재생만 멈추기 (세션 음성 유지 — 질문 전환용)
+// 이 함수 호출 시 playbackId를 증가시켜서 pending fetch도 무효화됨
 export function stopPlaying() {
+  playbackId++
   if (currentAudio) {
     currentAudio.pause()
     currentAudio = null
