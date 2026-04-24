@@ -278,8 +278,13 @@ export default function Dashboard() {
                     <span className="flex items-center gap-1 text-xs text-text-secondary">
                       <PenLine size={12} /> {userSubmissions.length}
                     </span>
-                    <span className="flex items-center gap-1 text-xs text-accent font-medium">
-                      <Coins size={12} /> {s.credits}
+                    <span
+                      title={`오늘 무료 ${s.daily_credits ?? 0} + 보유 ${s.credits ?? 0}`}
+                      className="flex items-center gap-1 text-xs font-medium"
+                    >
+                      <Coins size={12} className="text-accent" />
+                      <span className="text-accent">{s.daily_credits ?? 0}</span>
+                      <span className="text-text-secondary">+{s.credits ?? 0}</span>
                     </span>
                     {isExpanded ? <ChevronUp size={16} className="text-text-secondary" /> : <ChevronDown size={16} className="text-text-secondary" />}
                   </div>
@@ -287,9 +292,20 @@ export default function Dashboard() {
 
                 {isExpanded && (
                   <div className="border-t border-border p-4 bg-bg/50">
-                    {/* 크레딧 관리 */}
+                    {/* 오늘 무료 크레딧 표시 (읽기 전용 - 매일 자동 리셋) */}
+                    <div className="flex items-center gap-2 mb-2 text-xs">
+                      <span className="text-text-secondary font-medium">오늘 무료:</span>
+                      <span className="flex items-center gap-1 bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold">
+                        <Coins size={11} /> {s.daily_credits ?? 0} / 2
+                      </span>
+                      <span className="text-[10px] text-text-secondary">
+                        (매일 KST 자정 자동 리셋 · 관리 불필요)
+                      </span>
+                    </div>
+
+                    {/* 유료 크레딧 관리 */}
                     <div className="flex items-center gap-2 mb-3 flex-wrap">
-                      <span className="text-xs text-text-secondary font-medium">크레딧:</span>
+                      <span className="text-xs text-text-secondary font-medium">보유 크레딧:</span>
                       <button onClick={() => updateCredits(s.id, -1)} className="w-7 h-7 flex items-center justify-center rounded-md border border-border hover:bg-gray-100 transition-colors">
                         <Minus size={12} />
                       </button>
