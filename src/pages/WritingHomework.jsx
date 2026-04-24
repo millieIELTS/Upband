@@ -121,8 +121,7 @@ export default function WritingHomework() {
         isHomework: true,
         feedback: { overall_band: null, scores: { task_achievement: null, coherence_cohesion: null, lexical_resource: null, grammatical_range: null } },
       })
-      const { data: consumeData, error: consumeError } = await supabase.rpc('consume_credits', { p_amount: 1 })
-      alert('[DEBUG] consume_credits 결과:\n' + JSON.stringify(consumeData, null, 2) + '\n\n에러: ' + (consumeError ? consumeError.message : '없음'))
+      await supabase.rpc('consume_credits', { p_amount: 1 })
       await refreshProfile()
       recordActivity('writing') // 🔥 스트릭 + 활동 로그
       setFeedback({ submitted: true })

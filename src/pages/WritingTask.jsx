@@ -107,8 +107,7 @@ export default function WritingTask() {
       const result = await getWritingFeedback({ essay, taskType })
       setFeedback(result)
       // AI 피드백 성공 시 크레딧 1 차감 (daily_credits 우선 차감)
-      const { data: consumeData, error: consumeError } = await supabase.rpc('consume_credits', { p_amount: 1 })
-      alert('[DEBUG] consume_credits 결과:\n' + JSON.stringify(consumeData, null, 2) + '\n\n에러: ' + (consumeError ? consumeError.message : '없음'))
+      await supabase.rpc('consume_credits', { p_amount: 1 })
       await refreshProfile()
       recordActivity('writing') // 🔥 스트릭 + 활동 로그
     } catch (err) {
