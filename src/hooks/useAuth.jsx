@@ -17,12 +17,7 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      // 🔄 매일 2 크레딧 자동 리필 (오늘 처음 로그인 시 실행됨, fire-and-forget)
-      // 실패해도 프로필 로딩은 계속 진행
-      supabase.rpc('ensure_daily_credits').then(({ error }) => {
-        if (error) console.warn('Daily credit refill check failed:', error.message)
-      })
-
+      // 🔄 get_my_profile이 내부적으로 ensure_daily_credits 호출 (race condition 방지)
       const { data } = await supabase.rpc('get_my_profile').maybeSingle()
 
       if (data) {
@@ -54,9 +49,7 @@ export function AuthProvider({ children }) {
         daily_credits_refilled_on: kstToday, // 오늘 리필 기록
       })
 
-      // 추가 안전장치 — RPC로도 한 번 더 확정
-      await supabase.rpc('ensure_daily_credits')
-
+      // get_my_profile 내부에서 ensure_daily_credits 호출됨 (race 방지)
       const { data: newProfile } = await supabase.rpc('get_my_profile').maybeSingle()
       setProfile(newProfile)
     } catch (err) {
@@ -105,9 +98,25 @@ export function AuthProvider({ children }) {
       }
     })
 
+    // 3. 탭이 다시 보이거나 포커스될 때 프로필 새로고침
+    // (자정 지나서 탭 돌아올 때 daily_credits 자동 리필 반영)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (mounted && session?.user) {
+            loadProfile(session.user)
+          }
+        })
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    window.addEventListener('focus', handleVisibility)
+
     return () => {
       mounted = false
       subscription.unsubscribe()
+      document.removeEventListener('visibilitychange', handleVisibility)
+      window.removeEventListener('focus', handleVisibility)
     }
   }, [loadProfile])
 
