@@ -51,9 +51,9 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/writing" element={<RequireAuth><Writing /></RequireAuth>} />
           <Route path="/writing/:taskType" element={<RequireAuth><WritingTask /></RequireAuth>} />
-          <Route path="/writing/homework" element={<RequireAuth><WritingHomeworkSelect /></RequireAuth>} />
+          <Route path="/writing/homework" element={<WritingHomeworkSelect />} />
           <Route path="/writing/homework/:taskType" element={<RequireAuth><WritingHomework /></RequireAuth>} />
-          <Route path="/speaking" element={<RequireAuth><Speaking /></RequireAuth>} />
+          <Route path="/speaking" element={<Speaking />} />
           <Route path="/speaking/part1" element={<RequireAuth><SpeakingPart1Select /></RequireAuth>} />
           <Route path="/speaking/part1/:topicId" element={<RequireAuth><SpeakingPart1 /></RequireAuth>} />
           <Route path="/speaking/part2" element={<RequireAuth><SpeakingPart2Select /></RequireAuth>} />
@@ -66,17 +66,17 @@ function App() {
           <Route path="/dashboard/submissions" element={<RequireAuth><SubmissionDetail /></RequireAuth>} />
           <Route path="/dashboard/ebooks" element={<RequireAuth><AdminEbooks /></RequireAuth>} />
           <Route path="/dashboard/mock-tests" element={<RequireAuth><DashboardMockTests /></RequireAuth>} />
-          <Route path="/vocab" element={<RequireAuth><VocabSelect /></RequireAuth>} />
+          <Route path="/vocab" element={<VocabSelect />} />
           <Route path="/vocab/:bandId" element={<RequireAuth><VocabSelect /></RequireAuth>} />
           <Route path="/vocab/:bandId/:topicId" element={<RequireAuth><VocabStudy /></RequireAuth>} />
-          <Route path="/listening" element={<RequireAuth><ListeningSelect /></RequireAuth>} />
+          <Route path="/listening" element={<ListeningSelect />} />
           <Route path="/listening/:bandId" element={<RequireAuth><ListeningPractice /></RequireAuth>} />
-          <Route path="/community" element={<RequireAuth><Community /></RequireAuth>} />
+          <Route path="/community" element={<Community />} />
           <Route path="/community/:categoryId" element={<RequireAuth><CommunityBoard /></RequireAuth>} />
           <Route path="/community/:categoryId/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
           <Route path="/community/:categoryId/edit/:postId" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
           <Route path="/community/:categoryId/:postId" element={<RequireAuth><CommunityPost /></RequireAuth>} />
-          <Route path="/mock-test" element={<RequireAuth><MockTest /></RequireAuth>} />
+          <Route path="/mock-test" element={<MockTest />} />
           <Route path="/mock-test/writing" element={<RequireAuth><MockTestWritingList /></RequireAuth>} />
           <Route path="/mock-test/writing/:id" element={<RequireAuth><MockTestWriting /></RequireAuth>} />
           <Route path="/mock-test/speaking" element={<RequireAuth><MockTestSpeakingList /></RequireAuth>} />
