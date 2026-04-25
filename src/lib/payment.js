@@ -2,12 +2,46 @@ import PortOne from '@portone/browser-sdk/v2'
 import { supabase } from './supabase'
 
 /**
+ * 결제수단별 PortOne payMethod 매핑
+ * - 'CARD': 신용/체크카드
+ * - 'KAKAOPAY' / 'NAVERPAY' / 'TOSSPAY' / 'SAMSUNGPAY': 간편결제
+ */
+function buildPayMethodParams(method) {
+  switch (method) {
+    case 'KAKAOPAY':
+      return {
+        payMethod: 'EASY_PAY',
+        easyPay: { easyPayProvider: 'EASY_PAY_PROVIDER_KAKAOPAY' },
+      }
+    case 'NAVERPAY':
+      return {
+        payMethod: 'EASY_PAY',
+        easyPay: { easyPayProvider: 'EASY_PAY_PROVIDER_NAVERPAY' },
+      }
+    case 'TOSSPAY':
+      return {
+        payMethod: 'EASY_PAY',
+        easyPay: { easyPayProvider: 'EASY_PAY_PROVIDER_TOSSPAY' },
+      }
+    case 'SAMSUNGPAY':
+      return {
+        payMethod: 'EASY_PAY',
+        easyPay: { easyPayProvider: 'EASY_PAY_PROVIDER_SAMSUNGPAY' },
+      }
+    case 'CARD':
+    default:
+      return { payMethod: 'CARD' }
+  }
+}
+
+/**
  * 크레딧 팩 결제 전체 플로우
  *
  * @param {string} packId - 'starter' | 'standard' | 'focus' | 'master'
+ * @param {string} payMethod - 'CARD' | 'KAKAOPAY' | 'NAVERPAY' | 'TOSSPAY' | 'SAMSUNGPAY'
  * @returns {Promise<{success: boolean, credits?: number, error?: string}>}
  */
-export async function purchaseCreditPack(packId) {
+export async function purchaseCreditPack(packId, payMethod = 'CARD') {
   // 1. 로그인 세션 확인 + JWT 토큰 획득
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) {
@@ -39,8 +73,6 @@ export async function purchaseCreditPack(packId) {
     return { success: false, error: 'PortOne 설정이 필요합니다. (환경변수 확인)' }
   }
 
-  // NICE V1 (iamport00m 공용 테스트 가맹점) 호환 — 최소 파라미터만
-  // customer 필드도 일부 NICE V1에서 파싱 에러 발생 → 제거
   const response = await PortOne.requestPayment({
     storeId,
     channelKey,
@@ -48,7 +80,7 @@ export async function purchaseCreditPack(packId) {
     orderName: `UpBand ${pack_name} (${credits}크레딧)`,
     totalAmount: amount,
     currency: 'CURRENCY_KRW',
-    payMethod: 'CARD',
+    ...buildPayMethodParams(payMethod),
   })
 
   // 유저 취소 / 결제 실패

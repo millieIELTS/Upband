@@ -1,8 +1,44 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Check, Coins, Sparkles, Zap, Crown, ArrowRight, Star, Loader2 } from 'lucide-react'
+import { Check, Coins, Sparkles, Zap, Crown, ArrowRight, Star, Loader2, CreditCard, X } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { purchaseCreditPack } from '../lib/payment'
+
+// 💳 결제수단 옵션
+const PAY_METHODS = [
+  {
+    id: 'CARD',
+    label: '신용·체크카드',
+    desc: 'Visa · Master · 국내 모든 카드',
+    icon: '💳',
+    bgClass: 'bg-bg hover:bg-primary/5',
+    borderClass: 'border-border hover:border-primary',
+  },
+  {
+    id: 'KAKAOPAY',
+    label: '카카오페이',
+    desc: '카카오톡으로 빠르게',
+    icon: '🟡',
+    bgClass: 'bg-[#FEE500]/10 hover:bg-[#FEE500]/20',
+    borderClass: 'border-[#FEE500]/40 hover:border-[#FEE500]',
+  },
+  {
+    id: 'NAVERPAY',
+    label: '네이버페이',
+    desc: '네이버 아이디로 간편하게',
+    icon: '🟢',
+    bgClass: 'bg-[#03C75A]/10 hover:bg-[#03C75A]/20',
+    borderClass: 'border-[#03C75A]/40 hover:border-[#03C75A]',
+  },
+  {
+    id: 'TOSSPAY',
+    label: '토스페이',
+    desc: '토스로 1초 결제',
+    icon: '🔵',
+    bgClass: 'bg-[#0064FF]/10 hover:bg-[#0064FF]/20',
+    borderClass: 'border-[#0064FF]/40 hover:border-[#0064FF]',
+  },
+]
 
 // 💳 크레딧 팩 정의
 const PLANS = [
@@ -113,15 +149,25 @@ export default function Pricing() {
   const navigate = useNavigate()
   const { user, refreshProfile } = useAuth()
   const [loadingPack, setLoadingPack] = useState(null)
+  const [selectedPlan, setSelectedPlan] = useState(null) // 결제수단 시트에 표시할 plan
 
-  const handlePurchase = async (packId) => {
+  // 구매하기 버튼 클릭 → 결제수단 선택 시트 열기
+  const openPaySheet = (plan) => {
     if (!user) {
       navigate('/login')
       return
     }
-    setLoadingPack(packId)
+    setSelectedPlan(plan)
+  }
+
+  // 결제수단 선택 → 실제 결제 진행
+  const handlePaymentMethod = async (payMethod) => {
+    if (!selectedPlan) return
+    const planId = selectedPlan.id
+    setSelectedPlan(null) // 시트 닫기
+    setLoadingPack(planId)
     try {
-      const result = await purchaseCreditPack(packId)
+      const result = await purchaseCreditPack(planId, payMethod)
       if (result.success) {
         await refreshProfile()
         alert(`🎉 결제 완료! ${result.credits}크레딧이 충전되었어요.`)
@@ -212,7 +258,7 @@ export default function Pricing() {
 
               {/* CTA */}
               <button
-                onClick={() => handlePurchase(plan.id)}
+                onClick={() => openPaySheet(plan)}
                 disabled={loadingPack !== null}
                 className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 disabled:opacity-60 ${
                   plan.highlight
@@ -284,6 +330,71 @@ export default function Pricing() {
           문의: <a href="http://pf.kakao.com/_xbKxlCX" target="_blank" rel="noopener noreferrer" className="text-primary font-medium">카카오톡 채널</a> · milliejiyeon@gmail.com
         </p>
       </section>
+
+      {/* 💳 결제수단 선택 시트 (모바일: 바닥, 데스크탑: 중앙) */}
+      {selectedPlan && (
+        <div
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setSelectedPlan(null)}
+        >
+          <div
+            className="bg-surface w-full md:max-w-md rounded-t-3xl md:rounded-3xl p-6 md:p-8 animate-in slide-in-from-bottom duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 헤더 */}
+            <div className="flex items-start justify-between mb-1">
+              <div>
+                <h3 className="text-lg md:text-xl font-bold flex items-center gap-2">
+                  <CreditCard size={20} className="text-primary" />
+                  결제수단 선택
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedPlan(null)}
+                className="p-1 -m-1 text-text-secondary hover:text-text transition-colors"
+                aria-label="닫기"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* 주문 요약 */}
+            <div className="flex items-center justify-between py-3 border-b border-border mb-4">
+              <div>
+                <p className="text-sm font-medium">{selectedPlan.name}</p>
+                <p className="text-xs text-text-secondary flex items-center gap-1 mt-0.5">
+                  <Coins size={12} className="text-accent" />
+                  {selectedPlan.credits}크레딧
+                </p>
+              </div>
+              <p className="text-xl font-bold">₩{selectedPlan.price.toLocaleString()}</p>
+            </div>
+
+            {/* 결제수단 버튼들 */}
+            <div className="space-y-2">
+              {PAY_METHODS.map((method) => (
+                <button
+                  key={method.id}
+                  onClick={() => handlePaymentMethod(method.id)}
+                  className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${method.bgClass} ${method.borderClass}`}
+                >
+                  <span className="text-2xl">{method.icon}</span>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-semibold">{method.label}</p>
+                    <p className="text-xs text-text-secondary">{method.desc}</p>
+                  </div>
+                  <ArrowRight size={16} className="text-text-secondary" />
+                </button>
+              ))}
+            </div>
+
+            {/* 안전 안내 */}
+            <p className="text-[11px] text-text-secondary text-center mt-4">
+              🔒 안전한 결제 · 토스페이먼츠 보안 인증
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
