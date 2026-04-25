@@ -262,7 +262,7 @@ export default function Pricing() {
         <p className="text-[11px] md:text-xs text-text-secondary text-center mt-4 leading-relaxed">
           🎯 <strong className="text-text">최소한의 도움으로, 최대한의 효과</strong>
           <br />
-          Reading · Listening은 스스로, 혼자선 막히는 <strong className="text-text">Writing · Speaking만 저렴하게</strong>
+          혼자선 올라가지 않는 <strong className="text-text">Writing · Speaking</strong>, 저렴하게 도움받고 목표 점수 달성해보세요
         </p>
       </section>
 
