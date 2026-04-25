@@ -1,21 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
-  BookOpen, Download, Coins, Lock, ArrowLeft, MessageSquare, Target, List, Eye, Sparkles, CheckCircle2,
+  BookOpen, Download, Lock, ArrowLeft, MessageSquare, Target, List, Eye, Sparkles, CheckCircle2,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 
-const REASON_MSG = {
-  insufficient_credits: (d) => `크레딧이 부족해요. (보유: ${d.credits} / 필요: ${d.price})`,
-  ebook_not_found: () => '자료를 찾을 수 없어요.',
-  not_authenticated: () => '로그인이 필요해요.',
-}
-
 export default function StoreDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user, profile, refreshProfile } = useAuth()
+  const { user } = useAuth()
 
   const [book, setBook] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -55,6 +49,16 @@ export default function StoreDetail() {
       navigate('/login')
       return
     }
+
+    // 유료 자료: 결제 시스템 준비 중
+    if (book.price > 0 && !isPurchased) {
+      setMessage({
+        type: 'info',
+        text: '결제 시스템 준비 중이에요. 곧 구매할 수 있도록 추가됩니다.',
+      })
+      return
+    }
+
     setProcessing(true)
     setMessage(null)
 
@@ -62,15 +66,10 @@ export default function StoreDetail() {
     setProcessing(false)
 
     if (error || !data?.success) {
-      const msg = REASON_MSG[data?.error]?.(data) || '오류가 발생했어요. 다시 시도해 주세요.'
-      setMessage({ type: 'error', text: msg })
+      setMessage({ type: 'error', text: '오류가 발생했어요. 다시 시도해 주세요.' })
       return
     }
 
-    if (!data.already_purchased && book.price > 0) {
-      await refreshProfile()
-      setMessage({ type: 'success', text: `${book.price} 크레딧이 차감됐어요.` })
-    }
     setIsPurchased(true)
 
     const a = document.createElement('a')
@@ -119,13 +118,8 @@ export default function StoreDetail() {
           )}
 
           <div className="flex items-center gap-3 mb-4">
-            <span className="flex items-center gap-1 text-2xl font-bold text-primary">
-              {book.price === 0 ? '무료' : (
-                <>
-                  <Coins size={22} className="text-accent" />
-                  {book.price.toLocaleString()}
-                </>
-              )}
+            <span className="text-2xl font-bold text-primary">
+              {book.price === 0 ? '무료' : `${book.price.toLocaleString()}원`}
             </span>
             {isPurchased && book.price > 0 && (
               <span className="text-xs px-2 py-1 bg-emerald-50 text-emerald-600 rounded-full font-medium">
@@ -135,7 +129,11 @@ export default function StoreDetail() {
           </div>
 
           {message && (
-            <p className={`text-xs mb-3 ${message.type === 'error' ? 'text-red-500' : 'text-emerald-600'}`}>
+            <p className={`text-xs mb-3 ${
+              message.type === 'error' ? 'text-red-500'
+              : message.type === 'info' ? 'text-amber-600'
+              : 'text-emerald-600'
+            }`}>
               {message.text}
             </p>
           )}
@@ -154,11 +152,6 @@ export default function StoreDetail() {
             )}
           </button>
 
-          {!isPurchased && book.price > 0 && user && (
-            <p className="text-xs text-text-secondary mt-2 text-center">
-              보유 크레딧: <span className="font-medium text-text">{profile?.credits ?? 0}</span>
-            </p>
-          )}
         </div>
       </div>
 
@@ -240,7 +233,7 @@ export default function StoreDetail() {
           <div>
             <p className="text-sm font-semibold">{book.title}</p>
             <p className="text-xs text-text-secondary">
-              {book.price === 0 ? '무료' : `${book.price} 크레딧`}
+              {book.price === 0 ? '무료' : `${book.price.toLocaleString()}원`}
             </p>
           </div>
           <button

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { BookOpen, Download, Coins, Lock, ArrowRight } from 'lucide-react'
+import { BookOpen, Download, Lock, ArrowRight } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -12,7 +12,7 @@ export default function Store() {
   const [loadingId, setLoadingId] = useState(null)
   const [flashMessage, setFlashMessage] = useState(null) // { id, type, text }
 
-  const { user, profile, refreshProfile } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -50,6 +50,16 @@ export default function Store() {
       return
     }
 
+    // 유료 자료: 결제 시스템 준비 중
+    if (book.price > 0 && !purchasedIds.has(book.id)) {
+      setFlashMessage({
+        id: book.id,
+        type: 'info',
+        text: '결제 시스템 준비 중이에요. 곧 구매할 수 있도록 추가됩니다.',
+      })
+      return
+    }
+
     setLoadingId(book.id)
     setFlashMessage(null)
 
@@ -58,20 +68,10 @@ export default function Store() {
     setLoadingId(null)
 
     if (rpcError || !data?.success) {
-      const err = data?.error || rpcError?.message
-      if (err === 'insufficient_credits') {
-        setFlashMessage({ id: book.id, type: 'error', text: `크레딧이 부족해요. (보유: ${data.credits} / 필요: ${data.price})` })
-      } else {
-        setFlashMessage({ id: book.id, type: 'error', text: '오류가 발생했어요. 다시 시도해 주세요.' })
-      }
+      setFlashMessage({ id: book.id, type: 'error', text: '오류가 발생했어요. 다시 시도해 주세요.' })
       return
     }
 
-    // 구매 성공 시 크레딧 갱신 & 구매목록 갱신
-    if (!data.already_purchased && book.price > 0) {
-      await refreshProfile()
-      setFlashMessage({ id: book.id, type: 'success', text: `${book.price} 크레딧이 차감됐어요.` })
-    }
     setPurchasedIds(prev => new Set([...prev, book.id]))
 
     // 다운로드 트리거
@@ -137,19 +137,18 @@ export default function Store() {
 
 
                   {flash && (
-                    <p className={`text-xs mb-2 ${flash.type === 'error' ? 'text-red-500' : 'text-emerald-600'}`}>
+                    <p className={`text-xs mb-2 ${
+                      flash.type === 'error' ? 'text-red-500'
+                      : flash.type === 'info' ? 'text-amber-600'
+                      : 'text-emerald-600'
+                    }`}>
                       {flash.text}
                     </p>
                   )}
 
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1 text-lg font-bold text-primary">
-                      {book.price === 0 ? '무료' : (
-                        <>
-                          <Coins size={18} className="text-accent" />
-                          {book.price.toLocaleString()}
-                        </>
-                      )}
+                    <span className="text-lg font-bold text-primary">
+                      {book.price === 0 ? '무료' : `${book.price.toLocaleString()}원`}
                     </span>
 
                     {book.file_url && (
@@ -168,12 +167,6 @@ export default function Store() {
                       </button>
                     )}
                   </div>
-
-                  {!isPurchased && book.price > 0 && user && (
-                    <p className="text-xs text-text-secondary mt-2">
-                      보유 크레딧: <span className="font-medium">{profile?.credits ?? 0}</span>
-                    </p>
-                  )}
                 </div>
               </div>
             )

@@ -5,18 +5,19 @@ export default function Refund() {
       <p className="text-text-secondary text-sm mb-8">최종 수정일: 2026년 4월</p>
 
       <section className="mb-8">
-        <h2 className="text-base font-semibold mb-2">1. 크레딧 환불 원칙</h2>
+        <h2 className="text-base font-semibold mb-2">1. 환불 원칙</h2>
         <p className="text-sm text-text-secondary leading-relaxed">
-          구매한 크레딧은 구매일로부터 7일 이내, 사용 내역이 없는 경우 전액 환불이 가능합니다.
-          단, 크레딧을 1회 이상 사용한 경우에는 잔여 크레딧에 대한 환불이 제한될 수 있습니다.
+          결제 후 3일 이내, 어떤 기능도 사용하지 않으신 경우 100% 전액 환불이 가능합니다.
+          (Writing 첨삭, Speaking 피드백, 모의고사, 자료실 다운로드 등 일체의 사용 내역이 없는 경우에 한함)
         </p>
       </section>
 
       <section className="mb-8">
         <h2 className="text-base font-semibold mb-2">2. 환불 불가 항목</h2>
         <p className="text-sm text-text-secondary leading-relaxed">
-          이미 사용된 크레딧(AI 피드백, 첨삭 등에 소진된 크레딧)은 환불되지 않습니다.<br />
-          이벤트·프로모션으로 무상 지급된 크레딧은 환불 대상이 아닙니다.
+          결제 후 단 한 번이라도 첨삭/모의고사/Speaking 피드백/자료실 등을 사용하신 경우 환불이 어렵습니다.<br />
+          결제일로부터 3일이 지난 경우에는 사용 여부와 관계없이 환불이 어렵습니다.<br />
+          이벤트·프로모션으로 무상 지급된 혜택은 환불 대상이 아닙니다.
         </p>
       </section>
 
