@@ -259,8 +259,10 @@ export default function Pricing() {
             <p className="text-sm md:text-xl font-bold text-primary">9.9만원<span className="text-[11px] md:text-sm font-medium">/2주</span></p>
           </div>
         </div>
-        <p className="text-[11px] md:text-xs text-text-secondary text-center mt-4">
-          🎯 1:1 Zoom 10회 + 무제한 첨삭으로 <strong className="text-text">혼자서도 1:1 코칭</strong>
+        <p className="text-[11px] md:text-xs text-text-secondary text-center mt-4 leading-relaxed">
+          🎯 <strong className="text-text">최소한의 도움으로, 최대한의 효과</strong>
+          <br />
+          Reading · Listening은 스스로, 혼자선 막히는 <strong className="text-text">Writing · Speaking만 저렴하게</strong>
         </p>
       </section>
 
