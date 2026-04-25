@@ -1,31 +1,116 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
+
+function detectInAppBrowser() {
+  const ua = navigator.userAgent || ''
+  if (/KAKAOTALK/i.test(ua)) return 'kakao'
+  if (/Instagram/i.test(ua)) return 'instagram'
+  if (/FBAN|FBAV/i.test(ua)) return 'facebook'
+  if (/Line/i.test(ua)) return 'line'
+  if (/NAVER/i.test(ua)) return 'naver'
+  if (/wv\)/i.test(ua)) return 'webview'
+  return null
+}
 
 export default function Login() {
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [inApp, setInApp] = useState(null)
   const { signInWithGoogle } = useAuth()
 
-  const isInAppBrowser = () => {
-    const ua = navigator.userAgent || ''
-    return /FBAN|FBAV|Instagram|SamsungBrowser.*CrossApp|NAVER|Line|KakaoTalk|wv\)/i.test(ua)
-  }
+  useEffect(() => {
+    setInApp(detectInAppBrowser() || (new URLSearchParams(window.location.search).get('inapp')))
+  }, [])
 
   const handleGoogle = async () => {
     setError('')
-    if (isInAppBrowser()) {
-      setError('인앱 브라우저에서는 Google 로그인이 지원되지 않습니다. 우측 상단 ⋮ 메뉴에서 "Chrome으로 열기" 또는 "외부 브라우저로 열기"를 선택해주세요.')
-      return
-    }
+    if (inApp) return // 인앱 브라우저면 버튼 비활성화 + 안내만 표시
     const { error: authError } = await signInWithGoogle()
     if (authError) setError(authError.message)
   }
 
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // fallback
+      const ta = document.createElement('textarea')
+      ta.value = window.location.href
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
   return (
-    <div className="max-w-sm mx-auto py-16">
+    <div className="max-w-sm mx-auto py-16 px-4">
       <h1 className="text-2xl font-bold text-center mb-2">로그인</h1>
       <p className="text-center text-text-secondary text-sm mb-8">
         Google 계정으로 간편하게 시작하세요
       </p>
+
+      {/* 🚨 인앱 브라우저 감지 시 안내 */}
+      {inApp && (
+        <div className="mb-6 p-4 rounded-xl bg-yellow-50 border border-yellow-300">
+          <div className="flex items-start gap-2 mb-3">
+            <span className="text-xl flex-shrink-0">⚠️</span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-text mb-1">
+                {inApp === 'kakao' && '카카오톡'}
+                {inApp === 'instagram' && '인스타그램'}
+                {inApp === 'facebook' && '페이스북'}
+                {inApp === 'line' && '라인'}
+                {inApp === 'naver' && '네이버'}
+                {inApp === 'webview' && '인앱'} 브라우저에서는 Google 로그인이 막혀있어요
+              </p>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Google 보안 정책상, 외부 브라우저(Chrome/Safari)에서만 로그인할 수 있어요.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-surface rounded-lg p-3 mb-3 text-xs text-text leading-relaxed">
+            <p className="font-semibold mb-1.5">📱 해결 방법</p>
+            {inApp === 'kakao' && (
+              <ol className="space-y-1 list-decimal list-inside text-text-secondary">
+                <li>아래 버튼으로 <strong className="text-text">URL을 복사</strong>하세요</li>
+                <li>우측 상단 <strong className="text-text">⋮ 메뉴 → "다른 브라우저로 열기"</strong></li>
+                <li>Chrome/Safari에 URL을 붙여넣고 로그인</li>
+              </ol>
+            )}
+            {inApp === 'instagram' && (
+              <ol className="space-y-1 list-decimal list-inside text-text-secondary">
+                <li>아래 버튼으로 <strong className="text-text">URL을 복사</strong>하세요</li>
+                <li>우측 상단 <strong className="text-text">⋯ 메뉴 → "외부 브라우저에서 열기"</strong></li>
+                <li>Chrome/Safari에 URL을 붙여넣고 로그인</li>
+              </ol>
+            )}
+            {inApp !== 'kakao' && inApp !== 'instagram' && (
+              <ol className="space-y-1 list-decimal list-inside text-text-secondary">
+                <li>아래 버튼으로 <strong className="text-text">URL을 복사</strong>하세요</li>
+                <li>Chrome 또는 Safari를 열어주세요</li>
+                <li>URL을 붙여넣고 로그인</li>
+              </ol>
+            )}
+          </div>
+
+          <button
+            onClick={handleCopyUrl}
+            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+              copied
+                ? 'bg-green-500 text-white'
+                : 'bg-primary text-white hover:bg-primary-dark'
+            }`}
+          >
+            {copied ? '✅ URL이 복사되었어요!' : '📋 페이지 URL 복사하기'}
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-error/10 text-error text-sm">{error}</div>
@@ -33,7 +118,8 @@ export default function Login() {
 
       <button
         onClick={handleGoogle}
-        className="w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-surface border border-border rounded-xl font-medium text-sm hover:bg-gray-50 hover:border-primary/30 transition-all"
+        disabled={!!inApp}
+        className="w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-surface border border-border rounded-xl font-medium text-sm hover:bg-gray-50 hover:border-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <svg width="18" height="18" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>

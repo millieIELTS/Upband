@@ -395,6 +395,38 @@ export default function Pricing() {
         </div>
       </section>
 
+      {/* 💌 결제 후 안내 */}
+      <section className="mb-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-5 md:p-6">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl flex-shrink-0">💌</span>
+          <div className="flex-1">
+            <p className="text-sm md:text-base font-bold text-text mb-2">
+              결제 후 꼭 카카오톡 채널로 알려주세요!
+            </p>
+            <p className="text-xs md:text-sm text-text-secondary leading-relaxed mb-3">
+              자동 알림 시스템 준비 중이라, 결제 후 아래 정보를 카카오톡 채널로 보내주시면
+              밀리쌤이 직접 확인하고 플랜을 활성화해드려요.
+            </p>
+            <div className="bg-surface rounded-xl border border-yellow-200 p-3 mb-3">
+              <p className="text-[11px] md:text-xs text-text-secondary mb-2 font-semibold">📋 보내주실 정보</p>
+              <ul className="space-y-1 text-xs md:text-sm text-text">
+                <li>① 가입한 <strong>이메일 주소</strong></li>
+                <li>② <strong>이름</strong></li>
+                <li>③ <strong>결제자 이름</strong> (카드 명의자)</li>
+              </ul>
+            </div>
+            <a
+              href="http://pf.kakao.com/_xbKxlCX"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#FEE500] text-[#3A1D1D] rounded-full text-xs md:text-sm font-bold no-underline hover:opacity-90 transition-opacity"
+            >
+              💬 카카오톡 채널로 보내기
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Trust strip */}
       <section className="text-center pb-12">
         <p className="text-xs text-text-secondary">
