@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink, BookText, Users, FileText, Pin, MessageSquare, Headphones, Sparkles, Award, Zap, Crown } from 'lucide-react'
+import { PenLine, Mic, Upload, ArrowRight, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Star, ExternalLink, BookText, Users, FileText, Pin, MessageSquare, Headphones, Sparkles, Award } from 'lucide-react'
 import { useMemo, useState, useRef, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useStreak } from '../hooks/useStreak'
@@ -364,34 +364,27 @@ function ReviewCarousel() {
             AI보다 <span className="text-accent">진짜 사람이</span>
           </h2>
           <p className="text-text-secondary text-sm sm:text-base mb-8 max-w-md mx-auto leading-relaxed">
-            IELTS 시험센터에서 강의해온 강사가 직접 첨삭하는
+            IELTS 시험센터에서 강의해온 강사가{' '}
             <br className="hidden sm:inline" />
-            합리적인 학습 플랜을 골라보세요.
+            직접 음성으로 피드백하는 2주 집중 코칭.
           </p>
 
-          {/* 3개 플랜 미니 미리보기 */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8 max-w-xl mx-auto">
-            <div className="bg-surface rounded-xl p-3 sm:p-4 border border-border">
-              <Zap size={18} className="text-primary mx-auto mb-1.5" />
-              <p className="text-[11px] sm:text-xs text-text-secondary mb-0.5">실전</p>
-              <p className="text-sm sm:text-base font-bold">29,900원</p>
-              <p className="text-[10px] sm:text-[11px] text-text-secondary mt-0.5">1주 무제한</p>
-            </div>
-            <div className="bg-primary/5 rounded-xl p-3 sm:p-4 border-2 border-primary relative">
-              <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-primary text-white text-[9px] sm:text-[10px] font-bold rounded-full whitespace-nowrap">
-                인기
-              </span>
-              <Crown size={18} className="text-purple-600 mx-auto mb-1.5" />
-              <p className="text-[11px] sm:text-xs text-primary font-semibold mb-0.5">집중</p>
-              <p className="text-sm sm:text-base font-bold">49,000원</p>
-              <p className="text-[10px] sm:text-[11px] text-text-secondary mt-0.5">2주 + 음성 피드백</p>
-            </div>
-            <div className="bg-surface rounded-xl p-3 sm:p-4 border border-border">
-              <Award size={18} className="text-accent mx-auto mb-1.5" />
-              <p className="text-[11px] sm:text-xs text-text-secondary mb-0.5">마스터</p>
-              <p className="text-sm sm:text-base font-bold">99,000원</p>
-              <p className="text-[10px] sm:text-[11px] text-text-secondary mt-0.5">2주 + Zoom 1:1</p>
-            </div>
+          {/* 단일 플랜 미니 미리보기 */}
+          <div className="bg-surface rounded-2xl p-5 sm:p-6 border-2 border-primary mb-8 max-w-md mx-auto relative">
+            <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-primary text-white text-[10px] sm:text-xs font-bold rounded-full whitespace-nowrap">
+              🔥 시험 직전 2주 부스트
+            </span>
+            <Award size={24} className="text-primary mx-auto mb-2 mt-1" />
+            <p className="text-sm sm:text-base text-primary font-bold mb-1">2주 집중 부스트</p>
+            <p className="text-2xl sm:text-3xl font-bold mb-2 whitespace-nowrap">
+              79,000원
+              <span className="text-xs sm:text-sm text-text-secondary font-medium">&nbsp;/&nbsp;2주</span>
+            </p>
+            <p className="text-[11px] sm:text-xs text-text-secondary leading-relaxed">
+              🎙️ Speaking 음성 피드백 10회<br />
+              ✍️ Writing AI 무제한 첨삭<br />
+              📚 자료실 무제한 다운로드
+            </p>
           </div>
 
           <Link
