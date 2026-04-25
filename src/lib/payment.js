@@ -85,7 +85,15 @@ export async function purchaseCreditPack(packId, payMethod = 'CARD') {
 
   // 유저 취소 / 결제 실패
   if (response?.code !== undefined) {
-    return { success: false, error: response.message || '결제가 취소되었습니다.' }
+    // 테스트 모드에서 간편결제 미지원 케이스 친절하게 처리
+    const msg = response.message || ''
+    if (/지원되지 않는|지원하지 않는|미지원/.test(msg) && payMethod !== 'CARD') {
+      return {
+        success: false,
+        error: `현재 ${payMethod === 'KAKAOPAY' ? '카카오페이' : payMethod === 'NAVERPAY' ? '네이버페이' : payMethod === 'TOSSPAY' ? '토스페이' : '간편결제'}는 준비 중이에요. 카드 결제로 진행해주세요.`,
+      }
+    }
+    return { success: false, error: msg || '결제가 취소되었습니다.' }
   }
 
   // 4. 서버에 결제 검증 요청
