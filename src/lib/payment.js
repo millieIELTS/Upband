@@ -39,20 +39,16 @@ export async function purchaseCreditPack(packId) {
     return { success: false, error: 'PortOne 설정이 필요합니다. (환경변수 확인)' }
   }
 
-  // NICE V1 모듈 호환을 위해 최소 파라미터만 사용
-  // (customer.customerId, customData 객체 등은 NICE V1에서 지원 안 함)
+  // NICE V1 (iamport00m 공용 테스트 가맹점) 호환 — 최소 파라미터만
+  // customer 필드도 일부 NICE V1에서 파싱 에러 발생 → 제거
   const response = await PortOne.requestPayment({
     storeId,
     channelKey,
-    paymentId: order_id,
+    paymentId: `pay-${order_id}`,
     orderName: `UpBand ${pack_name} (${credits}크레딧)`,
     totalAmount: amount,
     currency: 'CURRENCY_KRW',
     payMethod: 'CARD',
-    customer: {
-      fullName: session.user.email?.split('@')[0] || 'UpBand User',
-      email: session.user.email,
-    },
   })
 
   // 유저 취소 / 결제 실패
