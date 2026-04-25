@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { PenLine, Mic, LayoutDashboard, History, LogIn, LogOut, User, Coins, Menu, X, BookText, BookOpen, Users, FileText, Headphones, Flame } from 'lucide-react'
+import { PenLine, Mic, LayoutDashboard, History, LogIn, LogOut, User, Coins, Menu, X, BookText, BookOpen, Users, FileText, Headphones, Flame, Sparkles } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useStreak } from '../../hooks/useStreak'
 
@@ -14,6 +14,7 @@ const navItems = [
   { to: '/mock-test', label: 'Mock Test', icon: FileText },
   { to: '/history', label: '히스토리', icon: History },
   { to: '/community', label: '커뮤니티', icon: Users },
+  { to: '/pricing', label: '요금제', icon: Sparkles },
 ]
 
 export default function Navbar() {

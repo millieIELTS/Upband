@@ -1,5 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Check, Coins, Sparkles, Zap, Crown, ArrowRight, Star, Loader2, CreditCard, X } from 'lucide-react'
+import {
+  Sparkles, Zap, Crown, ArrowRight, Loader2,
+  CreditCard, X, Calendar, Award, ExternalLink,
+} from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { purchaseCreditPack } from '../lib/payment'
@@ -40,108 +43,107 @@ const PAY_METHODS = [
   },
 ]
 
-// 💳 크레딧 팩 정의
+// 💎 플랜 정의 (기간제 무제한 모델)
+// pack id는 기존 DB값(standard/focus/master) 유지 — 결제 호환성
 const PLANS = [
   {
-    id: 'starter',
-    name: 'Starter',
-    tagline: '처음 써보는 분께',
-    price: 9900,
-    credits: 10,
-    pricePerCredit: 990,
-    icon: Sparkles,
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    features: [
-      'Writing 피드백 약 3회',
-      '단어·리스닝 학습 무제한',
-      '기본 모의고사 이용',
-      '1주일 녹음 보관',
-    ],
-    highlight: false,
-  },
-  {
-    id: 'standard',
+    id: 'standard', // DB: standard
     name: '실전',
-    tagline: '가장 많이 선택해요',
+    tagline: '시험 1주 전 추천',
+    recommendedFor: '시험 1주 전',
     price: 29900,
-    credits: 35,
-    pricePerCredit: 854,
+    duration: '1주 무제한',
     icon: Zap,
     color: 'text-primary',
     bgColor: 'bg-primary/5',
-    borderColor: 'border-primary',
+    borderColor: 'border-border',
     features: [
-      'Writing 피드백 약 10회',
-      'Speaking AI 피드백 포함',
-      '전체 모의고사 이용',
-      '단어·리스닝 학습 무제한',
-      'E-Book 자료실 이용',
-    ],
-    highlight: true, // ⭐ 추천
-    badge: '추천',
-  },
-  {
-    id: 'focus',
-    name: '집중',
-    tagline: '시험이 곧 다가올 때',
-    price: 64900,
-    credits: 80,
-    pricePerCredit: 811,
-    icon: Crown,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-300',
-    features: [
-      'Writing 피드백 약 25회',
-      'Speaking AI 피드백 포함',
-      '모의고사 집중 모드',
-      '밀리쌤 커뮤니티 우선 답변',
-      '전자책 10% 추가 할인',
+      {
+        icon: '📚',
+        text: 'E-Book 자료실 무제한 이용',
+        emphasis: true,
+        sub: 'Writing 모범답안 · Speaking 토픽별 정리 · 어휘집 전체',
+      },
+      { icon: '✍️', text: 'Writing AI 첨삭 무제한 (1주)' },
+      { icon: '📝', text: 'Writing 모의고사 무제한' },
+      { icon: '🎓', text: '커뮤니티 답변' },
     ],
     highlight: false,
   },
   {
-    id: 'master',
+    id: 'focus', // DB: focus
+    name: '집중',
+    tagline: '시험 2-3주 전 · 가장 많이 선택',
+    recommendedFor: '시험 2-3주 전',
+    price: 49000,
+    duration: '2주 무제한',
+    icon: Crown,
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-primary',
+    features: [
+      { icon: '✍️', text: 'Writing AI 첨삭 무제한 (2주)' },
+      { icon: '📝', text: 'Writing 모의고사 무제한' },
+      {
+        icon: '🎙️',
+        text: 'Speaking 모의고사 강사 음성 피드백',
+        emphasis: true,
+        sub: '학생 녹음본을 밀리쌤이 직접 듣고 음성으로 답변',
+      },
+      { icon: '📚', text: 'E-Book 자료실 무제한 이용' },
+      { icon: '🎓', text: '커뮤니티 우선 답변' },
+    ],
+    highlight: true,
+    badge: '가장 많이 선택',
+  },
+  {
+    id: 'master', // DB: master
     name: '마스터',
-    tagline: '최고의 가성비',
-    price: 119900,
-    credits: 160,
-    pricePerCredit: 749,
-    icon: Star,
+    tagline: '시험 2주 전 · 1:1 Zoom 코칭 포함',
+    recommendedFor: '시험 2주 전 · 1:1',
+    price: 99000,
+    duration: '2주 무제한',
+    icon: Award,
     color: 'text-accent',
     bgColor: 'bg-accent/5',
     borderColor: 'border-accent/50',
     features: [
-      'Writing 피드백 약 50회',
-      'Speaking AI 피드백 무제한',
-      '모든 모의고사 무제한',
-      '1:1 첨삭 기회 1회 포함',
-      '전자책 20% 추가 할인',
-      '우선 고객 지원',
+      { icon: '✍️', text: 'Writing AI 첨삭 무제한 (2주)' },
+      { icon: '📝', text: 'Writing/Speaking 모의고사 무제한' },
+      {
+        icon: '🎯',
+        text: '강사 1:1 Zoom 첨삭 10회',
+        emphasis: true,
+        sub: '회당 20분 · 시험 + 즉석 피드백',
+      },
+      { icon: '📚', text: 'E-Book 자료실 무제한 이용' },
+      { icon: '⚡', text: '12시간 내 우선 답변' },
     ],
     highlight: false,
-    badge: '최고 가성비',
+    badge: '프리미엄',
   },
 ]
 
 const FAQ = [
   {
-    q: '크레딧은 언제까지 쓸 수 있어요?',
-    a: '구매일로부터 1년간 유효해요. 충분히 여유롭게 쓰실 수 있습니다.',
+    q: '플랜 기간이 끝나면 어떻게 되나요?',
+    a: '플랜 기간이 종료되면 무제한 첨삭/모의고사가 멈춰요. 다시 시작하시려면 플랜을 다시 선택하시면 됩니다. 매일 무료 2회 첨삭은 그대로 유지돼요!',
   },
   {
     q: '환불 가능한가요?',
-    a: '사용하지 않은 크레딧은 7일 이내 100% 환불 가능해요. 자세한 내용은 환불 규정을 참고해주세요.',
+    a: '결제 후 7일 이내, 첨삭 2회 이하 사용 시 미사용분 환불이 가능합니다. 자세한 환불 규정은 결제 안내를 확인해주세요.',
   },
   {
-    q: '크레딧은 어떻게 사용되나요?',
-    a: 'Writing/Speaking AI 피드백, E-Book 구매 등에 사용돼요. 단어·리스닝 학습은 모든 플랜에서 무제한이에요!',
+    q: '강사님이 직접 첨삭하는 게 추가되면 뭐가 다른가요?',
+    a: '보통 AI 첨삭 시스템들은 Speaking을 대부분 TTS(Text-to-Speech) 형태로만 처리해요. 그런데 이건 IELTS Speaking 시험의 핵심인 fluency(유창성)와 발음을 잡지 못합니다. 시험 포인트를 정확히 아는 강사가 학생 녹음을 직접 듣고 음성으로 피드백할 때 비로소 점수가 오릅니다. UpBand는 그 부분을 강사 직접 첨삭으로 채워요.',
   },
   {
-    q: '결제 방법은 뭐가 있나요?',
-    a: '카드결제, 카카오페이, 네이버페이 등 모두 가능합니다.',
+    q: '학원이랑 비교하면 가성비는?',
+    a: 'IELTS 1:1 학원 코스가 약 180만원, 그룹 강의가 60-120만원이에요. UpBand 마스터(99,000원/2주)는 1:1 Zoom 10회 + 무제한 첨삭으로 혼자서도 1:1 코칭을 받을 수 있게 설계했습니다.',
+  },
+  {
+    q: '모든 결제수단을 사용할 수 있나요?',
+    a: '카드(Visa, Master 등)와 카카오페이, 네이버페이, 토스페이 모두 가능해요. 안전한 토스페이먼츠 결제 시스템을 사용합니다.',
   },
 ]
 
@@ -149,9 +151,8 @@ export default function Pricing() {
   const navigate = useNavigate()
   const { user, refreshProfile } = useAuth()
   const [loadingPack, setLoadingPack] = useState(null)
-  const [selectedPlan, setSelectedPlan] = useState(null) // 결제수단 시트에 표시할 plan
+  const [selectedPlan, setSelectedPlan] = useState(null)
 
-  // 구매하기 버튼 클릭 → 결제수단 선택 시트 열기
   const openPaySheet = (plan) => {
     if (!user) {
       navigate('/login')
@@ -160,20 +161,18 @@ export default function Pricing() {
     setSelectedPlan(plan)
   }
 
-  // 결제수단 선택 → 실제 결제 진행
   const handlePaymentMethod = async (payMethod) => {
     if (!selectedPlan) return
     const planId = selectedPlan.id
-    setSelectedPlan(null) // 시트 닫기
+    setSelectedPlan(null)
     setLoadingPack(planId)
     try {
       const result = await purchaseCreditPack(planId, payMethod)
       if (result.success) {
         await refreshProfile()
-        alert(`🎉 결제 완료! ${result.credits}크레딧이 충전되었어요.`)
+        alert(`🎉 결제 완료! ${selectedPlan?.name || ''} 플랜이 활성화되었어요.`)
         navigate('/mypage')
       } else {
-        // 유저가 취소한 경우 조용히 처리
         if (!/취소/.test(result.error || '')) {
           alert('결제 실패: ' + result.error)
         }
@@ -190,68 +189,144 @@ export default function Pricing() {
       {/* Hero */}
       <section className="text-center py-12 md:py-16">
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium mb-4">
-          <Coins size={14} />
-          UpBand 크레딧 팩
+          <Sparkles size={14} />
+          시험 일정에 맞춰 시작하세요
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
-          믿고 따라오면<br />
-          <span className="text-primary">진짜 점수가 오르는</span> 학습
+        <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
+          학원보다 <span className="text-primary">저렴하게</span>,<br />
+          AI보다 <span className="text-accent">진짜 사람이</span>
         </h1>
         <p className="text-text-secondary text-sm md:text-base max-w-xl mx-auto">
-          내게 맞는 플랜을 선택하세요. 크레딧은 <strong className="text-text">1년간</strong> 유효하고,
-          사용하지 않으면 <strong className="text-text">7일 이내 전액 환불</strong>됩니다.
+          <strong className="text-text">밀리쌤이 직접 첨삭</strong>하는 IELTS 학습 플랜.
+          시험 일정에 맞춰 골라보세요.
+        </p>
+      </section>
+
+      {/* 🎓 강사 강조 박스 */}
+      <section className="bg-gradient-to-r from-primary/5 to-accent/5 rounded-2xl p-5 md:p-6 mb-8 border border-border">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Award size={22} className="text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm md:text-base font-bold mb-1">
+              🎯 시험 출제 포인트를 아는 강사가 직접 봅니다
+            </p>
+            <p className="text-xs md:text-sm text-text-secondary leading-relaxed">
+              AI는 도구일 뿐. 점수에 직결되는 핵심 피드백과 채점은
+              <strong className="text-text"> IELTS 시험센터에서 강의해온 강사</strong>가 직접 합니다.
+              <br />
+              그래서 다른 AI 첨삭 사이트와 결과가 달라요.
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface border border-border text-[11px] font-medium text-text-secondary">
+                📍 인천 IELTS 시험센터 강의
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface border border-border text-[11px] font-medium text-text-secondary">
+                📍 홍대 IELTS 시험센터 강의
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface border border-border text-[11px] font-medium text-text-secondary">
+                📍 강남 IELTS 시험센터 강의
+              </span>
+            </div>
+            {/* 인스타 후기 CTA */}
+            <a
+              href="http://www.instagram.com/m_jy4278"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-xs md:text-sm font-medium no-underline hover:opacity-90 transition-opacity"
+            >
+              <ExternalLink size={14} /> 인스타에서 학생 후기 더 보기
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* 🏆 합리적 가격 Anchor */}
+      <section className="mb-12 bg-surface rounded-2xl border border-border p-6">
+        <p className="text-xs text-text-secondary mb-3 text-center">학원이 부담스러우신가요?</p>
+        <div className="grid grid-cols-3 gap-3 md:gap-6">
+          <div className="text-center">
+            <p className="text-[11px] md:text-xs text-text-secondary mb-1">학원 1:1 코스</p>
+            <p className="text-sm md:text-xl font-bold text-text-secondary line-through">월 180만원</p>
+          </div>
+          <div className="text-center">
+            <p className="text-[11px] md:text-xs text-text-secondary mb-1">학원 그룹 강의</p>
+            <p className="text-sm md:text-xl font-bold text-text-secondary line-through">월 60-120만원</p>
+          </div>
+          <div className="text-center bg-primary/5 rounded-xl py-2 px-1">
+            <p className="text-[11px] md:text-xs text-primary font-semibold mb-1">UpBand 마스터</p>
+            <p className="text-sm md:text-xl font-bold text-primary">9.9만원<span className="text-[11px] md:text-sm font-medium">/2주</span></p>
+          </div>
+        </div>
+        <p className="text-[11px] md:text-xs text-text-secondary text-center mt-4">
+          🎯 1:1 Zoom 10회 + 무제한 첨삭으로 <strong className="text-text">혼자서도 1:1 코칭</strong>
         </p>
       </section>
 
       {/* Pricing Cards */}
-      <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-16">
+      <section className="grid md:grid-cols-3 gap-5 md:gap-6 mb-16">
         {PLANS.map((plan) => {
           const Icon = plan.icon
           return (
             <div
               key={plan.id}
-              className={`relative bg-surface rounded-2xl border-2 p-6 transition-all hover:shadow-lg hover:-translate-y-1 ${
+              className={`relative bg-surface rounded-2xl border-2 p-6 md:p-7 transition-all hover:shadow-xl hover:-translate-y-1 ${
                 plan.highlight ? plan.borderColor + ' shadow-md' : 'border-border'
               }`}
             >
               {/* Badge */}
               {plan.badge && (
-                <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold text-white ${
+                <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[11px] font-bold text-white whitespace-nowrap ${
                   plan.highlight ? 'bg-primary' : 'bg-accent'
                 }`}>
                   {plan.badge}
                 </div>
               )}
 
-              {/* Icon */}
-              <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl ${plan.bgColor} mb-4`}>
-                <Icon size={22} className={plan.color} />
+              {/* 시험 일정 추천 라벨 */}
+              <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium mb-4 ${
+                plan.highlight ? 'bg-primary/10 text-primary' : 'bg-bg text-text-secondary'
+              }`}>
+                <Calendar size={11} />
+                {plan.recommendedFor}
               </div>
 
-              {/* Name & Tagline */}
-              <h3 className="text-lg font-bold mb-1">{plan.name}</h3>
-              <p className="text-xs text-text-secondary mb-4">{plan.tagline}</p>
+              {/* Icon */}
+              <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${plan.bgColor} mb-3`}>
+                <Icon size={24} className={plan.color} />
+              </div>
+
+              {/* Name */}
+              <h3 className="text-2xl font-bold mb-1">{plan.name}</h3>
+              <p className="text-xs text-text-secondary mb-5">{plan.tagline}</p>
 
               {/* Price */}
-              <div className="mb-1">
-                <span className="text-2xl md:text-3xl font-bold">
+              <div className="mb-2">
+                <span className="text-3xl md:text-4xl font-bold">
                   ₩{plan.price.toLocaleString()}
                 </span>
               </div>
-
-              {/* Credits */}
-              <div className="flex items-center gap-1 mb-4 text-sm text-text-secondary">
-                <Coins size={14} className="text-accent" />
-                <span><strong className="text-text">{plan.credits}</strong> 크레딧</span>
-                <span className="text-xs">· ₩{plan.pricePerCredit}/credit</span>
+              <div className="flex items-center gap-1.5 mb-6">
+                <Sparkles size={14} className="text-accent" />
+                <span className="text-sm font-semibold text-accent">{plan.duration}</span>
               </div>
 
               {/* Features */}
-              <ul className="space-y-2 mb-6 text-sm">
+              <ul className="space-y-3 mb-7 text-sm">
                 {plan.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <Check size={16} className="text-primary mt-0.5 flex-shrink-0" />
-                    <span className="text-text-secondary">{feature}</span>
+                    <span className="flex-shrink-0">{feature.icon}</span>
+                    <div className="flex-1">
+                      <span className={feature.emphasis ? 'text-text font-semibold' : 'text-text-secondary'}>
+                        {feature.text}
+                      </span>
+                      {feature.sub && (
+                        <p className="text-[11px] text-text-secondary mt-0.5">
+                          {feature.sub}
+                        </p>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -260,14 +335,15 @@ export default function Pricing() {
               <button
                 onClick={() => openPaySheet(plan)}
                 disabled={loadingPack !== null}
-                className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 disabled:opacity-60 ${
+                className={`w-full py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 disabled:opacity-60 ${
                   plan.highlight
                     ? 'bg-primary text-white hover:bg-primary-dark'
-                    : 'bg-bg text-text hover:bg-primary/10 hover:text-primary'
+                    : 'bg-bg text-text hover:bg-primary/10 hover:text-primary border border-border'
                 }`}
               >
                 {loadingPack === plan.id && <Loader2 size={14} className="animate-spin" />}
-                {loadingPack === plan.id ? '결제 진행 중...' : '구매하기'}
+                {loadingPack === plan.id ? '결제 진행 중...' : '시작하기'}
+                {loadingPack !== plan.id && <ArrowRight size={14} />}
               </button>
             </div>
           )
@@ -280,23 +356,21 @@ export default function Pricing() {
           <div className="flex-1">
             <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
               <Sparkles size={20} className="text-accent" />
-              매일 <span className="text-accent">2 크레딧</span> 무료 충전!
+              가입만 해도 <span className="text-accent">매일 2회 무료</span> 첨삭!
             </h3>
             <p className="text-sm text-text-secondary">
-              가입만 해도 매일 <strong className="text-text">2 크레딧</strong>이 새로 들어와요.
-              Writing 제출·모의고사에 쓸 수 있고, <strong className="text-text">매일 새로 리필</strong>되니
-              꾸준히 공부하면 꾸준히 성장할 수 있어요!
-            </p>
-            <p className="text-[11px] text-text-secondary mt-2">
-              💡 안 쓴 크레딧은 다음날로 이월되지 않아요. 매일 2개로 리셋됩니다.
+              먼저 가입해서 매일 2회 무료 첨삭으로 밀리쌤 스타일을 경험해보세요.
+              결제는 그 다음에 결정하셔도 늦지 않아요.
             </p>
           </div>
-          <Link
-            to="/login"
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-accent text-white rounded-lg text-sm font-semibold hover:bg-accent/90 transition-colors no-underline whitespace-nowrap"
-          >
-            가입하고 시작 <ArrowRight size={14} />
-          </Link>
+          {!user && (
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-accent text-white rounded-lg text-sm font-semibold hover:bg-accent/90 transition-colors no-underline whitespace-nowrap"
+            >
+              가입하고 시작 <ArrowRight size={14} />
+            </Link>
+          )}
         </div>
       </section>
 
@@ -323,15 +397,12 @@ export default function Pricing() {
 
       {/* Trust strip */}
       <section className="text-center pb-12">
-        <p className="text-xs text-text-secondary mb-2">
-          🔒 안전한 결제 · 🎓 밀리쌤 직접 설계 · 💯 환불 보장
-        </p>
         <p className="text-xs text-text-secondary">
-          문의: <a href="http://pf.kakao.com/_xbKxlCX" target="_blank" rel="noopener noreferrer" className="text-primary font-medium">카카오톡 채널</a> · milliejiyeon@gmail.com
+          문의: <a href="http://pf.kakao.com/_xbKxlCX" target="_blank" rel="noopener noreferrer" className="text-primary font-medium">카카오톡 채널</a>
         </p>
       </section>
 
-      {/* 💳 결제수단 선택 시트 (모바일: 바닥, 데스크탑: 중앙) */}
+      {/* 💳 결제수단 선택 시트 */}
       {selectedPlan && (
         <div
           className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm"
@@ -341,7 +412,6 @@ export default function Pricing() {
             className="bg-surface w-full md:max-w-md rounded-t-3xl md:rounded-3xl p-6 md:p-8 animate-in slide-in-from-bottom duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 헤더 */}
             <div className="flex items-start justify-between mb-1">
               <div>
                 <h3 className="text-lg md:text-xl font-bold flex items-center gap-2">
@@ -358,19 +428,16 @@ export default function Pricing() {
               </button>
             </div>
 
-            {/* 주문 요약 */}
             <div className="flex items-center justify-between py-3 border-b border-border mb-4">
               <div>
                 <p className="text-sm font-medium">{selectedPlan.name}</p>
-                <p className="text-xs text-text-secondary flex items-center gap-1 mt-0.5">
-                  <Coins size={12} className="text-accent" />
-                  {selectedPlan.credits}크레딧
+                <p className="text-xs text-text-secondary mt-0.5">
+                  {selectedPlan.duration}
                 </p>
               </div>
               <p className="text-xl font-bold">₩{selectedPlan.price.toLocaleString()}</p>
             </div>
 
-            {/* 결제수단 버튼들 */}
             <div className="space-y-2">
               {PAY_METHODS.map((method) => (
                 <button
@@ -388,7 +455,6 @@ export default function Pricing() {
               ))}
             </div>
 
-            {/* 안전 안내 */}
             <p className="text-[11px] text-text-secondary text-center mt-4">
               🔒 안전한 결제 · 토스페이먼츠 보안 인증
             </p>
