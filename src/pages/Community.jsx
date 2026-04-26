@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Lightbulb, Star, ArrowRight, MessageCircle } from 'lucide-react'
+import { ArrowLeft, Lightbulb, Star, ArrowRight } from 'lucide-react'
 
 const categories = [
   {
@@ -36,25 +36,6 @@ export default function Community() {
       <p className="text-text-secondary text-sm mb-6">
         IELTS 준비생들과 함께 정보를 나누고 응원해요
       </p>
-
-      {/* 카톡 문의 안내 */}
-      <a
-        href="http://pf.kakao.com/_xbKxlCX"
-        target="_blank"
-        rel="noreferrer noopener"
-        className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 no-underline hover:border-yellow-400 transition-colors"
-      >
-        <div className="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center shrink-0">
-          <MessageCircle size={20} className="text-yellow-700" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-yellow-900">개별 질문은 카톡으로 문의해주세요</p>
-          <p className="text-xs text-yellow-800/80 mt-0.5">
-            점수·공부 고민·에세이 피드백 요청은 밀리쌤이 1:1로 답변드려요
-          </p>
-        </div>
-        <ArrowRight size={16} className="text-yellow-700 shrink-0" />
-      </a>
 
       <div className="grid gap-4">
         {categories.map((cat) => {
