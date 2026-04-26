@@ -4,7 +4,7 @@ import {
   ArrowLeft, Volume2, RotateCcw, CheckCircle2, ChevronRight, Headphones, Trophy,
 } from 'lucide-react'
 import { speakQuestion, stopSpeaking, pickSessionVoice } from '../lib/tts'
-import { LISTENING_BANDS, LISTENING_SENTENCES } from '../data/listeningSentences'
+import { LISTENING_BANDS, LISTENING_SENTENCES, LISTENING_TOPICS } from '../data/listeningSentences'
 import { useListeningProgress } from '../hooks/useListeningProgress'
 import { useStreak } from '../hooks/useStreak'
 
@@ -131,13 +131,14 @@ function computeDiff(original, userInput) {
 }
 
 export default function ListeningPractice() {
-  const { bandId } = useParams()
+  const { bandId, topicId } = useParams()
   const navigate = useNavigate()
   const { getProgress, saveProgress, resetProgress, loaded } = useListeningProgress()
   const { recordActivity } = useStreak()
 
   const band = LISTENING_BANDS.find((b) => b.id === bandId)
-  const sentences = LISTENING_SENTENCES[bandId] || []
+  const topic = LISTENING_TOPICS.find((t) => t.id === topicId)
+  const sentences = LISTENING_SENTENCES[bandId]?.[topicId] || []
 
   const [qIndex, setQIndex] = useState(0)
   const [userInput, setUserInput] = useState('')
@@ -182,7 +183,7 @@ export default function ListeningPractice() {
   // 저장된 진행도 복원 (마운트 직후 한 번만)
   useEffect(() => {
     if (!loaded || resumed) return
-    const saved = getProgress(bandId)
+    const saved = getProgress(bandId, topicId)
     if (saved > 0 && saved < sentences.length) {
       setQIndex(saved)
     }
@@ -203,7 +204,7 @@ export default function ListeningPractice() {
       stopSpeaking()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIdx, bandId, reviewMode])
+  }, [currentIdx, bandId, topicId, reviewMode])
 
   // 채점 단계에서도 dictating 끝나면 자동 포커스
   useEffect(() => {
@@ -243,17 +244,17 @@ export default function ListeningPractice() {
     if (qIndex + 1 < sentences.length) {
       const next = qIndex + 1
       setQIndex(next)
-      saveProgress(bandId, next) // 다음 문장 위치 저장
+      saveProgress(bandId, topicId, next) // 다음 문장 위치 저장
     } else {
-      saveProgress(bandId, sentences.length) // 완료 표시
+      saveProgress(bandId, topicId, sentences.length) // 완료 표시
       setStage('done')
     }
   }
 
-  if (!band || sentences.length === 0) {
+  if (!band || !topic || sentences.length === 0) {
     return (
       <div className="max-w-2xl mx-auto py-16 text-center">
-        <p className="text-text-secondary mb-4">Band 정보를 찾을 수 없습니다.</p>
+        <p className="text-text-secondary mb-4">자료를 찾을 수 없습니다.</p>
         <Link to="/listening" className="text-primary no-underline">난이도 선택으로</Link>
       </div>
     )
@@ -275,7 +276,7 @@ export default function ListeningPractice() {
     }
 
     const restartAll = () => {
-      resetProgress(bandId)
+      resetProgress(bandId, topicId)
       setQIndex(0)
       setResults({})
       setReviewMode(false)
@@ -291,7 +292,7 @@ export default function ListeningPractice() {
           {reviewMode ? '오답 복습 완료!' : '수고하셨어요!'}
         </h1>
         <p className="text-text-secondary mb-2">
-          {band.label} · {reviewMode ? `복습 ${reviewList.length}문장` : `전체 ${total}문장`}
+          {band.label} · {topic.emoji} {topic.name} · {reviewMode ? `복습 ${reviewList.length}문장` : `전체 ${total}문장`}
         </p>
         <div className="text-5xl font-bold text-primary my-6 font-mono">{avg}%</div>
         <p className="text-sm text-text-secondary mb-6">평균 정확도 (전체 문장 기준)</p>
@@ -358,10 +359,10 @@ export default function ListeningPractice() {
             <RotateCcw size={14} /> 처음부터
           </button>
           <button
-            onClick={() => navigate('/listening')}
+            onClick={() => navigate(`/listening/${bandId}`)}
             className="px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-dark transition-colors"
           >
-            다른 난이도로
+            다른 토픽으로
           </button>
         </div>
       </div>
@@ -374,11 +375,11 @@ export default function ListeningPractice() {
     <div className="max-w-2xl mx-auto py-6 px-4">
       {/* 상단 */}
       <div className="flex items-center justify-between mb-4">
-        <Link to="/listening" className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-primary no-underline">
-          <ArrowLeft size={14} /> 난이도 선택
+        <Link to={`/listening/${bandId}`} className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-primary no-underline">
+          <ArrowLeft size={14} /> 토픽 선택
         </Link>
         <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${reviewMode ? 'bg-red-50 text-red-600' : `${band.bg} ${band.color}`}`}>
-          {band.label}{reviewMode && ' · 📝 오답복습'} · {sessionPos + 1} / {sessionTotal}
+          {band.label} · {topic.emoji} {topic.name}{reviewMode && ' · 📝 오답복습'} · {sessionPos + 1} / {sessionTotal}
         </span>
       </div>
 

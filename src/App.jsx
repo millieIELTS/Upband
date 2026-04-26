@@ -70,7 +70,8 @@ function App() {
           <Route path="/vocab/:bandId" element={<RequireAuth><VocabSelect /></RequireAuth>} />
           <Route path="/vocab/:bandId/:topicId" element={<RequireAuth><VocabStudy /></RequireAuth>} />
           <Route path="/listening" element={<ListeningSelect />} />
-          <Route path="/listening/:bandId" element={<RequireAuth><ListeningPractice /></RequireAuth>} />
+          <Route path="/listening/:bandId" element={<RequireAuth><ListeningSelect /></RequireAuth>} />
+          <Route path="/listening/:bandId/:topicId" element={<RequireAuth><ListeningPractice /></RequireAuth>} />
           <Route path="/community" element={<Community />} />
           <Route path="/community/:categoryId" element={<RequireAuth><CommunityBoard /></RequireAuth>} />
           <Route path="/community/:categoryId/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />

@@ -1,5 +1,10 @@
-// IELTS Listening 받아쓰기 연습 문장 풀
-// 각 Band 수준별 20문장, TTS로 재생 → 학생이 받아쓰기 → 단어 단위로 정답 확인
+// IELTS Listening 받아쓰기 — Band별 · 토픽별 (단어 공부와 동일한 토픽 구조)
+// 각 (band, topic) 조합마다 15문장. TTS로 재생 → 받아쓰기 → 단어 단위 채점
+
+import { band45 } from './listening-band45'
+import { band6 } from './listening-band6'
+import { band7plus } from './listening-band7plus'
+import { topics } from './synonyms'
 
 export const LISTENING_BANDS = [
   {
@@ -28,71 +33,12 @@ export const LISTENING_BANDS = [
   },
 ]
 
+// 토픽 리스트 (단어 공부와 동일)
+export const LISTENING_TOPICS = topics
+
+// 데이터: { bandId: { topicId: [문장 15개] } }
 export const LISTENING_SENTENCES = {
-  '4-5': [
-    'My favourite hobby is reading novels in my free time.',
-    'I usually travel to work by bus because it is cheaper.',
-    'The weather in my hometown is very hot during the summer.',
-    'I have two older brothers and one younger sister.',
-    'Last weekend I visited my grandmother in the countryside.',
-    'My best friend and I often play tennis on Saturdays.',
-    'Shopping at local markets is much cheaper than going to supermarkets.',
-    'I started learning English when I was about ten years old.',
-    'Every morning I drink a cup of coffee before going out.',
-    'On weekends I like to cook pasta for my family.',
-    'The library near my house is a quiet place for studying.',
-    'I prefer spending my holidays by the sea rather than in the mountains.',
-    'Most children in my country learn a second language at school.',
-    'My brother works in a small office in the city centre.',
-    'I usually watch a film on Friday evenings with my friends.',
-    'There is a beautiful park behind my apartment building.',
-    'I bought a new pair of shoes last week at the mall.',
-    'My mother makes the best traditional food I have ever tasted.',
-    'Walking to school every morning keeps me healthy and active.',
-    'My favourite season is autumn because the weather is cool and pleasant.',
-  ],
-  '6': [
-    'Many young people today prefer to communicate through social media rather than face-to-face conversations.',
-    'Studying abroad can be an excellent opportunity to improve language skills and experience a different culture.',
-    'Public transportation is often more reliable than driving a private car in busy city centres.',
-    'Some parents believe that children should start learning a second language at a very early age.',
-    'Online shopping has become increasingly popular because it is both convenient and time-saving.',
-    'Traditional festivals play an important role in preserving cultural heritage and bringing communities together.',
-    'Working from home offers greater flexibility but it can also lead to feelings of isolation.',
-    'Governments should invest more in renewable energy to reduce pollution and fight climate change.',
-    'Regular physical exercise is essential for maintaining both physical health and mental well-being.',
-    'Reading books is generally considered more beneficial for the brain than watching television.',
-    'Tourism contributes significantly to the economy but it can also damage local environments.',
-    'A balanced diet combined with sufficient sleep greatly improves concentration and academic performance.',
-    'Many people argue that art and music should be compulsory subjects in all primary schools.',
-    'Living in a large city offers more opportunities but also brings higher levels of stress.',
-    'Companies are increasingly offering flexible working hours in order to attract talented employees.',
-    'Reducing single-use plastics is one of the simplest ways to protect marine ecosystems.',
-    'Advances in medical technology have significantly extended the average life expectancy in recent decades.',
-    'Teenagers spend a considerable amount of time on their phones, which concerns many parents.',
-    'Volunteering for local charities not only helps the community but also develops valuable personal skills.',
-    'Small changes in daily habits, such as recycling, can have a substantial impact over time.',
-  ],
-  '7': [
-    'Despite considerable advances in technology, the fundamental challenges of sustainable urban development remain largely unresolved.',
-    'It could be argued that excessive reliance on smartphones has diminished our capacity for meaningful interpersonal communication.',
-    'The widespread adoption of artificial intelligence is expected to reshape employment patterns significantly within the next decade.',
-    'Environmental conservation efforts must be complemented by substantial behavioural changes at both individual and institutional levels.',
-    'Although globalisation has generated remarkable economic opportunities, it has simultaneously exacerbated cultural homogenisation in many regions.',
-    'Critics contend that the commercialisation of higher education undermines its traditional role as a pillar of intellectual freedom.',
-    'The accelerating pace of climate change poses unprecedented threats to biodiversity, particularly in ecologically fragile coastal regions.',
-    'Proficiency in a foreign language is not merely about vocabulary acquisition but also about grasping subtle cultural nuances.',
-    'Contrary to popular belief, prolonged exposure to social media may contribute to heightened levels of anxiety among adolescents.',
-    'A compelling argument can be made that investment in preventative healthcare yields greater long-term benefits than reactive treatment.',
-    'The disparity between urban and rural educational resources continues to hinder equitable access to higher education worldwide.',
-    'Economic policies aimed at short-term growth often neglect the environmental consequences borne by future generations.',
-    'Recent studies suggest that mindfulness practices may alleviate stress and enhance overall cognitive functioning in workplace settings.',
-    'The proliferation of misinformation online has complicated the public ability to distinguish credible journalism from unreliable sources.',
-    'Sustainable agriculture, when combined with innovative irrigation techniques, has the potential to significantly reduce global water consumption.',
-    'It is widely accepted that intrinsic motivation leads to more enduring learning outcomes than external rewards or punishments.',
-    'Urban planners are increasingly prioritising pedestrian-friendly designs to mitigate traffic congestion and promote healthier lifestyles.',
-    'Linguistic diversity, though often overlooked, plays a crucial role in safeguarding the cultural identity of indigenous communities.',
-    'Despite widespread awareness of its risks, the consumption of ultra-processed foods continues to rise in developing economies.',
-    'The interplay between genetic predisposition and environmental factors remains a central focus of contemporary medical research.',
-  ],
+  '4-5': band45,
+  '6': band6,
+  '7': band7plus,
 }
