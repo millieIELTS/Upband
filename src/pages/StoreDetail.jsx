@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
-  BookOpen, Download, Lock, ArrowLeft, MessageSquare, Target, List, Eye, Sparkles, CheckCircle2,
+  BookOpen, Download, Lock, ArrowLeft, MessageSquare, Target, List, Eye, Sparkles, CheckCircle2, Loader2,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { purchaseEbook } from '../lib/payment'
+import PaymentMethodSheet from '../components/PaymentMethodSheet'
 
 export default function StoreDetail() {
   const { id } = useParams()
@@ -16,6 +18,7 @@ export default function StoreDetail() {
   const [isPurchased, setIsPurchased] = useState(false)
   const [processing, setProcessing] = useState(false)
   const [message, setMessage] = useState(null)
+  const [showPaySheet, setShowPaySheet] = useState(false)
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -44,37 +47,61 @@ export default function StoreDetail() {
 
   useEffect(() => { load() }, [load])
 
+  const triggerDownload = (fileUrl) => {
+    const a = document.createElement('a')
+    a.href = `${fileUrl}?download=`
+    a.click()
+  }
+
   const handleDownload = async () => {
     if (!user) {
       navigate('/login')
       return
     }
 
-    // 유료 자료: 결제 시스템 준비 중
-    if (book.price > 0 && !isPurchased) {
-      setMessage({
-        type: 'info',
-        text: '결제 시스템 준비 중이에요. 곧 구매할 수 있도록 추가됩니다.',
-      })
+    // 무료 또는 이미 구매: purchase_ebook RPC 호출
+    if (book.price === 0 || isPurchased) {
+      setProcessing(true)
+      setMessage(null)
+
+      const { data, error } = await supabase.rpc('purchase_ebook', { p_ebook_id: id })
+      setProcessing(false)
+
+      if (error || !data?.success) {
+        setMessage({ type: 'error', text: '오류가 발생했어요. 다시 시도해 주세요.' })
+        return
+      }
+
+      setIsPurchased(true)
+      triggerDownload(data.file_url)
       return
     }
 
+    // 유료 자료 → 결제 모달
+    setShowPaySheet(true)
+  }
+
+  const handlePaymentMethod = async (payMethod) => {
+    setShowPaySheet(false)
     setProcessing(true)
     setMessage(null)
 
-    const { data, error } = await supabase.rpc('purchase_ebook', { p_ebook_id: id })
-    setProcessing(false)
-
-    if (error || !data?.success) {
-      setMessage({ type: 'error', text: '오류가 발생했어요. 다시 시도해 주세요.' })
-      return
+    try {
+      const result = await purchaseEbook(id, payMethod)
+      if (result.success) {
+        setIsPurchased(true)
+        setMessage({ type: 'success', text: '🎉 결제 완료! 다운로드를 시작합니다.' })
+        if (result.file_url) triggerDownload(result.file_url)
+      } else {
+        if (!/취소/.test(result.error || '')) {
+          setMessage({ type: 'error', text: '결제 실패: ' + result.error })
+        }
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: '결제 중 오류: ' + err.message })
+    } finally {
+      setProcessing(false)
     }
-
-    setIsPurchased(true)
-
-    const a = document.createElement('a')
-    a.href = `${data.file_url}?download=`
-    a.click()
   }
 
   if (loading) return <div className="text-center py-16 text-text-secondary">불러오는 중...</div>
@@ -144,7 +171,7 @@ export default function StoreDetail() {
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
           >
             {processing ? (
-              <span className="animate-pulse">처리 중...</span>
+              <><Loader2 size={16} className="animate-spin" /> 처리 중...</>
             ) : isPurchased ? (
               <><Download size={16} /> 다운로드</>
             ) : (
@@ -245,6 +272,15 @@ export default function StoreDetail() {
           </button>
         </div>
       )}
+
+      <PaymentMethodSheet
+        open={showPaySheet}
+        onClose={() => setShowPaySheet(false)}
+        onSelect={handlePaymentMethod}
+        itemName={book.title}
+        itemDesc="E-Book 자료"
+        amount={book.price}
+      />
     </div>
   )
 }

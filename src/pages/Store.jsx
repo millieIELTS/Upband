@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
-import { BookOpen, Download, Lock, ArrowRight } from 'lucide-react'
+import { BookOpen, Download, Lock, ArrowRight, Loader2 } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { purchaseEbook } from '../lib/payment'
+import PaymentMethodSheet from '../components/PaymentMethodSheet'
 
 export default function Store() {
   const [ebooks, setEbooks] = useState([])
@@ -11,6 +13,7 @@ export default function Store() {
   const [purchasedIds, setPurchasedIds] = useState(new Set())
   const [loadingId, setLoadingId] = useState(null)
   const [flashMessage, setFlashMessage] = useState(null) // { id, type, text }
+  const [paySheetBook, setPaySheetBook] = useState(null) // 결제수단 선택 모달용
 
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -44,40 +47,64 @@ export default function Store() {
     fetchPurchased()
   }, [fetchPurchased])
 
-  const handleDownload = async (book) => {
+  const triggerDownload = (fileUrl) => {
+    const a = document.createElement('a')
+    a.href = `${fileUrl}?download=`
+    a.click()
+  }
+
+  const handleClick = async (book) => {
     if (!user) {
       navigate('/login')
       return
     }
 
-    // 유료 자료: 결제 시스템 준비 중
-    if (book.price > 0 && !purchasedIds.has(book.id)) {
-      setFlashMessage({
-        id: book.id,
-        type: 'info',
-        text: '결제 시스템 준비 중이에요. 곧 구매할 수 있도록 추가됩니다.',
-      })
+    // 무료 자료: 기존 purchase_ebook RPC로 즉시 다운로드
+    if (book.price === 0 || purchasedIds.has(book.id)) {
+      setLoadingId(book.id)
+      setFlashMessage(null)
+
+      const { data, error: rpcError } = await supabase.rpc('purchase_ebook', { p_ebook_id: book.id })
+
+      setLoadingId(null)
+
+      if (rpcError || !data?.success) {
+        setFlashMessage({ id: book.id, type: 'error', text: '오류가 발생했어요. 다시 시도해 주세요.' })
+        return
+      }
+
+      setPurchasedIds(prev => new Set([...prev, book.id]))
+      triggerDownload(data.file_url)
       return
     }
 
+    // 유료 자료: 결제 모달 열기
+    setPaySheetBook(book)
+  }
+
+  const handlePaymentMethod = async (payMethod) => {
+    const book = paySheetBook
+    if (!book) return
+    setPaySheetBook(null)
     setLoadingId(book.id)
     setFlashMessage(null)
 
-    const { data, error: rpcError } = await supabase.rpc('purchase_ebook', { p_ebook_id: book.id })
-
-    setLoadingId(null)
-
-    if (rpcError || !data?.success) {
-      setFlashMessage({ id: book.id, type: 'error', text: '오류가 발생했어요. 다시 시도해 주세요.' })
-      return
+    try {
+      const result = await purchaseEbook(book.id, payMethod)
+      if (result.success) {
+        setPurchasedIds(prev => new Set([...prev, book.id]))
+        setFlashMessage({ id: book.id, type: 'success', text: '🎉 결제 완료! 다운로드를 시작합니다.' })
+        if (result.file_url) triggerDownload(result.file_url)
+      } else {
+        if (!/취소/.test(result.error || '')) {
+          setFlashMessage({ id: book.id, type: 'error', text: '결제 실패: ' + result.error })
+        }
+      }
+    } catch (err) {
+      setFlashMessage({ id: book.id, type: 'error', text: '결제 중 오류: ' + err.message })
+    } finally {
+      setLoadingId(null)
     }
-
-    setPurchasedIds(prev => new Set([...prev, book.id]))
-
-    // 다운로드 트리거
-    const a = document.createElement('a')
-    a.href = `${data.file_url}?download=`
-    a.click()
   }
 
   if (loading) return <div className="text-center py-16 text-text-secondary">불러오는 중...</div>
@@ -153,12 +180,12 @@ export default function Store() {
 
                     {book.file_url && (
                       <button
-                        onClick={() => handleDownload(book)}
+                        onClick={() => handleClick(book)}
                         disabled={isLoading}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white hover:bg-primary-dark"
                       >
                         {isLoading ? (
-                          <span className="animate-pulse">처리 중...</span>
+                          <><Loader2 size={14} className="animate-spin" /> 처리 중...</>
                         ) : isPurchased ? (
                           <><Download size={14} /> 다운로드</>
                         ) : (
@@ -173,6 +200,15 @@ export default function Store() {
           })}
         </div>
       )}
+
+      <PaymentMethodSheet
+        open={!!paySheetBook}
+        onClose={() => setPaySheetBook(null)}
+        onSelect={handlePaymentMethod}
+        itemName={paySheetBook?.title || ''}
+        itemDesc="E-Book 자료"
+        amount={paySheetBook?.price || 0}
+      />
     </div>
   )
 }

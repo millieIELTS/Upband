@@ -114,3 +114,82 @@ export async function purchaseCreditPack(packId, payMethod = 'CARD') {
   const verifyData = await verifyRes.json()
   return { success: true, credits: verifyData.credits_granted }
 }
+
+/**
+ * E-Book 직접 결제 (자료실용)
+ *
+ * @param {string} ebookId - ebooks.id (uuid)
+ * @param {string} payMethod - 'CARD' | 'KAKAOPAY' | 'NAVERPAY' | 'TOSSPAY' | 'SAMSUNGPAY'
+ * @returns {Promise<{success: boolean, file_url?: string, ebook_id?: string, error?: string}>}
+ */
+export async function purchaseEbook(ebookId, payMethod = 'CARD') {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
+    return { success: false, error: '로그인이 필요합니다.' }
+  }
+
+  const prepareRes = await fetch('/api/payment/ebook-prepare', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ ebook_id: ebookId }),
+  })
+
+  if (!prepareRes.ok) {
+    const err = await prepareRes.json().catch(() => ({}))
+    return { success: false, error: err.error || '주문 생성 실패' }
+  }
+
+  const { order_id, amount, ebook_title } = await prepareRes.json()
+
+  const storeId = import.meta.env.VITE_PORTONE_STORE_ID
+  const channelKey = import.meta.env.VITE_PORTONE_CHANNEL_KEY
+
+  if (!storeId || !channelKey) {
+    return { success: false, error: 'PortOne 설정이 필요합니다. (환경변수 확인)' }
+  }
+
+  const response = await PortOne.requestPayment({
+    storeId,
+    channelKey,
+    paymentId: `ebook-${order_id}`,
+    orderName: `UpBand 자료 · ${ebook_title}`,
+    totalAmount: amount,
+    currency: 'CURRENCY_KRW',
+    ...buildPayMethodParams(payMethod),
+  })
+
+  if (response?.code !== undefined) {
+    const msg = response.message || ''
+    if (/지원되지 않는|지원하지 않는|미지원/.test(msg) && payMethod !== 'CARD') {
+      return {
+        success: false,
+        error: `현재 ${payMethod === 'KAKAOPAY' ? '카카오페이' : payMethod === 'NAVERPAY' ? '네이버페이' : payMethod === 'TOSSPAY' ? '토스페이' : '간편결제'}는 준비 중이에요. 카드 결제로 진행해주세요.`,
+      }
+    }
+    return { success: false, error: msg || '결제가 취소되었습니다.' }
+  }
+
+  const verifyRes = await fetch('/api/payment/ebook-verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      order_id,
+      pg_payment_id: response.paymentId,
+    }),
+  })
+
+  if (!verifyRes.ok) {
+    const err = await verifyRes.json().catch(() => ({}))
+    return { success: false, error: err.error || '결제 검증 실패' }
+  }
+
+  const verifyData = await verifyRes.json()
+  return {
+    success: true,
+    ebook_id: verifyData.ebook_id,
+    file_url: verifyData.file_url,
+  }
+}
